@@ -13,8 +13,9 @@
 
 ## 2. 架構
 
-- **Notion = 唯一資料來源**(雲端)。其餘皆本機檔;整個 `project_protein` 資料夾交 Google Drive 桌面版同步
-  (**不要自己寫上傳**)。
+- **Notion = 唯一資料來源**(雲端)。程式碼與文件以 **GitHub** 版控(private repo `Captain-Tim/project_protein`);
+  token 等機密是**本機檔、不進 git**(見 §3)。專案位置 `C:\Users\Ting\Documents\GitHub\project_protein`。
+  (歷史:2026-06 前曾用 Google Drive 同步整夾,已改為 GitHub;Drive 與 git 同步會打架,勿再放回 Drive 同步夾。)
 - **`dashboard.html` 是單一自含檔**:版面/圖表邏輯 + 內嵌資料(`window.WORKOUT_DATA={...}`,夾在
   `/*WORKOUT_DATA_START*/`…`/*WORKOUT_DATA_END*/` 之間)。雙擊即用、不需 server、**分享只需傳這一個檔**
   (手機離線也能開)。`export.js` 用正則替換這段標記區塊,**勿手改其間內容**。
@@ -22,13 +23,14 @@
 
 ## 3. Token / 機密
 
-- token 存根目錄 `notion_token.txt`(純文字一行),腳本以 `fs.readFileSync` 讀取。會隨 Google Drive 同步,
-  使用者已知並接受(blast radius 僅限此 token 分享到的資源)。
+- token 存根目錄 `notion_token.txt`(純文字一行),腳本以 `fs.readFileSync` 讀取。**本機檔,被 `.gitignore` 擋住,
+  不會上 GitHub**(已驗證遠端為 404)。token 檔僅存在本機;掉了就去 Notion 設定頁 regenerate。建議另存一份到密碼管理器備份。
 - **資安界線(重要)**:此 integration **只能分享給 Workout Database**,不得加入任何敏感資料庫
-  (如「家人用藥紀錄」)。若日後需 API 存取敏感 DB,**另開獨立 integration**,且 token 不放進同步資料夾。
+  (如「家人用藥紀錄」)。若日後需 API 存取敏感 DB,**另開獨立 integration**,且 token 同樣不進 git / 不外流。
 - token 隨時可在 integration 設定頁重新產生以撤銷舊的。
-- **Netlify token**(`netlify_token.txt`):分享用的部署 token(見 §6 publish)。是**整個 Netlify 帳號**權限、
-  也隨 Google Drive 同步;建議用專用 Netlify 帳號降低 blast radius。別外傳、別上傳。
+- **Netlify token**(`netlify_token.txt`):分享用的部署 token(見 §6 publish)。是**整個 Netlify 帳號**權限,
+  同樣**本機檔、`.gitignore` 擋住、不上 GitHub**;建議用專用 Netlify 帳號降低 blast radius。別外傳、別上傳。
+- `.gitignore` 已用 glob(`*token*.txt`、`*secret*`、`*.key`、`*.pem`)做安全網,日後新增 token 檔也會自動被擋。
 
 ## 4. Notion 識別碼
 

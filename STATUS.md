@@ -20,22 +20,27 @@
 
 ## 1. ⚠️ 環境須知(最容易踩雷,先看)
 
-### 1a. 本機資訊(2026-06 換機後)
-- 機器路徑:`C:\Users\Ting\Desktop\project_protein`(Windows 10,使用者 `Ting`)。
+### 1a. 本機資訊(2026-06 換機 + 上 GitHub 後)
+- 機器路徑:`C:\Users\Ting\Documents\GitHub\project_protein`(Windows 10,使用者 `Ting`)。
+  **已脫離 Google Drive**(原本在 `Desktop\project_protein` 被 Drive 鏡像,會與 git 打架;改放 Documents\GitHub)。
+- GitHub:private repo `Captain-Tim/project_protein`,預設分支 `master`。日常 `git`/`gh` 操作即可。
 - **Node v24.16.0**(2026-06 用 `winget install OpenJS.NodeJS.LTS --scope user` 裝的,已在 PATH)。
-- **git 2.22**、**gh CLI 2.94**(GitHub 操作用 gh)。也有 GitHub Desktop。
+- **git 2.54**、**gh CLI 2.94**(GitHub 操作用 gh)。也有 GitHub Desktop。
 - 沒有可用的 Python(`python` 是 Microsoft Store 假 stub)。所有腳本都是 `.js`,用 `node xxx.js` 跑。
 - `update.cmd` / `publish.cmd` 會先找 PATH 的 `node`,找不到才退回 winget 安裝路徑當保險。
 - **換機注意**:新機器必須裝 **Node 18+**,否則 `export.js` 跑不起來。
 
 ### 1b. 記憶與對話歷史「不在」專案資料夾裡
-- Claude Code 的記憶存在 `C:\Users\Ting\.claude\projects\c--Users-Ting-Desktop-project-protein\memory\`,**不在** `project_protein` 內。
+- Claude Code 的記憶存在 `C:\Users\Ting\.claude\projects\c--Users-Ting-Documents-GitHub-project-protein\memory\`,**不在** `project_protein` 內。
+  (key 由專案絕對路徑推導;從 Desktop 搬到 Documents 後 key 已改,Desktop 時期的舊記憶不會跟過來——靠本檔接手即可。)
 - 記憶以**專案絕對路徑**當 key。換機若路徑或 Windows 使用者名不同 → 舊記憶對不上,但**專案檔照常運作**,靠本檔 + `CLAUDE.md` 接手即可。
 
 ### 1c. 機密(重要)
-- `notion_token.txt`、`netlify_token.txt`、`token.txt` 是明文 token,**只靠 Google Drive 私人同步**。
-- **已被 `.gitignore` 擋掉,嚴禁進 git**。上 GitHub 後務必確認網頁上看不到這些檔。
+- `notion_token.txt`、`netlify_token.txt`、`token.txt` 是明文 token,**只存在本機**(已不再靠 Drive)。
+- **已被 `.gitignore` 擋掉(含 glob 安全網),嚴禁進 git**;遠端已驗證為 404,確認沒上傳。
+- token 不隨 git 走:在別台 clone 後要**手動補這幾個檔**(或重新 regenerate)才能跑 export/publish。
 - Notion token 只分享給 Workout Database;Netlify token 是整個帳號權限(blast radius 大,別外傳)。
+- `token.txt` 沒有任何腳本在用(遺留檔),可考慮刪;不確定就留著。
 
 ---
 
@@ -47,9 +52,10 @@
 | 2 | Schema 清理:刪舊頁、DROP 舊動作數字欄、移除 Type 的 Report 選項 | ✅ |
 | 3 | `scripts/export.js`:Notion → 注入 dashboard.html | ✅ |
 | 4 | `dashboard.html`:dark mode、多視圖 | ✅(排版暫定) |
-| 5 | 換機修復:裝 Node/gh、修 .cmd fallback 路徑、清孤兒檔 | ✅(2026-06-14) |
-| 6 | 上 GitHub(private repo) | ⏳ 進行中 |
-| 7 | **Stop hook**:session 結束自動跑 export | ⏳ **未做** |
+| 5 | 換機修復:裝 Node/git/gh、修 .cmd fallback 路徑、清孤兒檔 | ✅(2026-06-14) |
+| 6 | 上 GitHub(private repo)+ 驗證 token 不在遠端 | ✅(2026-06-14) |
+| 7 | 脫離 Google Drive、搬到 `Documents\GitHub` | ⏳ 收尾(停 Drive 同步、刪桌面舊份) |
+| 8 | **Stop hook**:session 結束自動跑 export | ⏳ **未做** |
 
 現存 Notion **34 筆** active session;DB 欄位只剩 `Date / Type / Quality / Energy / 標題`,動作明細在頁面內文 JSON block。
 
@@ -57,7 +63,7 @@
 
 ## 3. 待辦(TODO,依重要性)
 
-1. **上 GitHub 收尾**:確認 `git status` 乾淨、`.gitignore` 生效(token 不在追蹤清單)、push 後網頁看不到 token。
+1. **脫離 Drive 收尾**(換機最後一哩):(a) 在 Google Drive 偏好設定→「我的電腦」停止同步桌面那份 `project_protein`;(b) VS Code 開新位置 `Documents\GitHub\project_protein`;(c) 刪掉 `Desktop\project_protein` 舊份。
 2. **Stop hook**:在 `.claude/settings.json` 設 Stop hook 跑 `node scripts/export.js`,讓 dashboard 自動同步。可用 update-config skill。
 3. **記錄新訓練**:在 Claude 網頁/App 用 `notion-project-protein-log-workout` skill 寫 JSON block 進 Notion(skill 在網頁端維護,本機不留 skill 檔)。
 4. **(待使用者決定)** All time 模式下那顆 badge(😴/👍/🔥)要不要也拿掉。
@@ -72,7 +78,7 @@ project_protein/
 ├─ notion_token.txt    ← Notion token(機密,gitignore)
 ├─ netlify_token.txt   ← Netlify token(機密,gitignore)
 ├─ token.txt           ← (機密,gitignore)
-├─ .gitignore          ← 擋 token 三檔 + scripts/netlify_site.txt
+├─ .gitignore          ← 擋 token(含 glob 安全網)、netlify_site.txt、Drive 暫存夾、node_modules 等
 ├─ CLAUDE.md           ← 完整設計與決策(權威)
 ├─ STATUS.md           ← 本檔
 ├─ update.cmd          ← 自己看:export 刷新 + 開 dashboard
