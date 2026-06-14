@@ -1,0 +1,1626 @@
+[
+  {
+    "id": "2f8a947a-dbb9-80ef-b08c-f9e0c4ffbc11",
+    "Date": "2026-01-26",
+    "Type": "Cardio",
+    "json": {
+      "cardio": [
+        {
+          "exercise": "Zone 2",
+          "duration_min": 60,
+          "note": "心率 150 bpm，偏高，已超出 Zone 2 區間"
+        }
+      ]
+    }
+  },
+  {
+    "id": "2f8a947a-dbb9-80fc-961c-c807ceda3e90",
+    "Date": "2026-01-28",
+    "Type": "Cardio",
+    "json": {
+      "cardio": [
+        {
+          "exercise": "Zone 2",
+          "duration_min": 60,
+          "note": "心率降至 140 bpm，較上次改善，配速 5.5–6 km/h"
+        }
+      ]
+    }
+  },
+  {
+    "id": "2f8a947a-dbb9-8022-aba1-d98020f2c880",
+    "Date": "2026-01-29",
+    "Type": "Leg/Shoulder Day",
+    "json": {
+      "strength": [
+        {
+          "exercise": "Sumo Squat",
+          "unit": "kg",
+          "sets": [
+            {
+              "weight": 40,
+              "reps": 8
+            },
+            {
+              "weight": 50,
+              "reps": 8
+            },
+            {
+              "weight": 50,
+              "reps": 8
+            },
+            {
+              "weight": 50,
+              "reps": 8
+            },
+            {
+              "weight": 50,
+              "reps": 8
+            }
+          ],
+          "note": "熱身組"
+        }
+      ]
+    }
+  },
+  {
+    "id": "2f8a947a-dbb9-80eb-9cb7-d0c2414e3e9b",
+    "Date": "2026-01-30",
+    "Type": "Cardio",
+    "json": {
+      "cardio": [
+        {
+          "exercise": "Zone 2",
+          "duration_min": 35,
+          "note": "時間壓縮，配速拉高至 6.6 km/h，心率 160–170 bpm，已偏移至 Zone 3–4"
+        }
+      ]
+    }
+  },
+  {
+    "id": "2fba947a-dbb9-8074-b75c-f07b44956ef0",
+    "Date": "2026-02-02",
+    "Type": "Cardio",
+    "json": {
+      "cardio": [
+        {
+          "exercise": "Zone 2",
+          "duration_min": 45,
+          "note": "配速 6 km/h，心率 130–150 bpm"
+        }
+      ]
+    }
+  },
+  {
+    "id": "2fda947a-dbb9-8006-8f3b-f72388762b72",
+    "Date": "2026-02-04",
+    "Type": "Leg/Shoulder Day",
+    "json": {
+      "strength": []
+    }
+  },
+  {
+    "id": "2ffa947a-dbb9-80a8-9a66-fe0f423a7ed1",
+    "Date": "2026-02-05",
+    "Type": "Cardio",
+    "json": {
+      "cardio": [
+        {
+          "exercise": "Zone 2",
+          "duration_min": 60,
+          "note": "配速 6 km/h，心率 130–140 bpm，本週累計 105 min"
+        }
+      ]
+    }
+  },
+  {
+    "id": "2ffa947a-dbb9-8029-8a76-f8b519d37f85",
+    "Date": "2026-02-06",
+    "Type": "Chest/Back Day",
+    "json": {
+      "strength": [
+        {
+          "exercise": "Bench Press",
+          "unit": "lb",
+          "sets": [
+            {
+              "weight": 35,
+              "reps": 8
+            },
+            {
+              "weight": 35,
+              "reps": 8
+            },
+            {
+              "weight": 35,
+              "reps": 8
+            },
+            {
+              "weight": 35,
+              "reps": 8
+            },
+            {
+              "weight": 35,
+              "reps": 8
+            }
+          ],
+          "note": "最後一組出現震盪，神經控制達臨界點"
+        },
+        {
+          "exercise": "Lat Pulldown",
+          "unit": "kg",
+          "sets": [
+            {
+              "weight": 20,
+              "reps": 8
+            },
+            {
+              "weight": 20,
+              "reps": 8
+            },
+            {
+              "weight": 20,
+              "reps": 8
+            },
+            {
+              "weight": 20,
+              "reps": 8
+            },
+            {
+              "weight": 20,
+              "reps": 8
+            }
+          ],
+          "note": "後段組數續航力不足"
+        },
+        {
+          "exercise": "Seated Row",
+          "unit": "kg",
+          "sets": [
+            {
+              "weight": 20,
+              "reps": 8
+            },
+            {
+              "weight": 20,
+              "reps": 8
+            },
+            {
+              "weight": 20,
+              "reps": 8
+            },
+            {
+              "weight": 20,
+              "reps": 8
+            },
+            {
+              "weight": 20,
+              "reps": 8
+            }
+          ],
+          "note": "技術突破，後三角感受度強烈"
+        }
+      ]
+    }
+  },
+  {
+    "id": "302a947a-dbb9-809b-9cd9-f52ed813f278",
+    "Date": "2026-02-09",
+    "Type": "Cardio",
+    "json": {
+      "cardio": [
+        {
+          "exercise": "Zone 2",
+          "duration_min": 40,
+          "note": "配速 6 km/h，心率降至 ~130 bpm，有氧效率明顯提升"
+        }
+      ]
+    }
+  },
+  {
+    "id": "305a947a-dbb9-80db-ba89-f3b217261960",
+    "Date": "2026-02-12",
+    "Type": "Leg/Shoulder Day",
+    "json": {
+      "strength": [
+        {
+          "exercise": "Sumo Squat",
+          "unit": "kg",
+          "sets": [
+            {
+              "weight": 40,
+              "reps": 8
+            },
+            {
+              "weight": 50,
+              "reps": 8
+            },
+            {
+              "weight": 50,
+              "reps": 8
+            },
+            {
+              "weight": 50,
+              "reps": 8
+            },
+            {
+              "weight": 50,
+              "reps": 8
+            }
+          ],
+          "note": "熱身組；時間壓縮，穩定訓練重量"
+        }
+      ]
+    }
+  },
+  {
+    "id": "307a947a-dbb9-807c-8dcb-dd42303037f5",
+    "Date": "2026-02-14",
+    "Type": "Chest/Back Day",
+    "json": {
+      "strength": [
+        {
+          "exercise": "Bench Press",
+          "unit": "lb",
+          "sets": [
+            {
+              "weight": 35,
+              "reps": 8
+            },
+            {
+              "weight": 35,
+              "reps": 8
+            },
+            {
+              "weight": 40,
+              "reps": 8
+            },
+            {
+              "weight": 40,
+              "reps": 8
+            },
+            {
+              "weight": 40,
+              "reps": 8
+            }
+          ],
+          "note": "降重，穩定組；40 磅吃力，穩定肌群達臨界點"
+        },
+        {
+          "exercise": "Lat Pulldown",
+          "unit": "kg",
+          "sets": [
+            {
+              "weight": 20,
+              "reps": 8
+            },
+            {
+              "weight": 20,
+              "reps": 8
+            },
+            {
+              "weight": 20,
+              "reps": 8
+            },
+            {
+              "weight": 20,
+              "reps": 8
+            },
+            {
+              "weight": 20,
+              "reps": 8
+            }
+          ],
+          "note": "後段組數背闊肌孤立仍需加強"
+        },
+        {
+          "exercise": "Seated Row",
+          "unit": "kg",
+          "sets": [
+            {
+              "weight": 24,
+              "reps": 8
+            },
+            {
+              "weight": 24,
+              "reps": 8
+            },
+            {
+              "weight": 24,
+              "reps": 8
+            },
+            {
+              "weight": 24,
+              "reps": 8
+            },
+            {
+              "weight": 24,
+              "reps": 8
+            }
+          ],
+          "note": "背部感受度普通，核心發力有找到"
+        },
+        {
+          "exercise": "Triceps Pushdown",
+          "unit": "kg",
+          "sets": [
+            {
+              "weight": 12.5,
+              "reps": 8
+            },
+            {
+              "weight": 12.5,
+              "reps": 8
+            },
+            {
+              "weight": 12.5,
+              "reps": 8
+            },
+            {
+              "weight": 12.5,
+              "reps": 8
+            },
+            {
+              "weight": 12.5,
+              "reps": 8
+            }
+          ],
+          "note": "後段充血感強烈"
+        }
+      ]
+    }
+  },
+  {
+    "id": "30ca947a-dbb9-8053-8c82-c9a2df446af3",
+    "Date": "2026-02-19",
+    "Type": "Cardio",
+    "json": {
+      "cardio": [
+        {
+          "exercise": "HIIT",
+          "duration_min": 30,
+          "note": "12 km/h × 1 min / 5 km/h × 2 min，10 循環，最高心率 188 bpm"
+        },
+        {
+          "exercise": "Zone 2",
+          "duration_min": 30,
+          "note": "接續 HIIT 執行，肝醣耗盡狀態下強迫燃脂"
+        }
+      ]
+    }
+  },
+  {
+    "id": "30da947a-dbb9-80c9-9aba-f0628f5e80ea",
+    "Date": "2026-02-20",
+    "Type": "Chest/Back Day",
+    "json": {
+      "strength": [
+        {
+          "exercise": "Bench Press",
+          "unit": "lb",
+          "sets": [
+            {
+              "weight": 35,
+              "reps": 8
+            },
+            {
+              "weight": 35,
+              "reps": 8
+            },
+            {
+              "weight": 35,
+              "reps": 8
+            },
+            {
+              "weight": 35,
+              "reps": 8
+            },
+            {
+              "weight": 35,
+              "reps": 8
+            }
+          ],
+          "note": "向內傾斜握法，胸大肌孤立良好"
+        },
+        {
+          "exercise": "Lat Pulldown",
+          "unit": "kg",
+          "sets": [
+            {
+              "weight": 20,
+              "reps": 8
+            },
+            {
+              "weight": 20,
+              "reps": 8
+            },
+            {
+              "weight": 20,
+              "reps": 8
+            },
+            {
+              "weight": 20,
+              "reps": 8
+            },
+            {
+              "weight": 20,
+              "reps": 8
+            }
+          ],
+          "note": "手肘朝前軌跡，闊背肌充血"
+        },
+        {
+          "exercise": "Seated Row",
+          "unit": "kg",
+          "sets": [
+            {
+              "weight": 24,
+              "reps": 8
+            },
+            {
+              "weight": 24,
+              "reps": 8
+            },
+            {
+              "weight": 24,
+              "reps": 8
+            },
+            {
+              "weight": 24,
+              "reps": 8
+            },
+            {
+              "weight": 24,
+              "reps": 8
+            }
+          ],
+          "note": "寬握，菱形肌與中斜方肌精準命中"
+        },
+        {
+          "exercise": "Triceps Pushdown",
+          "unit": "kg",
+          "sets": [
+            {
+              "weight": 12.5,
+              "reps": 8
+            },
+            {
+              "weight": 12.5,
+              "reps": 8
+            },
+            {
+              "weight": 12.5,
+              "reps": 8
+            },
+            {
+              "weight": 12.5,
+              "reps": 8
+            },
+            {
+              "weight": 12.5,
+              "reps": 8
+            }
+          ],
+          "note": "紮營站姿，底部向兩側撕裂"
+        }
+      ]
+    }
+  },
+  {
+    "id": "30ea947a-dbb9-8016-9c7d-c86854464522",
+    "Date": "2026-02-21",
+    "Type": "Leg/Shoulder Day",
+    "json": {
+      "strength": [
+        {
+          "exercise": "Split Squat",
+          "unit": "lb",
+          "sets": [
+            {
+              "weight": 15,
+              "reps": 8
+            },
+            {
+              "weight": 15,
+              "reps": 8
+            },
+            {
+              "weight": 15,
+              "reps": 8
+            },
+            {
+              "weight": 15,
+              "reps": 8
+            },
+            {
+              "weight": 15,
+              "reps": 8
+            }
+          ],
+          "note": "上身直立，後腳純支架，前腳股四頭肌孤立"
+        }
+      ]
+    }
+  },
+  {
+    "id": "317a947a-dbb9-8061-8f72-c86e355532d8",
+    "Date": "2026-02-27",
+    "Type": "Chest/Back Day",
+    "json": {
+      "strength": [
+        {
+          "exercise": "Bench Press",
+          "unit": "lb",
+          "sets": [
+            {
+              "weight": 35,
+              "reps": 8
+            },
+            {
+              "weight": 35,
+              "reps": 8
+            },
+            {
+              "weight": 35,
+              "reps": 8
+            },
+            {
+              "weight": 35,
+              "reps": 8
+            },
+            {
+              "weight": 35,
+              "reps": 8
+            }
+          ],
+          "note": "胸肌發力比例大幅提升"
+        },
+        {
+          "exercise": "Lat Pulldown",
+          "unit": "kg",
+          "sets": [
+            {
+              "weight": 20,
+              "reps": 8
+            },
+            {
+              "weight": 20,
+              "reps": 8
+            },
+            {
+              "weight": 20,
+              "reps": 8
+            },
+            {
+              "weight": 20,
+              "reps": 8
+            },
+            {
+              "weight": 20,
+              "reps": 8
+            }
+          ],
+          "note": "離心放慢，大圓肌與闊背肌精準刺激"
+        },
+        {
+          "exercise": "Seated Row",
+          "unit": "kg",
+          "sets": [
+            {
+              "weight": 24,
+              "reps": 8
+            },
+            {
+              "weight": 24,
+              "reps": 8
+            },
+            {
+              "weight": 24,
+              "reps": 8
+            },
+            {
+              "weight": 24,
+              "reps": 8
+            },
+            {
+              "weight": 24,
+              "reps": 8
+            }
+          ],
+          "note": "末端組數闊背肌微幅不適，注意肩胛骨鎖定"
+        },
+        {
+          "exercise": "Triceps Pushdown",
+          "unit": "kg",
+          "sets": [
+            {
+              "weight": 10,
+              "reps": 8
+            },
+            {
+              "weight": 10,
+              "reps": 8
+            },
+            {
+              "weight": 12.5,
+              "reps": 8
+            },
+            {
+              "weight": 12.5,
+              "reps": 8
+            },
+            {
+              "weight": 12.5,
+              "reps": 8
+            }
+          ],
+          "note": "降重組；掌根推砸，慢速離心"
+        }
+      ]
+    }
+  },
+  {
+    "id": "31ba947a-dbb9-80d8-afb2-d44a5871a66c",
+    "Date": "2026-03-06",
+    "Type": "Chest/Back Day",
+    "json": {
+      "strength": [
+        {
+          "exercise": "Bench Press",
+          "unit": "lb",
+          "sets": [
+            {
+              "weight": 35,
+              "reps": 8
+            },
+            {
+              "weight": 35,
+              "reps": 8
+            },
+            {
+              "weight": 40,
+              "reps": 8
+            },
+            {
+              "weight": 40,
+              "reps": 8
+            },
+            {
+              "weight": 40,
+              "reps": 8
+            }
+          ],
+          "note": "穩定組；首次突破 40 磅門檻，末端需監控肩胛骨"
+        },
+        {
+          "exercise": "Lat Pulldown",
+          "unit": "kg",
+          "sets": [
+            {
+              "weight": 20,
+              "reps": 8
+            },
+            {
+              "weight": 20,
+              "reps": 8
+            },
+            {
+              "weight": 20,
+              "reps": 8
+            },
+            {
+              "weight": 20,
+              "reps": 8
+            },
+            {
+              "weight": 20,
+              "reps": 8
+            }
+          ],
+          "note": "手肘垂直砸向口袋，頂端主動煞車"
+        },
+        {
+          "exercise": "Triceps Pushdown",
+          "unit": "kg",
+          "sets": [
+            {
+              "weight": 12.5,
+              "reps": 8
+            },
+            {
+              "weight": 12.5,
+              "reps": 8
+            },
+            {
+              "weight": 12.5,
+              "reps": 8
+            },
+            {
+              "weight": 12.5,
+              "reps": 8
+            },
+            {
+              "weight": 12.5,
+              "reps": 8
+            }
+          ],
+          "note": "手肘釘死肋骨，三頭高負載"
+        }
+      ]
+    }
+  },
+  {
+    "id": "31ea947a-dbb9-80ca-b9f1-cb12210bd45d",
+    "Date": "2026-03-09",
+    "Type": "Leg/Shoulder Day",
+    "json": {
+      "strength": [
+        {
+          "exercise": "Sumo Squat",
+          "unit": "kg",
+          "sets": [
+            {
+              "weight": 50,
+              "reps": 8
+            },
+            {
+              "weight": 50,
+              "reps": 8
+            },
+            {
+              "weight": 50,
+              "reps": 8
+            },
+            {
+              "weight": 50,
+              "reps": 8
+            },
+            {
+              "weight": 60,
+              "reps": 7
+            }
+          ],
+          "note": "首次觸及 60 kg，僅完成 7 下，腹內壓需鎖死"
+        },
+        {
+          "exercise": "Face Pull",
+          "unit": "kg",
+          "sets": [
+            {
+              "weight": 1.7,
+              "reps": 10
+            },
+            {
+              "weight": 1.7,
+              "reps": 10
+            },
+            {
+              "weight": 1.7,
+              "reps": 10
+            },
+            {
+              "weight": 1.7,
+              "reps": 10
+            },
+            {
+              "weight": 1.7,
+              "reps": 10
+            }
+          ],
+          "note": "首次加入，肩胛骨中段感受度佳，零斜方肌代償"
+        }
+      ]
+    }
+  },
+  {
+    "id": "327a947a-dbb9-8008-940d-c2e6ff2c5b0a",
+    "Date": "2026-03-18",
+    "Type": "Cardio",
+    "json": {
+      "cardio": [
+        {
+          "exercise": "Zone 2",
+          "duration_min": 35,
+          "note": "停機兩週後重啟，配速 8 km/h，降階為有氧暖機"
+        }
+      ]
+    }
+  },
+  {
+    "id": "32ea947a-dbb9-806d-8abc-ed89ae63bc51",
+    "Date": "2026-03-21",
+    "Type": "Chest/Back Day",
+    "json": {
+      "strength": [
+        {
+          "exercise": "Bench Press",
+          "unit": "lb",
+          "sets": [
+            {
+              "weight": 40,
+              "reps": 8
+            },
+            {
+              "weight": 40,
+              "reps": 8
+            },
+            {
+              "weight": 40,
+              "reps": 8
+            },
+            {
+              "weight": 40,
+              "reps": 8
+            },
+            {
+              "weight": 35,
+              "reps": 8
+            }
+          ],
+          "note": "出現動作不穩，穩定肌群超載；最後一組降重"
+        },
+        {
+          "exercise": "Seated Row",
+          "unit": "kg",
+          "sets": [
+            {
+              "weight": 24,
+              "reps": 8
+            },
+            {
+              "weight": 24,
+              "reps": 8
+            },
+            {
+              "weight": 24,
+              "reps": 8
+            },
+            {
+              "weight": 24,
+              "reps": 8
+            },
+            {
+              "weight": 24,
+              "reps": 8
+            }
+          ],
+          "note": "後段菱形肌感受度消失，出現代償"
+        },
+        {
+          "exercise": "Triceps Pushdown",
+          "unit": "kg",
+          "sets": [
+            {
+              "weight": 12.5,
+              "reps": 8
+            },
+            {
+              "weight": 12.5,
+              "reps": 8
+            },
+            {
+              "weight": 12.5,
+              "reps": 8
+            },
+            {
+              "weight": 12.5,
+              "reps": 8
+            },
+            {
+              "weight": 12.5,
+              "reps": 8
+            }
+          ],
+          "note": "底部有關節卡頓感，暫不加重"
+        }
+      ]
+    }
+  },
+  {
+    "id": "32ea947a-dbb9-80da-aaa4-eab94ad4a42a",
+    "Date": "2026-03-23",
+    "Type": "Cardio",
+    "json": {
+      "cardio": [
+        {
+          "exercise": "Zone 2",
+          "duration_min": 45,
+          "note": "坡度 4，配速 6.0 km/h，心率 130–140 bpm"
+        }
+      ]
+    }
+  },
+  {
+    "id": "32ea947a-dbb9-80eb-bfde-d7f6655ba53b",
+    "Date": "2026-03-24",
+    "Type": "Cardio",
+    "json": {
+      "cardio": [
+        {
+          "exercise": "Zone 2",
+          "duration_min": 45,
+          "note": "配速 6.6 km/h，心率 140–150 bpm，停機後過渡恢復週"
+        }
+      ]
+    }
+  },
+  {
+    "id": "33aa947a-dbb9-8191-9db4-ec90de7b92c0",
+    "Date": "2026-04-03",
+    "Type": "Leg/Shoulder Day",
+    "json": {
+      "strength": [
+        {
+          "exercise": "Face Pull",
+          "unit": "kg",
+          "sets": [
+            {
+              "weight": 1.7,
+              "reps": 15
+            },
+            {
+              "weight": 1.7,
+              "reps": 15
+            },
+            {
+              "weight": 1.7,
+              "reps": 15
+            },
+            {
+              "weight": 1.7,
+              "reps": 15
+            },
+            {
+              "weight": 1.7,
+              "reps": 15
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "33fa947a-dbb9-81e7-88b6-f3e05c67a129",
+    "Date": "2026-04-11",
+    "Type": "Chest/Back Day",
+    "json": {
+      "strength": [
+        {
+          "exercise": "Bench Press",
+          "unit": "lb",
+          "sets": [
+            {
+              "weight": 35,
+              "reps": 8
+            },
+            {
+              "weight": 35,
+              "reps": 8
+            },
+            {
+              "weight": 35,
+              "reps": 8
+            },
+            {
+              "weight": 35,
+              "reps": 8
+            },
+            {
+              "weight": 35,
+              "reps": 8
+            }
+          ]
+        },
+        {
+          "exercise": "Lat Pulldown",
+          "unit": "kg",
+          "sets": [
+            {
+              "weight": 20,
+              "reps": 8
+            },
+            {
+              "weight": 20,
+              "reps": 8
+            },
+            {
+              "weight": 20,
+              "reps": 8
+            },
+            {
+              "weight": 20,
+              "reps": 8
+            },
+            {
+              "weight": 20,
+              "reps": 8
+            }
+          ]
+        },
+        {
+          "exercise": "Triceps Pushdown",
+          "unit": "kg",
+          "sets": [
+            {
+              "weight": 12.5,
+              "reps": 8
+            },
+            {
+              "weight": 12.5,
+              "reps": 8
+            },
+            {
+              "weight": 12.5,
+              "reps": 8
+            },
+            {
+              "weight": 12.5,
+              "reps": 8
+            },
+            {
+              "weight": 12.5,
+              "reps": 8
+            }
+          ]
+        }
+      ],
+      "note": "啞鈴臥推：後段三頭先力竭，下週觀察是姿勢問題或訓練空窗。滑輪下拉：末兩組末兩下力竭。三頭下壓：末兩組末兩下力竭。坐姿划船：今日跳過（器材被占用＋疲勞）。"
+    }
+  },
+  {
+    "id": "341a947a-dbb9-814f-ab2b-d83cbfe5a776",
+    "Date": "2026-04-13",
+    "Type": "Leg/Shoulder Day",
+    "json": {
+      "strength": [],
+      "note": "肩膀因器材被占用跳過"
+    }
+  },
+  {
+    "id": "34ba947a-dbb9-8184-a639-e90536abfe57",
+    "Date": "2026-04-23",
+    "Type": "Cardio",
+    "json": {
+      "cardio": [
+        {
+          "exercise": "Zone 2",
+          "duration_min": 38,
+          "note": "6 km/h, ~140 bpm"
+        }
+      ]
+    }
+  },
+  {
+    "id": "34da947a-dbb9-815a-9868-e5df6d2a4e56",
+    "Date": "2026-04-25",
+    "Type": "Cardio",
+    "json": {
+      "cardio": [
+        {
+          "exercise": "Zone 2",
+          "duration_min": 60,
+          "note": "跑步 7 km/h"
+        }
+      ]
+    }
+  },
+  {
+    "id": "34da947a-dbb9-8177-8872-cbe1e2948feb",
+    "Date": "2026-04-25",
+    "Type": "Chest/Back Day",
+    "json": {
+      "strength": [
+        {
+          "exercise": "Lat Pulldown",
+          "unit": "kg",
+          "sets": [
+            {
+              "weight": 20,
+              "reps": 8
+            },
+            {
+              "weight": 20,
+              "reps": 8
+            },
+            {
+              "weight": 20,
+              "reps": 8
+            },
+            {
+              "weight": 20,
+              "reps": 8
+            },
+            {
+              "weight": 20,
+              "reps": 8
+            }
+          ]
+        },
+        {
+          "exercise": "Bench Press",
+          "unit": "lb",
+          "sets": [
+            {
+              "weight": 35,
+              "reps": 8
+            },
+            {
+              "weight": 35,
+              "reps": 8
+            },
+            {
+              "weight": 35,
+              "reps": 8
+            },
+            {
+              "weight": 35,
+              "reps": 8
+            },
+            {
+              "weight": 35,
+              "reps": 8
+            }
+          ]
+        },
+        {
+          "exercise": "Seated Row",
+          "unit": "kg",
+          "sets": [
+            {
+              "weight": 24,
+              "reps": 8
+            },
+            {
+              "weight": 24,
+              "reps": 8
+            },
+            {
+              "weight": 24,
+              "reps": 8
+            },
+            {
+              "weight": 24,
+              "reps": 8
+            },
+            {
+              "weight": 24,
+              "reps": 8
+            }
+          ]
+        },
+        {
+          "exercise": "Triceps Pushdown",
+          "unit": "kg",
+          "sets": [
+            {
+              "weight": 12.75,
+              "reps": 8
+            },
+            {
+              "weight": 12.75,
+              "reps": 8
+            },
+            {
+              "weight": 12.75,
+              "reps": 8
+            },
+            {
+              "weight": 12.75,
+              "reps": 8
+            },
+            {
+              "weight": 12.75,
+              "reps": 8
+            }
+          ]
+        }
+      ],
+      "note": "啞鈴臥推：手臂先痠，姿勢有點歪掉，需留意小臂垂直地面。\n坐姿寬握划船：感受度蠻好的。\n三頭下壓：第3組嘗試13.75kg，但姿勢會跑掉。"
+    }
+  },
+  {
+    "id": "34fa947a-dbb9-819c-9140-c85da454ff72",
+    "Date": "2026-04-27",
+    "Type": "Leg/Shoulder Day",
+    "json": {
+      "strength": [
+        {
+          "exercise": "Lateral Raise",
+          "unit": "kg",
+          "sets": [
+            {
+              "weight": 1.25,
+              "reps": 15
+            },
+            {
+              "weight": 1.25,
+              "reps": 15
+            },
+            {
+              "weight": 1.25,
+              "reps": 15
+            },
+            {
+              "weight": 1.25,
+              "reps": 15
+            },
+            {
+              "weight": 1.25,
+              "reps": 15
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "350a947a-dbb9-8194-8e20-f664ad6fbda8",
+    "Date": "2026-04-28",
+    "Type": "Cardio",
+    "json": {
+      "cardio": [
+        {
+          "exercise": "Zone 2",
+          "duration_min": 45
+        }
+      ],
+      "note": "時速約 6 km/h，心率約 130 bpm，坡度 1.5"
+    }
+  },
+  {
+    "id": "35aa947a-dbb9-814e-ac8b-d7b4cb433125",
+    "Date": "2026-05-08",
+    "Type": "Chest/Back Day",
+    "json": {
+      "strength": [
+        {
+          "exercise": "Bench Press",
+          "unit": "lb",
+          "sets": [
+            {
+              "weight": 35,
+              "reps": 8
+            },
+            {
+              "weight": 35,
+              "reps": 8
+            },
+            {
+              "weight": 35,
+              "reps": 8
+            },
+            {
+              "weight": 35,
+              "reps": 8
+            },
+            {
+              "weight": 35,
+              "reps": 8
+            }
+          ]
+        },
+        {
+          "exercise": "Lat Pulldown",
+          "unit": "kg",
+          "sets": [
+            {
+              "weight": 20,
+              "reps": 8
+            },
+            {
+              "weight": 20,
+              "reps": 8
+            },
+            {
+              "weight": 20,
+              "reps": 8
+            },
+            {
+              "weight": 20,
+              "reps": 8
+            },
+            {
+              "weight": 20,
+              "reps": 8
+            }
+          ]
+        },
+        {
+          "exercise": "Triceps Pushdown",
+          "unit": "kg",
+          "sets": [
+            {
+              "weight": 11.25,
+              "reps": 8
+            },
+            {
+              "weight": 11.25,
+              "reps": 8
+            },
+            {
+              "weight": 11.25,
+              "reps": 8
+            },
+            {
+              "weight": 11.25,
+              "reps": 8
+            },
+            {
+              "weight": 11.25,
+              "reps": 8
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "360a947a-dbb9-81c3-83e8-c7939cca0dd1",
+    "Date": "2026-05-14",
+    "Type": "Cardio",
+    "json": {
+      "cardio": [
+        {
+          "exercise": "Zone 2",
+          "duration_min": 35
+        }
+      ],
+      "note": "配速 7 km/hr。今天體感比較累，可能跟最近比較少跑、睡眠比較少有關。"
+    }
+  },
+  {
+    "id": "363a947a-dbb9-8162-81a2-e6ed041b3b87",
+    "Date": "2026-05-17",
+    "Type": "Chest/Back Day",
+    "json": {
+      "strength": [
+        {
+          "exercise": "Bench Press",
+          "unit": "lb",
+          "sets": [
+            {
+              "weight": 35,
+              "reps": 8
+            },
+            {
+              "weight": 35,
+              "reps": 8
+            },
+            {
+              "weight": 35,
+              "reps": 8
+            },
+            {
+              "weight": 35,
+              "reps": 8
+            },
+            {
+              "weight": 35,
+              "reps": 8
+            }
+          ]
+        },
+        {
+          "exercise": "Lat Pulldown",
+          "unit": "kg",
+          "sets": [
+            {
+              "weight": 20,
+              "reps": 8
+            },
+            {
+              "weight": 20,
+              "reps": 8
+            },
+            {
+              "weight": 20,
+              "reps": 8
+            },
+            {
+              "weight": 20,
+              "reps": 8
+            },
+            {
+              "weight": 20,
+              "reps": 8
+            }
+          ]
+        },
+        {
+          "exercise": "Seated Row",
+          "unit": "kg",
+          "sets": [
+            {
+              "weight": 24,
+              "reps": 8
+            },
+            {
+              "weight": 24,
+              "reps": 8
+            },
+            {
+              "weight": 24,
+              "reps": 8
+            },
+            {
+              "weight": 24,
+              "reps": 8
+            },
+            {
+              "weight": 24,
+              "reps": 8
+            }
+          ]
+        },
+        {
+          "exercise": "Triceps Pushdown",
+          "unit": "kg",
+          "sets": [
+            {
+              "weight": 11.5,
+              "reps": 8
+            },
+            {
+              "weight": 11.5,
+              "reps": 8
+            },
+            {
+              "weight": 11.5,
+              "reps": 8
+            },
+            {
+              "weight": 11.5,
+              "reps": 8
+            },
+            {
+              "weight": 11.5,
+              "reps": 8
+            }
+          ]
+        }
+      ],
+      "note": "啞鈴臥推:採用快推慢放,變得很吃力,下週繼續努力\n坐姿划船:感受不錯,下週應該可以加重量\n三頭下拉:力竭"
+    }
+  },
+  {
+    "id": "36aa947a-dbb9-8193-9a81-fa44bea13da2",
+    "Date": "2026-05-24",
+    "Type": "Chest/Back Day",
+    "json": {
+      "strength": [
+        {
+          "exercise": "Lat Pulldown",
+          "unit": "kg",
+          "sets": [
+            {
+              "weight": 20,
+              "reps": 8
+            },
+            {
+              "weight": 20,
+              "reps": 8
+            },
+            {
+              "weight": 20,
+              "reps": 8
+            },
+            {
+              "weight": 20,
+              "reps": 8
+            },
+            {
+              "weight": 20,
+              "reps": 8
+            }
+          ],
+          "note": "第四組開始有點沒力"
+        },
+        {
+          "exercise": "Seated Row",
+          "unit": "kg",
+          "sets": [
+            {
+              "weight": 24,
+              "reps": 8
+            },
+            {
+              "weight": 24,
+              "reps": 8
+            },
+            {
+              "weight": 24,
+              "reps": 8
+            },
+            {
+              "weight": 24,
+              "reps": 8
+            }
+          ],
+          "note": "嘗試 27kg × 1 組 × 8 下後改回 24kg；今天刻意坐比較直接近 90 度,避免上週腰痠,但感覺有點代償到上斜方,明天觀察痠痛部位"
+        },
+        {
+          "exercise": "Triceps Pushdown",
+          "unit": "kg",
+          "sets": [
+            {
+              "weight": 12.75,
+              "reps": 8
+            },
+            {
+              "weight": 12.75,
+              "reps": 8
+            },
+            {
+              "weight": 12.75,
+              "reps": 8
+            },
+            {
+              "weight": 12.75,
+              "reps": 8
+            },
+            {
+              "weight": 12.75,
+              "reps": 8
+            }
+          ],
+          "note": "第四組開始無力做不完全程,硬撐下來"
+        }
+      ],
+      "note": "今天沒有胸推,因為客滿了。明顯感受到最近訓練量不足,成績開始退步。\n隔天觀察痠痛部位，正常合理。不過這次多了後三角肌的痠痛，也算是坐姿划船正常出力部位"
+    }
+  },
+  {
+    "id": "36ca947a-dbb9-8137-a145-c6d596f1420c",
+    "Date": "2026-05-26",
+    "Type": "Leg/Shoulder Day",
+    "json": {
+      "strength": [
+        {
+          "exercise": "Sumo Squat",
+          "unit": "kg",
+          "sets": [
+            {
+              "weight": 40,
+              "reps": 8
+            },
+            {
+              "weight": 40,
+              "reps": 8
+            },
+            {
+              "weight": 40,
+              "reps": 8
+            },
+            {
+              "weight": 40,
+              "reps": 8
+            }
+          ]
+        },
+        {
+          "exercise": "Lateral Raise",
+          "unit": "kg",
+          "sets": [
+            {
+              "weight": 1.88,
+              "reps": 15
+            },
+            {
+              "weight": 1.88,
+              "reps": 15
+            },
+            {
+              "weight": 1.88,
+              "reps": 15
+            },
+            {
+              "weight": 1.88,
+              "reps": 15
+            }
+          ]
+        }
+      ],
+      "note": "熱身組：\nSumo Squat 20 kg × 8\nCable Lateral Raise 1.25 kg × 15"
+    }
+  }
+]

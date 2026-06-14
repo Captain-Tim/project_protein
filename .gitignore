@@ -1,0 +1,37 @@
+# =====================================================================
+#  機密 — 嚴禁進 git(只靠 Google Drive 私人同步)
+#  glob 安全網:任何含 token / secret / 金鑰副檔名的檔都擋掉,
+#  日後新增 token 檔也不會漏接(見 CLAUDE.md §3 資安界線)
+# =====================================================================
+*token*.txt
+*secret*
+*.key
+*.pem
+notion_token.txt
+netlify_token.txt
+token.txt
+
+# Netlify 站台 id(本機產生的部署狀態,無需追蹤)
+scripts/netlify_site.txt
+
+# Claude Code 本機設定(機器專屬,不進版控)
+.claude/settings.local.json
+
+# Node(若日後 npm install)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 驗證用暫存頁(STATUS.md §7 的 headless 探針)
+_t.html
+*.tmp
+
+# OS / 編輯器 / Google Drive 雜物
+Thumbs.db
+.DS_Store
+desktop.ini
+ehthumbs.db
+# Google Drive 桌面版傳輸中暫存目錄(同步時動態產生,絕不可進 repo)
+.tmp.driveupload/
+.tmp.drivedownload/
