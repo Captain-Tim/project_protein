@@ -1,0 +1,91 @@
+{
+  "date": "2026-03-21",
+  "type": "Chest/Back Day",
+  "quality": 4,
+  "energy": "🔋 High",
+  "strength": [
+    {
+      "exercise": "Bench Press",
+      "unit": "lb",
+      "sets": [
+        {
+          "weight": 40,
+          "reps": 8
+        },
+        {
+          "weight": 40,
+          "reps": 8
+        },
+        {
+          "weight": 40,
+          "reps": 8
+        },
+        {
+          "weight": 40,
+          "reps": 8
+        },
+        {
+          "weight": 35,
+          "reps": 8
+        }
+      ],
+      "note": "出現動作不穩，穩定肌群超載；最後一組降重"
+    },
+    {
+      "exercise": "Seated Row",
+      "unit": "kg",
+      "sets": [
+        {
+          "weight": 24,
+          "reps": 8
+        },
+        {
+          "weight": 24,
+          "reps": 8
+        },
+        {
+          "weight": 24,
+          "reps": 8
+        },
+        {
+          "weight": 24,
+          "reps": 8
+        },
+        {
+          "weight": 24,
+          "reps": 8
+        }
+      ],
+      "note": "後段菱形肌感受度消失，出現代償"
+    },
+    {
+      "exercise": "Triceps Pushdown",
+      "unit": "kg",
+      "sets": [
+        {
+          "weight": 12.5,
+          "reps": 8
+        },
+        {
+          "weight": 12.5,
+          "reps": 8
+        },
+        {
+          "weight": 12.5,
+          "reps": 8
+        },
+        {
+          "weight": 12.5,
+          "reps": 8
+        },
+        {
+          "weight": 12.5,
+          "reps": 8
+        }
+      ],
+      "note": "底部有關節卡頓感，暫不加重"
+    }
+  ],
+  "cardio": [],
+  "note": null
+}

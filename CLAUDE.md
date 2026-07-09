@@ -13,52 +13,82 @@
 
 ## 2. 架構
 
-- **Notion = 唯一資料來源**(雲端)。程式碼與文件以 **GitHub** 版控(private repo `Captain-Tim/project_protein`);
-  token 等機密是**本機檔、不進 git**(見 §3)。專案位置 `C:\Users\Ting\Documents\GitHub\project_protein`。
-  (歷史:2026-06 前曾用 Google Drive 同步整夾,已改為 GitHub;Drive 與 git 同步會打架,勿再放回 Drive 同步夾。)
+- **`data/sessions/*.json` = 版控中的真相來源**。程式碼與資料都以 **GitHub** 版控(**public repo**
+  `Captain-Tim/project_protein`——2026-07 已從 private 轉 public,才能用免費的 GitHub Pages)。
+  專案位置 `d:\tim_hou\Desktop\project_protein`。
+  (歷史:2026-06 前曾用 Google Drive 同步整夾,後改 GitHub;2026-06 曾在 `C:\Users\Ting\Documents\GitHub\...`,
+  2026-07 換機後在目前這台。)
+- **資料流(單向)**:手機拍照 → claude.ai(GitHub connector)解析後直接 push 進 `data/pending/`(待審查)
+  → 使用者回家雙擊 `review.cmd` 目測核准 → 搬進 `data/sessions/`(真相來源)→ `scripts/build_dashboard.js`
+  注入 `dashboard.html` → 雙擊 `publish.cmd` push 上 GitHub → GitHub Actions 自動建置部署到 GitHub Pages。
+  **Notion 已完全退場**(2026-07),不再是資料來源,也不當備援。
 - **`dashboard.html` 是單一自含檔**:版面/圖表邏輯 + 內嵌資料(`window.WORKOUT_DATA={...}`,夾在
-  `/*WORKOUT_DATA_START*/`…`/*WORKOUT_DATA_END*/` 之間)。雙擊即用、不需 server、**分享只需傳這一個檔**
-  (手機離線也能開)。`export.js` 用正則替換這段標記區塊,**勿手改其間內容**。
+  `/*WORKOUT_DATA_START*/`…`/*WORKOUT_DATA_END*/` 之間)。雙擊即用、不需 server、離線也能開。
+  `scripts/build_dashboard.js` 用正則替換這段標記區塊,**勿手改其間內容**。
 - **沒有 Python**:這台機器的 `python` 是 MS Store stub(無法執行)。腳本一律 **Node.js**(`scripts/*.js`)。
 
-## 3. Token / 機密
+## 3. 機密與公開性
 
-- token 存根目錄 `notion_token.txt`(純文字一行),腳本以 `fs.readFileSync` 讀取。**本機檔,被 `.gitignore` 擋住,
-  不會上 GitHub**(已驗證遠端為 404)。token 檔僅存在本機;掉了就去 Notion 設定頁 regenerate。建議另存一份到密碼管理器備份。
-- **資安界線(重要)**:此 integration **只能分享給 Workout Database**,不得加入任何敏感資料庫
-  (如「家人用藥紀錄」)。若日後需 API 存取敏感 DB,**另開獨立 integration**,且 token 同樣不進 git / 不外流。
-- token 隨時可在 integration 設定頁重新產生以撤銷舊的。
-- **Netlify token**(`netlify_token.txt`):分享用的部署 token(見 §6 publish)。是**整個 Netlify 帳號**權限,
-  同樣**本機檔、`.gitignore` 擋住、不上 GitHub**;建議用專用 Netlify 帳號降低 blast radius。別外傳、別上傳。
-- `.gitignore` 已用 glob(`*token*.txt`、`*secret*`、`*.key`、`*.pem`)做安全網,日後新增 token 檔也會自動被擋。
+- 目前**沒有任何 token 檔案**——Notion token 已隨 Notion 退場刪除,Netlify token 已隨 Netlify 退場刪除。
+  `.gitignore` 仍保留 `*token*.txt`/`*secret*`/`*.key`/`*.pem` 等通用安全網,日後若又有機密檔案會自動被擋。
+- **GitHub Pages 部署不需要任何手動 secret**:`.github/workflows/pages.yml` 用 GitHub Actions 內建的
+  OIDC(`id-token: write` 權限)取得部署授權。
+- ⚠️ **repo 現在是 public**:`data/pending/`、`data/sessions/` 的原始 JSON 內容在 GitHub 上任何人都看得到
+  (不是只有部署出去的 dashboard 才公開)。`data/pending/` 只保證「還沒核准的東西不會顯示在 dashboard 網站上」,
+  不保證真正私密。資料本身是訓練紀錄,風險等級比照先前 Netlify 公開無密碼的作法。
 
-## 4. Notion 識別碼
+## 4. Notion 識別碼(歷史參考,現行流程已不使用)
+
+以下 id 僅供未來需要回頭查閱 Notion 既有歷史資料時使用;`scripts/migrate_from_notion.js` 已把當時全部紀錄
+一次性搬進本地 `data/sessions/`,日常流程不再連線 Notion。
 
 - Project Protein 頁面:`2f8a947a-dbb9-8013-93fd-d1b85c17ca5c`
 - Workout Database(database):`2f8a947a-dbb9-8146-964b-dfc8e09e91e6`
 - Data source(collection):`2f8a947a-dbb9-8150-9192-000ba5248e68`
 
-## 5. 資料模型(這邊只負責讀)
+## 5. 資料模型
 
-職權切分:**Notion 的內容由網頁版 log-workout skill 寫入並維護格式**;這個 repo 假設 Notion 已規整,
-只做 Notion → HTML 的解析與呈現。**JSON 寫入 schema 的權威在網頁版那份 skill,不在這裡**(避免兩邊同步)。
+每筆 session 是 `data/sessions/<date>-<random6>.json`(`data/pending/` 下核准前也是同樣格式、同樣檔名規則):
 
-這邊需要知道的:
-- **DB 屬性**:`Date`、`Type`(三選:`Leg/Shoulder Day` | `Chest/Back Day` | `Cardio`)、`Quality`、`Energy`。
-- **動作明細**在每筆 session 頁面內文的一個 JSON code block(不是屬性),由 `export.js` 解析。
-  實際讀取的欄位以 `export.js`、`dashboard.html` 的程式碼為準。
+```json
+{
+  "date": "2026-04-25",
+  "type": "Cardio",
+  "quality": 5,
+  "energy": "🚀 Supercharged",
+  "strength": [{ "exercise": "...", "unit": "kg|lb", "sets": [{ "weight": 0, "reps": 0 }] }],
+  "cardio": [{ "exercise": "...", "duration_min": 0 }],
+  "note": null
+}
+```
+
+實際讀取的欄位以 `scripts/build_dashboard.js`、`dashboard.html` 的程式碼為準;`type` 目前三選:
+`Leg/Shoulder Day` | `Chest/Back Day` | `Cardio`。
+
+**手機端寫入合約(給之後改寫 `notion-project-protein-log-workout` skill 用)**:
+- 目標 repo/branch:`Captain-Tim/project_protein` / `master`
+- 寫入路徑:`data/pending/<date:YYYY-MM-DD>-<亂數6碼,英數>.json`(亂數只是避免同天多筆撞名,不需要跟任何
+  ID 對應)
+- 檔案內容就是上面的 JSON schema
+- **不要**直接寫進 `data/sessions/`——一定要先進 `data/pending/`,由使用者用 `review.cmd` 核准後才會進正式區。
 
 ## 6. 檔案與日常流程
 
-- `scripts/export.js`:讀 Notion → 注入 `dashboard.html` 標記區塊。**唯讀 Notion**,只改本機 dashboard。
-- `scripts/sync_block.js`:修正單筆後,用 `_proposed.json` 重寫該頁 JSON code block。
-- `scripts/_proposed.json`:遷移記錄(備查)。
-- `scripts/publish.js`:把 dashboard.html 部署到 Netlify(deploy API,deploy 成 `index.html`),回傳公開連結。
-- `update.cmd`:**自己看**——export 刷新 + 開本機 dashboard。
-- `publish.cmd`:**要分享時**——export 刷新 → publish 部署 → 印出公開連結(固定站 `cheery-fox-4d37b2.netlify.app`,
-  免費、公開無密碼)。只部署 dashboard.html 一個檔,不會洩漏任何 token。
-- **記錄新訓練**:在 Claude 網頁/App 用 `notion-project-protein-log-workout` skill(**主要上傳手機截圖**)
-  寫 §5 的 JSON block 回 Notion;該 skill 在網頁/App 端維護,**本機不保留 skill 檔**。
+- `scripts/migrate_from_notion.js`:**一次性**遷移腳本(已執行過),把 Notion 舊資料搬進 `data/sessions/`。
+  保留當歷史紀錄,不會再被日常流程呼叫。
+- `scripts/build_dashboard.js`:讀 `data/sessions/*.json` → 注入 `dashboard.html` 標記區塊。零網路、不需要
+  任何 token。
+- `scripts/promote_pending.js`:列出 `data/pending/*.json` 摘要,一次核准全部搬進 `data/sessions/`。
+- `scripts/sync_block.js`、`dump_rows.js`、`fetch_content.js`、`build_proposed.js`、`write_blocks.js`、
+  `archive_pages.js`:Notion 時期的一次性/手動修正工具,歷史備查,與現行流程無關。
+- `update.cmd`:**自己看**——`git pull` + 重建 dashboard + 開本機檔案;若有待審查紀錄會提醒跑 `review.cmd`。
+- `review.cmd`:**手機記錄回家後審查**——列出 `data/pending` 摘要,一鍵核准搬進 `data/sessions`。
+- `publish.cmd`:**要分享時**——重建 dashboard → commit + push → GitHub Actions 自動部署 →
+  印出 `https://captain-tim.github.io/project_protein/`。
+- **記錄新訓練**:在 Claude 網頁/App 用改寫後的 `notion-project-protein-log-workout` skill(**主要上傳手機截圖**),
+  透過 GitHub connector 直接寫進 §5 的合約路徑;該 skill 在網頁/App 端維護,**本機不保留 skill 檔**。
+
+**Dashboard 視覺/版面大改**是獨立的後續任務(留待之後用 brainstorming skill 另開一輪),不在本次改動範圍。
 
 ## 7. 使用者偏好(務必遵守)
 

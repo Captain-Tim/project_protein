@@ -1,0 +1,118 @@
+{
+  "date": "2026-02-14",
+  "type": "Chest/Back Day",
+  "quality": 5,
+  "energy": "🔋 High",
+  "strength": [
+    {
+      "exercise": "Bench Press",
+      "unit": "lb",
+      "sets": [
+        {
+          "weight": 35,
+          "reps": 8
+        },
+        {
+          "weight": 35,
+          "reps": 8
+        },
+        {
+          "weight": 40,
+          "reps": 8
+        },
+        {
+          "weight": 40,
+          "reps": 8
+        },
+        {
+          "weight": 40,
+          "reps": 8
+        }
+      ],
+      "note": "降重，穩定組；40 磅吃力，穩定肌群達臨界點"
+    },
+    {
+      "exercise": "Lat Pulldown",
+      "unit": "kg",
+      "sets": [
+        {
+          "weight": 20,
+          "reps": 8
+        },
+        {
+          "weight": 20,
+          "reps": 8
+        },
+        {
+          "weight": 20,
+          "reps": 8
+        },
+        {
+          "weight": 20,
+          "reps": 8
+        },
+        {
+          "weight": 20,
+          "reps": 8
+        }
+      ],
+      "note": "後段組數背闊肌孤立仍需加強"
+    },
+    {
+      "exercise": "Seated Row",
+      "unit": "kg",
+      "sets": [
+        {
+          "weight": 24,
+          "reps": 8
+        },
+        {
+          "weight": 24,
+          "reps": 8
+        },
+        {
+          "weight": 24,
+          "reps": 8
+        },
+        {
+          "weight": 24,
+          "reps": 8
+        },
+        {
+          "weight": 24,
+          "reps": 8
+        }
+      ],
+      "note": "背部感受度普通，核心發力有找到"
+    },
+    {
+      "exercise": "Triceps Pushdown",
+      "unit": "kg",
+      "sets": [
+        {
+          "weight": 12.5,
+          "reps": 8
+        },
+        {
+          "weight": 12.5,
+          "reps": 8
+        },
+        {
+          "weight": 12.5,
+          "reps": 8
+        },
+        {
+          "weight": 12.5,
+          "reps": 8
+        },
+        {
+          "weight": 12.5,
+          "reps": 8
+        }
+      ],
+      "note": "後段充血感強烈"
+    }
+  ],
+  "cardio": [],
+  "note": null
+}

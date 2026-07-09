@@ -1,0 +1,15 @@
+{
+  "date": "2026-02-09",
+  "type": "Cardio",
+  "quality": 4,
+  "energy": "🐢 Low",
+  "strength": [],
+  "cardio": [
+    {
+      "exercise": "Zone 2",
+      "duration_min": 40,
+      "note": "配速 6 km/h，心率降至 ~130 bpm，有氧效率明顯提升"
+    }
+  ],
+  "note": null
+}

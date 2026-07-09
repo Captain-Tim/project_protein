@@ -1,0 +1,15 @@
+{
+  "date": "2026-06-13",
+  "type": "Cardio",
+  "quality": null,
+  "energy": null,
+  "strength": [],
+  "cardio": [
+    {
+      "exercise": "Running",
+      "duration_min": 50,
+      "note": "5 公里, 配速約 6.5 km/h, 心率約 160-170"
+    }
+  ],
+  "note": null
+}

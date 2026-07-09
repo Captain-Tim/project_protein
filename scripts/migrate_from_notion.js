@@ -1,7 +1,7 @@
-// export.js — 讀 Workout Database 各頁的 JSON code block + session 屬性,
-// 把資料「注入」dashboard.html 的 /*WORKOUT_DATA_START/END*/ 標記區塊,
-// 讓 dashboard.html 成為單一自含檔(可單檔分享、手機離線開)。不再產 data.js。
-// 唯讀 Notion;只改本機 dashboard.html 的資料區塊。Stop hook 可自動跑 `node scripts/export.js`。
+// migrate_from_notion.js — 一次性遷移腳本。
+// 把 Notion「Workout Database」現存的所有 session 頁面,寫成本地 data/sessions/<date>-<shortid>.json。
+// 只在「Notion 退場」這次跑一次;跑完之後 notion_token.txt 就不再被任何腳本讀取。
+// 之後的資料流全部改成 data/pending/ -> (review.cmd) -> data/sessions/ -> build_dashboard.js。
 const fs = require("fs");
 const path = require("path");
 
@@ -63,8 +63,11 @@ function starCount(q) {
 
 (async () => {
   const pages = await queryAll();
-  const sessions = [];
+  const outDir = path.join(__dirname, "..", "data", "sessions");
+  fs.mkdirSync(outDir, { recursive: true });
+
   const warnings = [];
+  let written = 0;
   for (const p of pages) {
     const pr = p.properties;
     const date = pr.Date?.date?.start ?? null;
@@ -82,7 +85,8 @@ function starCount(q) {
     } else {
       warnings.push(`${date}: 無 JSON code block`);
     }
-    sessions.push({
+
+    const session = {
       date,
       type,
       quality: starCount(pr.Quality?.select?.name),
@@ -90,21 +94,13 @@ function starCount(q) {
       strength: data.strength ?? [],
       cardio: data.cardio ?? [],
       note: data.note ?? null,
-    });
-  }
-  sessions.sort((a, b) => (a.date ?? "").localeCompare(b.date ?? ""));
+    };
 
-  const payload = {
-    generated_at: new Date().toISOString(),
-    session_count: sessions.length,
-    sessions,
-  };
-  // 把資料注入 dashboard.html 的標記區塊(單一自含檔,可單檔分享,不再產 data.js)
-  const dashPath = path.join(__dirname, "..", "dashboard.html");
-  let html = fs.readFileSync(dashPath, "utf8");
-  const re = /\/\*WORKOUT_DATA_START\*\/[\s\S]*?\/\*WORKOUT_DATA_END\*\//;
-  if (!re.test(html)) throw new Error("dashboard.html 找不到 WORKOUT_DATA 標記,中止以免誤改版面");
-  html = html.replace(re, "/*WORKOUT_DATA_START*/window.WORKOUT_DATA=" + JSON.stringify(payload) + ";/*WORKOUT_DATA_END*/");
-  fs.writeFileSync(dashPath, html, "utf8");
-  console.log(JSON.stringify({ sessions: sessions.length, warnings, injectedInto: "dashboard.html" }));
+    const shortid = p.id.replace(/-/g, ""); // 用完整 id,8 碼縮寫曾在實測中撞名(見 STATUS.md)
+    const file = path.join(outDir, `${date}-${shortid}.json`);
+    fs.writeFileSync(file, JSON.stringify(session, null, 2), "utf8");
+    written++;
+  }
+
+  console.log(JSON.stringify({ written, warnings }, null, 2));
 })();

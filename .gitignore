@@ -8,11 +8,7 @@
 *.key
 *.pem
 notion_token.txt
-netlify_token.txt
 token.txt
-
-# Netlify 站台 id(本機產生的部署狀態,無需追蹤)
-scripts/netlify_site.txt
 
 # Claude Code 本機設定(機器專屬,不進版控)
 .claude/settings.local.json

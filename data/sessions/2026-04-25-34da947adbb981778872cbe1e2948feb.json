@@ -1,0 +1,114 @@
+{
+  "date": "2026-04-25",
+  "type": "Chest/Back Day",
+  "quality": 4,
+  "energy": "🚀 Supercharged",
+  "strength": [
+    {
+      "exercise": "Lat Pulldown",
+      "unit": "kg",
+      "sets": [
+        {
+          "weight": 20,
+          "reps": 8
+        },
+        {
+          "weight": 20,
+          "reps": 8
+        },
+        {
+          "weight": 20,
+          "reps": 8
+        },
+        {
+          "weight": 20,
+          "reps": 8
+        },
+        {
+          "weight": 20,
+          "reps": 8
+        }
+      ]
+    },
+    {
+      "exercise": "Bench Press",
+      "unit": "lb",
+      "sets": [
+        {
+          "weight": 35,
+          "reps": 8
+        },
+        {
+          "weight": 35,
+          "reps": 8
+        },
+        {
+          "weight": 35,
+          "reps": 8
+        },
+        {
+          "weight": 35,
+          "reps": 8
+        },
+        {
+          "weight": 35,
+          "reps": 8
+        }
+      ]
+    },
+    {
+      "exercise": "Seated Row",
+      "unit": "kg",
+      "sets": [
+        {
+          "weight": 24,
+          "reps": 8
+        },
+        {
+          "weight": 24,
+          "reps": 8
+        },
+        {
+          "weight": 24,
+          "reps": 8
+        },
+        {
+          "weight": 24,
+          "reps": 8
+        },
+        {
+          "weight": 24,
+          "reps": 8
+        }
+      ]
+    },
+    {
+      "exercise": "Triceps Pushdown",
+      "unit": "kg",
+      "sets": [
+        {
+          "weight": 12.75,
+          "reps": 8
+        },
+        {
+          "weight": 12.75,
+          "reps": 8
+        },
+        {
+          "weight": 12.75,
+          "reps": 8
+        },
+        {
+          "weight": 12.75,
+          "reps": 8
+        },
+        {
+          "weight": 12.75,
+          "reps": 8
+        }
+      ]
+    }
+  ],
+  "cardio": [],
+  "note": "啞鈴臥推：手臂先痠，姿勢有點歪掉，需留意小臂垂直地面。\n坐姿寬握划船：感受度蠻好的。\n三頭下壓：第3組嘗試13.75kg，但姿勢會跑掉。"
+}

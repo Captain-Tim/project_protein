@@ -1,0 +1,15 @@
+{
+  "date": "2026-03-18",
+  "type": "Cardio",
+  "quality": 3,
+  "energy": "⚡ Moderate",
+  "strength": [],
+  "cardio": [
+    {
+      "exercise": "Zone 2",
+      "duration_min": 35,
+      "note": "停機兩週後重啟，配速 8 km/h，降階為有氧暖機"
+    }
+  ],
+  "note": null
+}

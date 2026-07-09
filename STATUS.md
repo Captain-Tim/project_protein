@@ -1,46 +1,54 @@
 # STATUS — 交接給接手的 Claude Code
 
 > 目的:讓你(接手的 Claude Code)讀完這一份就能直接上工,不用重問。
-> 最後更新:**2026-06-14**(由 Luna 整理;本次換機 + 上 GitHub)。先讀本檔,再視需要讀 `CLAUDE.md`。
+> 最後更新:**2026-07-09**(由 Luna 整理;Notion 全面退場、改本地資料 + GitHub Pages)。先讀本檔,再視需要讀 `CLAUDE.md`。
 
 ---
 
 ## 0. 一分鐘上手(START HERE)
 
-- 這是把 Notion「Workout Database」視覺化的**本機 HTML dashboard**專案。完整設計與決策在 `CLAUDE.md`。
-- 資料流(單向):`Notion(真相來源) → node scripts/export.js → 注入 dashboard.html`。
-  **已不再產生 `data.js`**;`dashboard.html` 是單一自含檔,資料直接內嵌在
-  `/*WORKOUT_DATA_START*/`…`/*WORKOUT_DATA_END*/` 標記區塊裡。
+- 這是把訓練紀錄視覺化的**本機 HTML dashboard**專案,現在資料**完全本地維護、GitHub 版控**。完整設計與決策在 `CLAUDE.md`。
+- 資料流(單向):手機拍照 → claude.ai(GitHub connector)→ push 進 `data/pending/` → 使用者回家用
+  `review.cmd` 核准 → `data/sessions/*.json`(真相來源)→ `node scripts/build_dashboard.js` → 注入 `dashboard.html`
+  → `publish.cmd` push → GitHub Actions 自動部署到 GitHub Pages。**Notion 已完全退場**,不再是資料來源也不當備援。
 - **看成果**:直接雙擊 `dashboard.html`(離線可開,不需 server),或雙擊 `update.cmd`(先刷新再開)。
-- **更新資料**:`node scripts/export.js`(從 Notion 重拉、覆寫 dashboard.html 的標記區塊),或雙擊 `update.cmd`。
-- **要分享**:雙擊 `publish.cmd`(export → 部署 Netlify → 印公開連結 `cheery-fox-4d37b2.netlify.app`)。
-- 跟使用者一律**繁體中文**;改 Notion 等外部檔案時要明講改了什麼(見 CLAUDE.md §7)。
+- **審查手機新紀錄**:雙擊 `review.cmd`(自己先看過 `data/pending` 內容,OK 就核准搬進 `data/sessions`)。
+- **要分享**:雙擊 `publish.cmd`(重建 dashboard → commit+push → GitHub Actions 自動部署 →
+  印出公開連結 `https://captain-tim.github.io/project_protein/`)。
+- 跟使用者一律**繁體中文**(見 CLAUDE.md §7)。
 
 ---
 
 ## 1. ⚠️ 環境須知(最容易踩雷,先看)
 
-### 1a. 本機資訊(2026-06 換機 + 上 GitHub 後)
+### 1a. 本機資訊
+
+**2026-07(現況,再次換機後)**
+- 機器路徑:`d:\tim_hou\Desktop\project_protein`(Windows 11,使用者 `tim_hou`,磁碟機 D)。
+- GitHub:repo `Captain-Tim/project_protein`,**2026-07 已從 private 轉 public**(改用免費 GitHub Pages 需要),
+  預設分支 `master`。
+- 換機當下沒有帶著 `notion_token.txt` 等機密檔——確認過已刪除,現行流程也不再需要任何 token。
+
+**2026-06(舊紀錄,備查)**
 - 機器路徑:`C:\Users\Ting\Documents\GitHub\project_protein`(Windows 10,使用者 `Ting`)。
-  **已脫離 Google Drive**(原本在 `Desktop\project_protein` 被 Drive 鏡像,會與 git 打架;改放 Documents\GitHub)。
-- GitHub:private repo `Captain-Tim/project_protein`,預設分支 `master`。日常 `git`/`gh` 操作即可。
-- **Node v24.16.0**(2026-06 用 `winget install OpenJS.NodeJS.LTS --scope user` 裝的,已在 PATH)。
-- **git 2.54**、**gh CLI 2.94**(GitHub 操作用 gh)。也有 GitHub Desktop。
+  已脫離 Google Drive(原本在 `Desktop\project_protein` 被 Drive 鏡像,會與 git 打架;改放 Documents\GitHub)。
+- **Node v24.16.0**(用 `winget install OpenJS.NodeJS.LTS --scope user` 裝的,已在 PATH)。
+- **git 2.54**、**gh CLI 2.94**。也有 GitHub Desktop。
 - 沒有可用的 Python(`python` 是 Microsoft Store 假 stub)。所有腳本都是 `.js`,用 `node xxx.js` 跑。
-- `update.cmd` / `publish.cmd` 會先找 PATH 的 `node`,找不到才退回 winget 安裝路徑當保險。
-- **換機注意**:新機器必須裝 **Node 18+**,否則 `export.js` 跑不起來。
+- `update.cmd`/`publish.cmd`/`review.cmd` 會先找 PATH 的 `node`,找不到才退回 winget 安裝路徑當保險。
+- **換機注意**:新機器必須裝 **Node 18+**,否則腳本跑不起來。
 
 ### 1b. 記憶與對話歷史「不在」專案資料夾裡
 - Claude Code 的記憶存在 `C:\Users\Ting\.claude\projects\c--Users-Ting-Documents-GitHub-project-protein\memory\`,**不在** `project_protein` 內。
   (key 由專案絕對路徑推導;從 Desktop 搬到 Documents 後 key 已改,Desktop 時期的舊記憶不會跟過來——靠本檔接手即可。)
 - 記憶以**專案絕對路徑**當 key。換機若路徑或 Windows 使用者名不同 → 舊記憶對不上,但**專案檔照常運作**,靠本檔 + `CLAUDE.md` 接手即可。
 
-### 1c. 機密(重要)
-- `notion_token.txt`、`netlify_token.txt`、`token.txt` 是明文 token,**只存在本機**(已不再靠 Drive)。
-- **已被 `.gitignore` 擋掉(含 glob 安全網),嚴禁進 git**;遠端已驗證為 404,確認沒上傳。
-- token 不隨 git 走:在別台 clone 後要**手動補這幾個檔**(或重新 regenerate)才能跑 export/publish。
-- Notion token 只分享給 Workout Database;Netlify token 是整個帳號權限(blast radius 大,別外傳)。
-- `token.txt` 沒有任何腳本在用(遺留檔),可考慮刪;不確定就留著。
+### 1c. 機密(2026-07 起已無機密檔案)
+- `notion_token.txt`:Notion 全面退場後已刪除(遷移驗證完成後刪的,見 §2)。
+- `netlify_token.txt`、`scripts/netlify_site.txt`:Netlify 退場後已刪除。
+- `.gitignore` 仍保留 `*token*.txt`/`*secret*`/`*.key`/`*.pem` 等通用安全網,日後若又有機密檔案會自動被擋。
+- GitHub Pages 部署不需要手動 secret,用 Actions 內建 OIDC。
+- **repo 現在是 public**:`data/pending`、`data/sessions` 的原始內容在 GitHub 上任何人都看得到,見 CLAUDE.md §3。
 
 ---
 
@@ -50,23 +58,30 @@
 |---|---|---|
 | 1 | Migration:session 寫入「📦 Workout Data (JSON)」code block | ✅ 完成並驗證 |
 | 2 | Schema 清理:刪舊頁、DROP 舊動作數字欄、移除 Type 的 Report 選項 | ✅ |
-| 3 | `scripts/export.js`:Notion → 注入 dashboard.html | ✅ |
-| 4 | `dashboard.html`:dark mode、多視圖 | ✅(排版暫定) |
-| 5 | 換機修復:裝 Node/git/gh、修 .cmd fallback 路徑、清孤兒檔 | ✅(2026-06-14) |
-| 6 | 上 GitHub(private repo)+ 驗證 token 不在遠端 | ✅(2026-06-14) |
-| 7 | 脫離 Google Drive、搬到 `Documents\GitHub` | ⏳ 收尾(停 Drive 同步、刪桌面舊份) |
-| 8 | **Stop hook**:session 結束自動跑 export | ⏳ **未做** |
+| 3 | 換機修復(2026-06):裝 Node/git/gh、修 .cmd fallback 路徑、清孤兒檔 | ✅ |
+| 4 | 上 GitHub | ✅ |
+| 5 | **Notion → 本地資料遷移**(`scripts/migrate_from_notion.js`) | ✅ 完成並逐欄位驗證(2026-07-09) |
+| 6 | **Notion 全面退場**(`notion_token.txt` 已刪、`export.js`/`sync_block.js` 停用) | ✅ |
+| 7 | **`data/pending` → `review.cmd` → `data/sessions` 審查流程上線** | ✅ 腳本已寫好,待實測 |
+| 8 | **Netlify 退場,改 GitHub Pages**(`.github/workflows/pages.yml`) | ✅ 腳本/workflow 已寫好,待 repo 轉 public 後驗證部署 |
+| 9 | **repo 轉 public** | ⏳ 待使用者最終確認 |
+| 10 | `dashboard.html`:dark mode、多視圖 | ✅(排版暫定,大改是未來獨立任務) |
 
-現存 Notion **34 筆** active session;DB 欄位只剩 `Date / Type / Quality / Energy / 標題`,動作明細在頁面內文 JSON block。
+**資料現況**:本地 `data/sessions/` 共 **36 筆**——其中 34 筆是 2026-06-14 前的 Notion 舊資料(已逐欄位比對
+與舊 dashboard 內嵌資料完全一致),另外 2 筆(`2026-06-19` Leg/Shoulder Day、`2026-06-27` Cardio)是之後才
+記錄、STATUS.md 尚未反映過的新紀錄,一併遷移進來了。
 
 ---
 
 ## 3. 待辦(TODO,依重要性)
 
-1. **脫離 Drive 收尾**(換機最後一哩):(a) 在 Google Drive 偏好設定→「我的電腦」停止同步桌面那份 `project_protein`;(b) VS Code 開新位置 `Documents\GitHub\project_protein`;(c) 刪掉 `Desktop\project_protein` 舊份。
-2. **Stop hook**:在 `.claude/settings.json` 設 Stop hook 跑 `node scripts/export.js`,讓 dashboard 自動同步。可用 update-config skill。
-3. **記錄新訓練**:在 Claude 網頁/App 用 `notion-project-protein-log-workout` skill 寫 JSON block 進 Notion(skill 在網頁端維護,本機不留 skill 檔)。
-4. **(待使用者決定)** All time 模式下那顆 badge(😴/👍/🔥)要不要也拿掉。
+1. **確認 repo 轉 public**,`Settings → Pages → Source` 設成 GitHub Actions,push 後驗證 `https://captain-tim.github.io/project_protein/` 可正常開啟。
+2. **改寫 `notion-project-protein-log-workout` skill**(在 claude.ai 網頁端,不在本機):啟用 GitHub connector、改成寫入 CLAUDE.md §5 的合約路徑 `data/pending/<date>-<random6>.json`。
+3. **(待使用者決定)** All time 模式下那顆 badge(😴/👍/🔥)要不要也拿掉。
+4. **(未來獨立任務)** dashboard 視覺/版面大改,用 brainstorming skill 另開一輪。
+
+> `migrate_from_notion.js` 曾在實測中發現「page id 前 8 碼縮寫可能撞名」(`34da947a-dbb9-815a...` 與
+> `34da947a-dbb9-8177...` 前 16 碼幾乎相同),已改用完整 page id 當檔名尾碼修正,遷移結果已重新驗證。
 
 ---
 
@@ -74,32 +89,32 @@
 
 ```
 project_protein/
-├─ dashboard.html      ← 主成品(單檔,vanilla JS + SVG,無 CDN,離線可用,資料內嵌)
-├─ notion_token.txt    ← Notion token(機密,gitignore)
-├─ netlify_token.txt   ← Netlify token(機密,gitignore)
-├─ token.txt           ← (機密,gitignore)
-├─ .gitignore          ← 擋 token(含 glob 安全網)、netlify_site.txt、Drive 暫存夾、node_modules 等
-├─ CLAUDE.md           ← 完整設計與決策(權威)
-├─ STATUS.md           ← 本檔
-├─ update.cmd          ← 自己看:export 刷新 + 開 dashboard
-├─ publish.cmd         ← 要分享:export → publish → 印連結
+├─ dashboard.html            ← 主成品(單檔,vanilla JS + SVG,無 CDN,離線可用,資料內嵌)
+├─ .gitignore                ← token glob 安全網(現無實際機密檔案)、node_modules 等
+├─ .github/workflows/pages.yml ← push 到 master(限 data/sessions、dashboard.html 等路徑)→ 建置 → 部署 GitHub Pages
+├─ CLAUDE.md                 ← 完整設計與決策(權威)
+├─ STATUS.md                 ← 本檔
+├─ update.cmd                ← 自己看:git pull + 重建 + 開 dashboard
+├─ review.cmd                ← 審查手機新紀錄:data/pending → data/sessions
+├─ publish.cmd               ← 要分享:重建 → commit+push → GitHub Actions 部署
+├─ data/
+│  ├─ pending/               ← 手機端(GitHub connector)寫入的待審查紀錄
+│  └─ sessions/              ← 正式真相來源,build_dashboard.js 只讀這裡
 └─ scripts/
-   ├─ export.js        ← 主要:Notion → 注入 dashboard.html(Stop hook 要跑這支)
-   ├─ publish.js       ← 部署 dashboard.html 到 Netlify(deploy 成 index.html)
-   ├─ sync_block.js    ← 修正單頁 JSON block 後重新同步(node sync_block.js <pageId>)
-   ├─ dump_rows.js     ← (一次性/唯讀)列出所有列 → _rows.json
-   ├─ fetch_content.js ← (一次性/唯讀)抓各頁內文表格 → _content.json
-   ├─ build_proposed.js← (一次性)_content.json → _proposed.json(migration 用)
-   ├─ write_blocks.js  ← (一次性)把 JSON block 寫進各頁(已執行過)
-   ├─ archive_pages.js ← (一次性)archive 待刪頁(已執行過)
-   ├─ _rows.json       ← 全列屬性快照(含被刪欄位的舊值備份)
-   ├─ _content.json    ← 各頁內文表格快照
-   ├─ _proposed.json   ← migration 產出的最終 JSON(每筆 session)
-   ├─ _dryrun.md       ← migration 對照報告 + 單位還原決策(重要紀錄)
-   └─ netlify_site.txt ← (本機產生)Netlify site id,gitignore
+   ├─ build_dashboard.js     ← 主要:data/sessions/*.json → 注入 dashboard.html
+   ├─ promote_pending.js     ← data/pending → data/sessions(一鍵核准)
+   ├─ migrate_from_notion.js ← (一次性)Notion → data/sessions,已執行過就留著備查
+   ├─ sync_block.js          ← (Notion 時期,已停用)修正單頁 JSON block
+   ├─ dump_rows.js           ← (一次性/唯讀,Notion 時期)列出所有列 → _rows.json
+   ├─ fetch_content.js       ← (一次性/唯讀,Notion 時期)抓各頁內文表格 → _content.json
+   ├─ build_proposed.js      ← (一次性,Notion 時期)_content.json → _proposed.json
+   ├─ write_blocks.js        ← (一次性,Notion 時期,已執行過)
+   ├─ archive_pages.js       ← (一次性,Notion 時期,已執行過)
+   ├─ _rows.json / _content.json / _proposed.json / _dryrun.md ← Notion migration 歷史紀錄(備查)
 ```
 
-> 已刪除:`data.js`(export 改成直接注入 dashboard.html,不再產生)、`scripts/config.py`(舊 Python,無法執行)。
+> 已刪除:`data.js`(改成直接注入 dashboard.html)、`scripts/config.py`(舊 Python)、`scripts/export.js`、
+> `scripts/publish.js`、`notion_token.txt`、`netlify_token.txt`、`scripts/netlify_site.txt`。
 
 ---
 
@@ -135,7 +150,7 @@ dashboard 是 file:// 開的純前端。可用 headless Chrome 注入探針抓 c
 # 複製 dashboard.html 成 _t.html(已被 gitignore),在 </body> 前注入 <script> 把要看的數字寫進 document.title,
 # 再用 Chrome --headless --dump-dom 載入,grep <title> 取結果;看完刪掉 _t.html。
 "/c/Program Files/Google/Chrome/Application/chrome.exe" --headless --disable-gpu \
-  --dump-dom "file:///C:/Users/Ting/Desktop/project_protein/_t.html" | grep -oE "<title>.*</title>"
+  --dump-dom "file:///D:/tim_hou/Desktop/project_protein/_t.html" | grep -oE "<title>.*</title>"
 ```
 
 JS 語法快檢(不需瀏覽器):
@@ -145,9 +160,10 @@ node -e 'const fs=require("fs");const h=fs.readFileSync("dashboard.html","utf8")
 
 ---
 
-## 8. Notion 識別碼(同 CLAUDE.md §4)
+## 8. Notion 識別碼(歷史參考,同 CLAUDE.md §4——現行流程已不使用)
 
 - Project Protein 頁面:`2f8a947a-dbb9-8013-93fd-d1b85c17ca5c`
 - Workout Database:`2f8a947a-dbb9-8146-964b-dfc8e09e91e6`
 - Data source:`2f8a947a-dbb9-8150-9192-000ba5248e68`
-- 每筆 session 頁面內文有一個 ` ```json ` code block(標題「📦 Workout Data (JSON)」),export.js 就是讀這個。
+- 每筆 session 頁面內文有一個 ` ```json ` code block(標題「📦 Workout Data (JSON)」),
+  `scripts/migrate_from_notion.js` 讀的就是這個,一次性遷移完就不再連線。

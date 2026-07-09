@@ -1,0 +1,15 @@
+{
+  "date": "2026-02-02",
+  "type": "Cardio",
+  "quality": 4,
+  "energy": "⚡ Moderate",
+  "strength": [],
+  "cardio": [
+    {
+      "exercise": "Zone 2",
+      "duration_min": 45,
+      "note": "配速 6 km/h，心率 130–150 bpm"
+    }
+  ],
+  "note": null
+}

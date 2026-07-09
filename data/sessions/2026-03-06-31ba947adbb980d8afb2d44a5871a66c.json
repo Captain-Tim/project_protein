@@ -1,0 +1,91 @@
+{
+  "date": "2026-03-06",
+  "type": "Chest/Back Day",
+  "quality": 4,
+  "energy": "🔋 High",
+  "strength": [
+    {
+      "exercise": "Bench Press",
+      "unit": "lb",
+      "sets": [
+        {
+          "weight": 35,
+          "reps": 8
+        },
+        {
+          "weight": 35,
+          "reps": 8
+        },
+        {
+          "weight": 40,
+          "reps": 8
+        },
+        {
+          "weight": 40,
+          "reps": 8
+        },
+        {
+          "weight": 40,
+          "reps": 8
+        }
+      ],
+      "note": "穩定組；首次突破 40 磅門檻，末端需監控肩胛骨"
+    },
+    {
+      "exercise": "Lat Pulldown",
+      "unit": "kg",
+      "sets": [
+        {
+          "weight": 20,
+          "reps": 8
+        },
+        {
+          "weight": 20,
+          "reps": 8
+        },
+        {
+          "weight": 20,
+          "reps": 8
+        },
+        {
+          "weight": 20,
+          "reps": 8
+        },
+        {
+          "weight": 20,
+          "reps": 8
+        }
+      ],
+      "note": "手肘垂直砸向口袋，頂端主動煞車"
+    },
+    {
+      "exercise": "Triceps Pushdown",
+      "unit": "kg",
+      "sets": [
+        {
+          "weight": 12.5,
+          "reps": 8
+        },
+        {
+          "weight": 12.5,
+          "reps": 8
+        },
+        {
+          "weight": 12.5,
+          "reps": 8
+        },
+        {
+          "weight": 12.5,
+          "reps": 8
+        },
+        {
+          "weight": 12.5,
+          "reps": 8
+        }
+      ],
+      "note": "手肘釘死肋骨，三頭高負載"
+    }
+  ],
+  "cardio": [],
+  "note": null
+}

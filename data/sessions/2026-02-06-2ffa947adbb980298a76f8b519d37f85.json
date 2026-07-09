@@ -1,0 +1,91 @@
+{
+  "date": "2026-02-06",
+  "type": "Chest/Back Day",
+  "quality": 4,
+  "energy": "⚡ Moderate",
+  "strength": [
+    {
+      "exercise": "Bench Press",
+      "unit": "lb",
+      "sets": [
+        {
+          "weight": 35,
+          "reps": 8
+        },
+        {
+          "weight": 35,
+          "reps": 8
+        },
+        {
+          "weight": 35,
+          "reps": 8
+        },
+        {
+          "weight": 35,
+          "reps": 8
+        },
+        {
+          "weight": 35,
+          "reps": 8
+        }
+      ],
+      "note": "最後一組出現震盪，神經控制達臨界點"
+    },
+    {
+      "exercise": "Lat Pulldown",
+      "unit": "kg",
+      "sets": [
+        {
+          "weight": 20,
+          "reps": 8
+        },
+        {
+          "weight": 20,
+          "reps": 8
+        },
+        {
+          "weight": 20,
+          "reps": 8
+        },
+        {
+          "weight": 20,
+          "reps": 8
+        },
+        {
+          "weight": 20,
+          "reps": 8
+        }
+      ],
+      "note": "後段組數續航力不足"
+    },
+    {
+      "exercise": "Seated Row",
+      "unit": "kg",
+      "sets": [
+        {
+          "weight": 20,
+          "reps": 8
+        },
+        {
+          "weight": 20,
+          "reps": 8
+        },
+        {
+          "weight": 20,
+          "reps": 8
+        },
+        {
+          "weight": 20,
+          "reps": 8
+        },
+        {
+          "weight": 20,
+          "reps": 8
+        }
+      ],
+      "note": "技術突破，後三角感受度強烈"
+    }
+  ],
+  "cardio": [],
+  "note": null
+}

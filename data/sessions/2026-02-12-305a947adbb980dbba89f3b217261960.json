@@ -1,0 +1,37 @@
+{
+  "date": "2026-02-12",
+  "type": "Leg/Shoulder Day",
+  "quality": 4,
+  "energy": "🔋 High",
+  "strength": [
+    {
+      "exercise": "Sumo Squat",
+      "unit": "kg",
+      "sets": [
+        {
+          "weight": 40,
+          "reps": 8
+        },
+        {
+          "weight": 50,
+          "reps": 8
+        },
+        {
+          "weight": 50,
+          "reps": 8
+        },
+        {
+          "weight": 50,
+          "reps": 8
+        },
+        {
+          "weight": 50,
+          "reps": 8
+        }
+      ],
+      "note": "熱身組；時間壓縮，穩定訓練重量"
+    }
+  ],
+  "cardio": [],
+  "note": null
+}

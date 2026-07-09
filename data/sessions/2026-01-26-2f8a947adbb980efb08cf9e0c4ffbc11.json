@@ -1,0 +1,15 @@
+{
+  "date": "2026-01-26",
+  "type": "Cardio",
+  "quality": 4,
+  "energy": "🔋 High",
+  "strength": [],
+  "cardio": [
+    {
+      "exercise": "Zone 2",
+      "duration_min": 60,
+      "note": "心率 150 bpm，偏高，已超出 Zone 2 區間"
+    }
+  ],
+  "note": null
+}

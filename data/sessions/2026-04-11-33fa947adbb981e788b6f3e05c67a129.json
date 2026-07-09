@@ -1,0 +1,88 @@
+{
+  "date": "2026-04-11",
+  "type": "Chest/Back Day",
+  "quality": 3,
+  "energy": "⚡ Moderate",
+  "strength": [
+    {
+      "exercise": "Bench Press",
+      "unit": "lb",
+      "sets": [
+        {
+          "weight": 35,
+          "reps": 8
+        },
+        {
+          "weight": 35,
+          "reps": 8
+        },
+        {
+          "weight": 35,
+          "reps": 8
+        },
+        {
+          "weight": 35,
+          "reps": 8
+        },
+        {
+          "weight": 35,
+          "reps": 8
+        }
+      ]
+    },
+    {
+      "exercise": "Lat Pulldown",
+      "unit": "kg",
+      "sets": [
+        {
+          "weight": 20,
+          "reps": 8
+        },
+        {
+          "weight": 20,
+          "reps": 8
+        },
+        {
+          "weight": 20,
+          "reps": 8
+        },
+        {
+          "weight": 20,
+          "reps": 8
+        },
+        {
+          "weight": 20,
+          "reps": 8
+        }
+      ]
+    },
+    {
+      "exercise": "Triceps Pushdown",
+      "unit": "kg",
+      "sets": [
+        {
+          "weight": 12.5,
+          "reps": 8
+        },
+        {
+          "weight": 12.5,
+          "reps": 8
+        },
+        {
+          "weight": 12.5,
+          "reps": 8
+        },
+        {
+          "weight": 12.5,
+          "reps": 8
+        },
+        {
+          "weight": 12.5,
+          "reps": 8
+        }
+      ]
+    }
+  ],
+  "cardio": [],
+  "note": "啞鈴臥推：後段三頭先力竭，下週觀察是姿勢問題或訓練空窗。滑輪下拉：末兩組末兩下力竭。三頭下壓：末兩組末兩下力竭。坐姿划船：今日跳過（器材被占用＋疲勞）。"
+}

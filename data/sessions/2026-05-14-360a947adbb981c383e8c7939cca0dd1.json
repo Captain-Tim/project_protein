@@ -1,0 +1,14 @@
+{
+  "date": "2026-05-14",
+  "type": "Cardio",
+  "quality": 3,
+  "energy": "🐢 Low",
+  "strength": [],
+  "cardio": [
+    {
+      "exercise": "Zone 2",
+      "duration_min": 35
+    }
+  ],
+  "note": "配速 7 km/hr。今天體感比較累，可能跟最近比較少跑、睡眠比較少有關。"
+}

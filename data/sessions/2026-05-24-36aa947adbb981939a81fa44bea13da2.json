@@ -1,0 +1,87 @@
+{
+  "date": "2026-05-24",
+  "type": "Chest/Back Day",
+  "quality": 3,
+  "energy": "⚡ Moderate",
+  "strength": [
+    {
+      "exercise": "Lat Pulldown",
+      "unit": "kg",
+      "sets": [
+        {
+          "weight": 20,
+          "reps": 8
+        },
+        {
+          "weight": 20,
+          "reps": 8
+        },
+        {
+          "weight": 20,
+          "reps": 8
+        },
+        {
+          "weight": 20,
+          "reps": 8
+        },
+        {
+          "weight": 20,
+          "reps": 8
+        }
+      ],
+      "note": "第四組開始有點沒力"
+    },
+    {
+      "exercise": "Seated Row",
+      "unit": "kg",
+      "sets": [
+        {
+          "weight": 24,
+          "reps": 8
+        },
+        {
+          "weight": 24,
+          "reps": 8
+        },
+        {
+          "weight": 24,
+          "reps": 8
+        },
+        {
+          "weight": 24,
+          "reps": 8
+        }
+      ],
+      "note": "嘗試 27kg × 1 組 × 8 下後改回 24kg；今天刻意坐比較直接近 90 度,避免上週腰痠,但感覺有點代償到上斜方,明天觀察痠痛部位"
+    },
+    {
+      "exercise": "Triceps Pushdown",
+      "unit": "kg",
+      "sets": [
+        {
+          "weight": 12.75,
+          "reps": 8
+        },
+        {
+          "weight": 12.75,
+          "reps": 8
+        },
+        {
+          "weight": 12.75,
+          "reps": 8
+        },
+        {
+          "weight": 12.75,
+          "reps": 8
+        },
+        {
+          "weight": 12.75,
+          "reps": 8
+        }
+      ],
+      "note": "第四組開始無力做不完全程,硬撐下來"
+    }
+  ],
+  "cardio": [],
+  "note": "今天沒有胸推,因為客滿了。明顯感受到最近訓練量不足,成績開始退步。\n隔天觀察痠痛部位，正常合理。不過這次多了後三角肌的痠痛，也算是坐姿划船正常出力部位"
+}

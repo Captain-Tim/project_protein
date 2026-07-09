@@ -1,0 +1,114 @@
+{
+  "date": "2026-05-17",
+  "type": "Chest/Back Day",
+  "quality": null,
+  "energy": null,
+  "strength": [
+    {
+      "exercise": "Bench Press",
+      "unit": "lb",
+      "sets": [
+        {
+          "weight": 35,
+          "reps": 8
+        },
+        {
+          "weight": 35,
+          "reps": 8
+        },
+        {
+          "weight": 35,
+          "reps": 8
+        },
+        {
+          "weight": 35,
+          "reps": 8
+        },
+        {
+          "weight": 35,
+          "reps": 8
+        }
+      ]
+    },
+    {
+      "exercise": "Lat Pulldown",
+      "unit": "kg",
+      "sets": [
+        {
+          "weight": 20,
+          "reps": 8
+        },
+        {
+          "weight": 20,
+          "reps": 8
+        },
+        {
+          "weight": 20,
+          "reps": 8
+        },
+        {
+          "weight": 20,
+          "reps": 8
+        },
+        {
+          "weight": 20,
+          "reps": 8
+        }
+      ]
+    },
+    {
+      "exercise": "Seated Row",
+      "unit": "kg",
+      "sets": [
+        {
+          "weight": 24,
+          "reps": 8
+        },
+        {
+          "weight": 24,
+          "reps": 8
+        },
+        {
+          "weight": 24,
+          "reps": 8
+        },
+        {
+          "weight": 24,
+          "reps": 8
+        },
+        {
+          "weight": 24,
+          "reps": 8
+        }
+      ]
+    },
+    {
+      "exercise": "Triceps Pushdown",
+      "unit": "kg",
+      "sets": [
+        {
+          "weight": 11.5,
+          "reps": 8
+        },
+        {
+          "weight": 11.5,
+          "reps": 8
+        },
+        {
+          "weight": 11.5,
+          "reps": 8
+        },
+        {
+          "weight": 11.5,
+          "reps": 8
+        },
+        {
+          "weight": 11.5,
+          "reps": 8
+        }
+      ]
+    }
+  ],
+  "cardio": [],
+  "note": "啞鈴臥推:採用快推慢放,變得很吃力,下週繼續努力\n坐姿划船:感受不錯,下週應該可以加重量\n三頭下拉:力竭"
+}

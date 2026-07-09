@@ -1,0 +1,15 @@
+{
+  "date": "2026-04-25",
+  "type": "Cardio",
+  "quality": 5,
+  "energy": "🚀 Supercharged",
+  "strength": [],
+  "cardio": [
+    {
+      "exercise": "Zone 2",
+      "duration_min": 60,
+      "note": "跑步 7 km/h"
+    }
+  ],
+  "note": null
+}

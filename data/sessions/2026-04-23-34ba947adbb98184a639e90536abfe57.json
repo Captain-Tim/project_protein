@@ -1,0 +1,15 @@
+{
+  "date": "2026-04-23",
+  "type": "Cardio",
+  "quality": null,
+  "energy": null,
+  "strength": [],
+  "cardio": [
+    {
+      "exercise": "Zone 2",
+      "duration_min": 38,
+      "note": "6 km/h, ~140 bpm"
+    }
+  ],
+  "note": null
+}
