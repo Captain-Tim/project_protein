@@ -1,7 +1,7 @@
 # =====================================================================
-#  機密 — 嚴禁進 git(只靠 Google Drive 私人同步)
+#  機密 — 嚴禁進 git
 #  glob 安全網:任何含 token / secret / 金鑰副檔名的檔都擋掉,
-#  日後新增 token 檔也不會漏接(見 CLAUDE.md §3 資安界線)
+#  日後新增 token 檔也不會漏接(見 CLAUDE.md §3)
 # =====================================================================
 *token*.txt
 *secret*
@@ -19,7 +19,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# 驗證用暫存頁(STATUS.md §7 的 headless 探針)
+# 驗證用暫存頁(CLAUDE.md §8 的 headless 探針)
 _t.html
 *.tmp
 

@@ -90,13 +90,12 @@ function starCount(q) {
       date,
       type,
       quality: starCount(pr.Quality?.select?.name),
-      energy: pr.Energy?.select?.name ?? null,
       strength: data.strength ?? [],
       cardio: data.cardio ?? [],
       note: data.note ?? null,
     };
 
-    const shortid = p.id.replace(/-/g, ""); // 用完整 id,8 碼縮寫曾在實測中撞名(見 STATUS.md)
+    const shortid = p.id.replace(/-/g, ""); // 用完整 id,8 碼縮寫曾在實測中撞名(兩筆 page id 前 16 碼幾乎相同)
     const file = path.join(outDir, `${date}-${shortid}.json`);
     fs.writeFileSync(file, JSON.stringify(session, null, 2), "utf8");
     written++;
