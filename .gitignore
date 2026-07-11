@@ -8,7 +8,6 @@
 *.key
 *.pem
 notion_token.txt
-token.txt
 
 # Claude Code 本機設定(機器專屬,不進版控)
 .claude/settings.local.json
@@ -23,11 +22,8 @@ yarn-error.log*
 _t.html
 *.tmp
 
-# OS / 編輯器 / Google Drive 雜物
+# OS / 編輯器雜物
 Thumbs.db
 .DS_Store
 desktop.ini
 ehthumbs.db
-# Google Drive 桌面版傳輸中暫存目錄(同步時動態產生,絕不可進 repo)
-.tmp.driveupload/
-.tmp.drivedownload/
