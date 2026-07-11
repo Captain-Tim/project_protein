@@ -43,6 +43,29 @@
     background: var(--streak-bg); border: 1px solid var(--streak-border); border-radius: 999px; padding: 7px 14px; }
   .streak .n { font-size: 20px; font-weight: 800; color: var(--streak); font-family: Consolas, monospace; }
 
+  h2.sec { font-size: 10px; letter-spacing: 1.1px; color: var(--muted); font-weight: 600; margin: 18px 2px 8px; }
+
+  .ring { width: 92px; height: 92px; border-radius: 50%; flex: 0 0 auto;
+    display: flex; align-items: center; justify-content: center; }
+  .ring.done { box-shadow: 0 0 18px rgba(201, 242, 77, .45); }
+  .ring > div { width: 70px; height: 70px; border-radius: 50%; background: var(--card);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .ring .v { font-size: 17px; font-weight: 800; font-family: Consolas, monospace; }
+  .xp { height: 9px; border-radius: 999px; background: #1e2126; overflow: hidden; }
+  .xp > i { display: block; height: 100%; border-radius: 999px;
+    background: linear-gradient(90deg, var(--accent-dim), var(--accent)); box-shadow: 0 0 10px rgba(201, 242, 77, .6); }
+  .qcol { display: flex; align-items: center; gap: 14px; flex: 1; }
+  .qsep { width: 1px; background: var(--border); align-self: stretch; }
+
+  .pr { flex: 1; text-align: center; padding: 16px 10px; background: var(--card);
+    border: 1px solid var(--border); border-radius: 16px; position: relative; }
+  .pr.new { border-color: var(--accent); box-shadow: 0 0 18px rgba(201, 242, 77, .28); }
+  .pr .t { font-size: 26px; line-height: 1; }
+  .pr .v { font-size: 23px; font-weight: 800; margin-top: 6px; font-family: Consolas, monospace; }
+  .pr .d { font-size: 10px; color: var(--muted); margin-top: 3px; }
+  .pr .tag { position: absolute; top: -8px; right: 10px; background: var(--accent); color: #0a0a0a;
+    font-size: 9px; font-weight: 800; padding: 2px 7px; border-radius: 999px; letter-spacing: .5px; }
+
   #dataErrors { margin-top: 24px; font-size: 12px; color: #ff8a8a;
     border: 1px solid #4a1414; background: #1a0c0c; border-radius: 12px; padding: 10px 14px; }
   #dataErrors:empty { display: none; }
@@ -54,6 +77,18 @@
     .who { font-size: 17px; }
     .streak { margin-left: 0; width: 100%; justify-content: center; margin-top: 10px; }
     .row { flex-direction: column; }
+
+    /* 兩個 quest 環在手機仍並排(縮小),讓一屏內還看得到 PR 榜 */
+    .qwrap { flex-direction: row !important; }
+    .qcol { flex-direction: column; gap: 8px; text-align: center; }
+    .qsep { display: none; }
+    .ring { width: 84px; height: 84px; }
+    .ring > div { width: 64px; height: 64px; }
+    #prBoard { flex-direction: row !important; gap: 8px; }
+    .pr { padding: 12px 4px; }
+    .pr .t { font-size: 20px; }
+    .pr .v { font-size: 17px; }
+    .pr .tag { right: 4px; }
   }
 </style>
 </head>
@@ -73,6 +108,11 @@
       <div class="lbl" style="line-height:1.2">WEEK<br />STREAK</div>
     </div>
   </header>
+
+  <div class="card" id="quest" style="margin-top:12px"></div>
+
+  <h2 class="sec">🏆 PERSONAL RECORDS</h2>
+  <div class="row" id="prBoard"></div>
 
   <div id="dataErrors"></div>
 </div>
@@ -373,6 +413,68 @@
     'TOTAL <span class="num lime" style="font-size:13px">' + totalKm + " km</span> · " +
     runs.length + " RUNS · " + round1(totalMin / 60) + " HRS";
   el("streakVal").textContent = M.streak(runs, TODAY);
+
+  // WEEKLY QUEST
+  const q = M.currentQuest(runs, TODAY);
+  const G = M.WEEKLY_GOAL;
+  const ringStyle = (pct) => {
+    const p = (pct * 100).toFixed(1);
+    return "background:conic-gradient(var(--accent) 0 " + p + "%, var(--border) " + p + "% 100%)";
+  };
+  el("quest").innerHTML =
+    '<div style="display:flex;justify-content:space-between;align-items:baseline">' +
+      '<div class="lbl">WEEKLY QUEST · ' + q.weekStart + " → " + q.weekEnd + "</div>" +
+      '<div class="lbl">' + q.daysLeft + " DAY" + (q.daysLeft === 1 ? "" : "S") + " LEFT</div>" +
+    "</div>" +
+    '<div class="row qwrap" style="margin-top:12px;align-items:center">' +
+      '<div class="qcol">' +
+        '<div class="ring' + (q.runsPct >= 1 ? " done" : "") + '" style="' + ringStyle(q.runsPct) + '">' +
+          '<div><div class="v' + (q.runsPct >= 1 ? " lime" : "") + '">' + q.runs + "/" + G.runs + "</div>" +
+          '<div class="lbl" style="font-size:9px">RUNS</div></div></div>' +
+        '<div><div class="lbl">RUNS · GOAL ' + G.runs + "</div>" +
+          (q.runsPct >= 1
+            ? '<div style="font-size:15px;font-weight:700;color:var(--accent)">✓ COMPLETE</div>'
+            : '<div style="font-size:15px;font-weight:700">' + (G.runs - q.runs) + " to go</div>") +
+        "</div>" +
+      "</div>" +
+      '<div class="qsep"></div>' +
+      '<div class="qcol">' +
+        '<div class="ring' + (q.minutesPct >= 1 ? " done" : "") + '" style="' + ringStyle(q.minutesPct) + '">' +
+          '<div><div class="v' + (q.minutesPct >= 1 ? " lime" : "") + '">' + Math.round(q.minutesPct * 100) + "%</div>" +
+          '<div class="lbl" style="font-size:9px">TIME</div></div></div>' +
+        '<div><div class="lbl">TIME · GOAL ' + G.minutes + " MIN</div>" +
+          '<div style="font-size:15px;font-weight:700"><span class="num">' + q.minutes + "</span>" +
+          '<span style="color:var(--muted);font-size:12px"> / ' + G.minutes + " min</span></div>" +
+          (q.minutesPct >= 1
+            ? ""
+            : '<div style="font-size:11px;color:var(--muted);margin-top:2px">' + (G.minutes - q.minutes) + " min to go</div>") +
+        "</div>" +
+      "</div>" +
+      '<div style="flex:1.1">' +
+        '<div class="lbl">QUEST PROGRESS</div>' +
+        '<div class="xp" style="margin-top:7px"><i style="width:' + (q.questPct * 100).toFixed(1) + '%"></i></div>' +
+        '<div style="font-size:11px;color:var(--muted);margin-top:6px">Complete both to keep the streak alive</div>' +
+      "</div>" +
+    "</div>";
+
+  // PR 榜
+  const pr = M.personalRecords(runs);
+  const prCard = (isNew, icon, value, label, date) =>
+    '<div class="pr' + (isNew ? " new" : "") + '">' +
+      (isNew ? '<span class="tag">NEW!</span>' : "") +
+      '<div class="t">' + icon + "</div>" +
+      '<div class="v' + (isNew ? " lime" : "") + '">' + value + "</div>" +
+      '<div class="lbl" style="margin-top:2px">' + label + "</div>" +
+      '<div class="d">' + date + "</div>" +
+    "</div>";
+  el("prBoard").innerHTML =
+    prCard(pr.isNew.fastestPace, "⚡", pr.fastestPace ? M.formatPace(pr.fastestPace.pace) : "—",
+      "FASTEST PACE /km",
+      pr.fastestPace ? pr.fastestPace.date + " · " + pr.fastestPace.km + " km" : "no run ≥ " + M.MIN_PR_KM + " km") +
+    prCard(pr.isNew.longestRun, "🥇", pr.longestRun ? pr.longestRun.km + " km" : "—",
+      "LONGEST RUN", pr.longestRun ? pr.longestRun.date : "—") +
+    prCard(pr.isNew.longestTime, "⏱️", pr.longestTime ? pr.longestTime.min + " min" : "—",
+      "LONGEST TIME", pr.longestTime ? pr.longestTime.date : "—");
 
   // 資料殘缺不靜默略過
   if (invalid.length) {
