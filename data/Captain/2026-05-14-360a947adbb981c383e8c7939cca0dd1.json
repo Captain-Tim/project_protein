@@ -6,7 +6,8 @@
   "cardio": [
     {
       "exercise": "Zone 2",
-      "duration_min": 35
+      "duration_min": 35,
+      "distance_km": 4.1
     }
   ],
   "note": "配速 7 km/hr。今天體感比較累，可能跟最近比較少跑、睡眠比較少有關。"

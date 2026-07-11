@@ -1,13 +1,14 @@
 {
-  "date": "2026-03-23",
+  "date": "2026-06-27",
   "type": "Cardio",
-  "quality": 3,
+  "quality": null,
   "strength": [],
   "cardio": [
     {
       "exercise": "Zone 2",
       "duration_min": 45,
-      "note": "坡度 4，配速 6.0 km/h，心率 130–140 bpm"
+      "note": "7 km/h",
+      "distance_km": 5.3
     }
   ],
   "note": null

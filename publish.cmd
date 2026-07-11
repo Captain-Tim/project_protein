@@ -3,13 +3,14 @@ chcp 65001 >nul
 cd /d "%~dp0"
 set "NODE=node"
 where node >nul 2>nul || set "NODE=%LOCALAPPDATA%\Microsoft\WinGet\Packages\OpenJS.NodeJS.LTS_Microsoft.Winget.Source_8wekyb3d8bbwe\node-v24.16.0-win-x64\node.exe"
-echo Building dashboard from local data...
-"%NODE%" scripts\build_dashboard.js || (echo. & echo [!] Build failed - see message above. & pause & exit /b 1)
+echo Building dashboards from local data...
+"%NODE%" scripts\build_dashboard.js Captain || (echo. & echo [!] Captain build failed - see message above. & pause & exit /b 1)
+"%NODE%" scripts\build_dashboard.js Monkey || (echo. & echo [!] Monkey build failed - see message above. & pause & exit /b 1)
 
-git add dashboard.html data
+git add dashboard-captain.html dashboard-monkey.html data
 
 set "CHANGED="
-for /f "delims=" %%i in ('git status --porcelain -- dashboard.html data') do set "CHANGED=1"
+for /f "delims=" %%i in ('git status --porcelain -- dashboard-captain.html dashboard-monkey.html data') do set "CHANGED=1"
 
 if defined CHANGED (
   git commit -m "chore: publish dashboard" || (echo. & echo [!] Commit failed. & pause & exit /b 1)

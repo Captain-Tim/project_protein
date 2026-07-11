@@ -1,7 +1,7 @@
 // migrate_from_notion.js — 一次性遷移腳本。
-// 把 Notion「Workout Database」現存的所有 session 頁面,寫成本地 data/sessions/<date>-<shortid>.json。
+// 把 Notion「Workout Database」現存的所有 session 頁面,寫成本地 data/Captain/<date>-<shortid>.json。
 // 只在「Notion 退場」這次跑一次;跑完之後 notion_token.txt 就不再被任何腳本讀取。
-// 之後的資料流全部改成 log-workout skill -> data/sessions/ -> build_dashboard.js。
+// 之後的資料流全部改成 log-workout skill -> data/<人名>/ -> build 腳本。
 const fs = require("fs");
 const path = require("path");
 
@@ -63,7 +63,7 @@ function starCount(q) {
 
 (async () => {
   const pages = await queryAll();
-  const outDir = path.join(__dirname, "..", "data", "sessions");
+  const outDir = path.join(__dirname, "..", "data", "Captain");
   fs.mkdirSync(outDir, { recursive: true });
 
   const warnings = [];

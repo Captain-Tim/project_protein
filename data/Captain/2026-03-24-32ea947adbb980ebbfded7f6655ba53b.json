@@ -7,7 +7,8 @@
     {
       "exercise": "Zone 2",
       "duration_min": 45,
-      "note": "配速 6.6 km/h，心率 140–150 bpm，停機後過渡恢復週"
+      "note": "配速 6.6 km/h，心率 140–150 bpm，停機後過渡恢復週",
+      "distance_km": 4.9
     }
   ],
   "note": null

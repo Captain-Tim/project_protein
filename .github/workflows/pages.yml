@@ -4,8 +4,8 @@ on:
   push:
     branches: [master]
     paths:
-      - 'data/sessions/**'
-      - 'dashboard.html'
+      - 'data/**'
+      - 'dashboard-captain.html'
       - 'dashboard-monkey.html'
       - 'profile/**'
       - 'scripts/build_dashboard.js'
@@ -29,13 +29,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: node scripts/build_dashboard.js
-      # Pages 上只有 _site 裡的東西。dashboard.html 同時複製成 index.html(首頁)與
-      # dashboard.html(讓 Monkey 頁的「Tim ›」連結在線上也指得到)。
+      # 資料不完整(缺 distance_km / duration_min)會 exit 1,讓部署直接失敗——壞資料不准上線。
+      - run: node scripts/build_dashboard.js Captain
+      - run: node scripts/build_dashboard.js Monkey
+      # Pages 上只有 _site 裡的東西。Captain 頁同時當首頁(index.html),
+      # 也保留原檔名讓 Monkey 頁的「Captain ›」連結指得到。
       - run: |
           mkdir -p _site
-          cp dashboard.html _site/index.html
-          cp dashboard.html _site/dashboard.html
+          cp dashboard-captain.html _site/index.html
+          cp dashboard-captain.html _site/dashboard-captain.html
           cp dashboard-monkey.html _site/
           cp -r profile _site/
       - uses: actions/upload-pages-artifact@v3

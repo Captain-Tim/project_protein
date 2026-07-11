@@ -7,7 +7,8 @@
     {
       "exercise": "Zone 2",
       "duration_min": 35,
-      "note": "時間壓縮，配速拉高至 6.6 km/h，心率 160–170 bpm，已偏移至 Zone 3–4"
+      "note": "時間壓縮，配速拉高至 6.6 km/h，心率 160–170 bpm，已偏移至 Zone 3–4",
+      "distance_km": 3.9
     }
   ],
   "note": null

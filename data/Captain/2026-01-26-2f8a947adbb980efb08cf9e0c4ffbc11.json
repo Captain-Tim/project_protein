@@ -1,0 +1,15 @@
+{
+  "date": "2026-01-26",
+  "type": "Cardio",
+  "quality": 4,
+  "strength": [],
+  "cardio": [
+    {
+      "exercise": "Zone 2",
+      "duration_min": 60,
+      "note": "心率 150 bpm，偏高，已超出 Zone 2 區間 (距離為推估值:速度不可考,以 7 km/h × 時間計算)",
+      "distance_km": 7
+    }
+  ],
+  "note": null
+}
