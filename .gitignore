@@ -22,6 +22,9 @@ yarn-error.log*
 _t.html
 *.tmp
 
+# superpowers brainstorm 工具的暫存檔(視覺化伺服器狀態,非專案內容)
+.superpowers/
+
 # OS / 編輯器雜物
 Thumbs.db
 .DS_Store

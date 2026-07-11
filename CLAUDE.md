@@ -12,9 +12,9 @@
 
 - **`data/sessions/*.json` = 唯一真相來源**。Repo `Captain-Tim/project_protein` 是 **public**(GitHub Pages
   免費方案要求),分支 `master`。
-- **資料流**:手機拍照 → claude.ai(GitHub connector)寫入 `data/pending/` → `review.cmd` 核准搬進
-  `data/sessions/` → `scripts/build_dashboard.js` 注入 `dashboard.html` → `publish.cmd` push →
-  GitHub Actions 部署到 Pages。
+- **資料流**:手機拍照 → 用 Claude Code 網頁版(claude.ai/code)開這個 repo → `log-workout` skill 解析照片、
+  經使用者確認後寫入 `data/sessions/` → `scripts/build_dashboard.js` 注入 `dashboard.html` → commit/push →
+  GitHub Actions 部署到 Pages。在本機自己改資料時,改完跑 `publish.cmd` 發佈。
 - **`dashboard.html` 的 `/*WORKOUT_DATA_START*/`…`/*WORKOUT_DATA_END*/` 標記區塊只能用
   `scripts/build_dashboard.js` 改寫,禁止手動編輯其間內容。**
 - 專案腳本一律 Node.js(`scripts/*.js`,Node 18+)——既有慣例,不要改寫成 Python 或混用。
@@ -27,7 +27,7 @@
 
 ## 4. 資料模型
 
-`data/sessions/<date>-<random6>.json`(`data/pending/` 核准前同格式、同檔名規則):
+`data/sessions/<date>-<random6>.json`:
 
 ```json
 {
@@ -43,17 +43,15 @@
 `type` 三選:`Leg/Shoulder Day` | `Chest/Back Day` | `Cardio`。實際讀取欄位以
 `scripts/build_dashboard.js`、`dashboard.html` 為準。
 
-**手機端寫入合約**(給改寫 `notion-project-protein-log-workout` skill 用):寫進
-`Captain-Tim/project_protein` / `master` 分支的 `data/pending/<date>-<亂數6碼>.json`,內容為上述 schema。
-**不要**直接寫 `data/sessions/`——一定要先進 `pending`,由使用者 `review.cmd` 核准後才進正式區。
+**新增紀錄一律經由 `.claude/skills/log-workout/`**(動作對照表、單位規則、type 反推規則都在那裡,
+是唯一權威)。人工關卡是「寫檔前先把解析結果列給使用者確認」,不是事後審 JSON;沒有 pending 區。
 
 ## 5. 檔案與日常流程
 
+- `.claude/skills/log-workout/`:從訓練照片記錄一次訓練(手機、本機皆適用)。
 - `update.cmd`:自己看——`git pull` + 重建 dashboard + 開檔案(不 push)。
-- `review.cmd`:核准手機新紀錄——列 `data/pending` 摘要,一鍵搬進 `data/sessions`。
 - `publish.cmd`:分享——重建 + commit + push,觸發 GitHub Actions 部署。
 - `scripts/build_dashboard.js`:讀 `data/sessions/*.json` 注入 `dashboard.html`,零網路、不需 token。
-- `scripts/promote_pending.js`:`review.cmd` 呼叫的核准邏輯。
 - `scripts/migrate_from_notion.js`、`sync_block.js`、`dump_rows.js`、`fetch_content.js`、
   `build_proposed.js`、`write_blocks.js`、`archive_pages.js`:Notion 時期一次性/手動工具,已完成階段性
   任務,不會被日常流程呼叫,不要刪除(歷史備查)。
