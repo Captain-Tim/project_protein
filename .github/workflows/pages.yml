@@ -6,6 +6,8 @@ on:
     paths:
       - 'data/sessions/**'
       - 'dashboard.html'
+      - 'dashboard-monkey.html'
+      - 'profile/**'
       - 'scripts/build_dashboard.js'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
@@ -28,7 +30,14 @@ jobs:
         with:
           node-version: 20
       - run: node scripts/build_dashboard.js
-      - run: mkdir -p _site && cp dashboard.html _site/index.html
+      # Pages 上只有 _site 裡的東西。dashboard.html 同時複製成 index.html(首頁)與
+      # dashboard.html(讓 Monkey 頁的「Tim ›」連結在線上也指得到)。
+      - run: |
+          mkdir -p _site
+          cp dashboard.html _site/index.html
+          cp dashboard.html _site/dashboard.html
+          cp dashboard-monkey.html _site/
+          cp -r profile _site/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
