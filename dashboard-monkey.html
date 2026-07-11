@@ -66,6 +66,13 @@
   .pr .tag { position: absolute; top: -8px; right: 10px; background: var(--accent); color: #0a0a0a;
     font-size: 9px; font-weight: 800; padding: 2px 7px; border-radius: 999px; letter-spacing: .5px; }
 
+  .bars { display: flex; align-items: flex-end; gap: 8px; height: 88px; }
+  .bars i { flex: 1; background: #22262b; border-radius: 5px 5px 2px 2px; display: block; min-height: 2px; }
+  .bars i.on { background: linear-gradient(180deg, var(--accent), var(--accent-dim)); }
+  .barx { display: flex; font-size: 9px; color: var(--muted); margin-top: 6px; }
+  .barx span { flex: 1; text-align: center; }
+  .paceBig { font-size: 40px; margin: 8px 0 2px; }
+
   #dataErrors { margin-top: 24px; font-size: 12px; color: #ff8a8a;
     border: 1px solid #4a1414; background: #1a0c0c; border-radius: 12px; padding: 10px 14px; }
   #dataErrors:empty { display: none; }
@@ -89,6 +96,11 @@
     .pr .t { font-size: 20px; }
     .pr .v { font-size: 17px; }
     .pr .tag { right: 4px; }
+
+    /* 手機順序:AVG PACE 排在 WEEKLY DISTANCE 之前 */
+    #avgPace { order: -1; }
+    .paceBig { font-size: 38px; }
+    .bars { height: 74px; }
   }
 </style>
 </head>
@@ -113,6 +125,12 @@
 
   <h2 class="sec">🏆 PERSONAL RECORDS</h2>
   <div class="row" id="prBoard"></div>
+
+  <div class="row" style="margin-top:12px">
+    <div class="card" id="weeklyDist" style="flex:2.2"></div>
+    <div class="card" id="avgPace"
+      style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center"></div>
+  </div>
 
   <div id="dataErrors"></div>
 </div>
@@ -475,6 +493,42 @@
       "LONGEST RUN", pr.longestRun ? pr.longestRun.date : "—") +
     prCard(pr.isNew.longestTime, "⏱️", pr.longestTime ? pr.longestTime.min + " min" : "—",
       "LONGEST TIME", pr.longestTime ? pr.longestTime.date : "—");
+
+  // AVG PACE(最近 5 次加權平均)
+  const ap = M.avgPace(runs);
+  const deltaLine =
+    ap.deltaSec == null
+      ? ""
+      : Math.abs(ap.deltaSec) < 1
+        ? '<div style="font-size:11px;color:var(--muted);margin-top:8px">same as previous 5</div>'
+        : '<div style="font-size:11px;color:var(--muted);margin-top:8px">' +
+          (ap.deltaSec > 0
+            ? "▲ " + Math.round(ap.deltaSec) + " sec faster"
+            : "▼ " + Math.round(-ap.deltaSec) + " sec slower") +
+          " than previous 5</div>";
+  el("avgPace").innerHTML =
+    '<div class="lbl">AVG PACE · LAST ' + ap.sampleSize + " RUN" + (ap.sampleSize === 1 ? "" : "S") + "</div>" +
+    '<div class="num lime paceBig">' + M.formatPace(ap.pace) + "</div>" +
+    '<div class="lbl" style="letter-spacing:.5px">MIN / KM</div>' +
+    deltaLine;
+
+  // WEEKLY DISTANCE(最近 8 週)
+  const wd = M.weeklyDistance(runs, TODAY, 8);
+  const maxKm = Math.max(1, ...wd.map((x) => x.km));
+  el("weeklyDist").innerHTML =
+    '<div style="display:flex;justify-content:space-between;align-items:baseline">' +
+      '<b style="font-size:13px">WEEKLY DISTANCE</b>' +
+      '<span class="lbl">THIS WEEK <span class="num lime" style="font-size:12px">' +
+        wd[wd.length - 1].km + " km</span></span>" +
+    "</div>" +
+    '<div class="bars" style="margin-top:12px">' +
+      wd.map((x) =>
+        '<i class="' + (x.isCurrent ? "on" : "") + '" style="height:' + Math.max(2, (x.km / maxKm) * 100) +
+        '%" title="' + x.weekStart + " · " + x.km + ' km"></i>').join("") +
+    "</div>" +
+    '<div class="barx">' +
+      wd.map((x) => "<span>" + (x.isCurrent ? "NOW" : x.weekStart.slice(5).replace("-", "/")) + "</span>").join("") +
+    "</div>";
 
   // 資料殘缺不靜默略過
   if (invalid.length) {
