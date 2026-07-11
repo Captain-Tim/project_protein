@@ -1,0 +1,14 @@
+{
+  "date": "2026-07-07",
+  "type": "Cardio",
+  "quality": null,
+  "strength": [],
+  "cardio": [
+    {
+      "exercise": "Running",
+      "duration_min": 30,
+      "distance_km": 3.1
+    }
+  ],
+  "note": null
+}
