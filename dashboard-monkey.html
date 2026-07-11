@@ -4,9 +4,78 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Monkey — Cardio</title>
+<style>
+  :root {
+    --bg: #070708; --card: #111214; --border: #212328;
+    --ink: #e9ecef; --muted: #7f858e;
+    --accent: #c9f24d; --accent-dim: #7fae35;
+    --person: #b558ff;
+    --streak: #ffb648; --streak-bg: #1a1408; --streak-border: #4a3a12;
+    --hm0: #17191c; --hm1: #2f4419; --hm2: #5f8a26; --hm3: #c9f24d;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "Segoe UI", system-ui, sans-serif; line-height: 1.5;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 18px 16px 60px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 14px 16px; min-width: 0; }
+  .row { display: flex; gap: 12px; }
+  .lbl { font-size: 10px; letter-spacing: 1.1px; color: var(--muted); font-weight: 600; }
+  .num { font-family: Consolas, ui-monospace, monospace; font-weight: 700; }
+  .lime { color: var(--accent); }
+
+  .topbar { display: flex; justify-content: flex-end; margin-bottom: 10px; }
+  .topbar a { font-size: 12px; color: var(--muted); text-decoration: none;
+    border: 1px solid var(--border); border-radius: 999px; padding: 5px 12px; }
+  .topbar a:hover { color: var(--ink); border-color: var(--person); }
+
+  header.hero {
+    display: flex; align-items: center; gap: 14px;
+    background: radial-gradient(600px 120px at 8% -30%, rgba(181, 88, 255, .25), transparent), #0d0e10;
+    border: 1px solid var(--border); border-radius: 16px; padding: 14px 16px;
+  }
+  .avatar { width: 62px; height: 62px; border-radius: 50%; flex: 0 0 auto; object-fit: cover;
+    border: 2px solid var(--person); box-shadow: 0 0 18px rgba(181, 88, 255, .5); }
+  .who { font-size: 19px; font-weight: 800; letter-spacing: .5px; }
+  .who i { color: var(--person); font-style: normal; }
+  .streak { margin-left: auto; display: flex; align-items: center; gap: 8px;
+    background: var(--streak-bg); border: 1px solid var(--streak-border); border-radius: 999px; padding: 7px 14px; }
+  .streak .n { font-size: 20px; font-weight: 800; color: var(--streak); font-family: Consolas, monospace; }
+
+  #dataErrors { margin-top: 24px; font-size: 12px; color: #ff8a8a;
+    border: 1px solid #4a1414; background: #1a0c0c; border-radius: 12px; padding: 10px 14px; }
+  #dataErrors:empty { display: none; }
+
+  @media (max-width: 640px) {
+    .wrap { padding: 12px 12px 48px; }
+    header.hero { gap: 12px; padding: 12px 14px; flex-wrap: wrap; }
+    .avatar { width: 52px; height: 52px; }
+    .who { font-size: 17px; }
+    .streak { margin-left: 0; width: 100%; justify-content: center; margin-top: 10px; }
+    .row { flex-direction: column; }
+  }
+</style>
 </head>
 <body>
-<div id="app"></div>
+<div class="wrap">
+  <div class="topbar"><a href="dashboard.html">Tim ›</a></div>
+
+  <header class="hero">
+    <img class="avatar" src="profile/monkey.jpg" alt="Monkey" />
+    <div>
+      <div class="who">MONKEY <i>·</i> CARDIO</div>
+      <div class="lbl" id="totals" style="margin-top:3px"></div>
+    </div>
+    <div class="streak">
+      <span style="font-size:20px">🔥</span>
+      <div class="n" id="streakVal">0</div>
+      <div class="lbl" style="line-height:1.2">WEEK<br />STREAK</div>
+    </div>
+  </header>
+
+  <div id="dataErrors"></div>
+</div>
 
 <script>
 /* 資料由 build 腳本注入此標記區塊,請勿手改 START/END 之間(目前為樣本資料) */
@@ -278,6 +347,40 @@
     avgPace: avgPace,
   };
 })(typeof window !== "undefined" ? window : this);
+</script>
+
+<script id="render">
+"use strict";
+(function () {
+  const M = window.MonkeyMetrics;
+  const D = window.MONKEY_DATA || { sessions: [] };
+  const dr = M.buildDayRuns(D.sessions);
+  const runs = dr.runs;
+  const invalid = dr.invalid;
+
+  // 樣本資料是固定的,若用真實時鐘,過幾週後「本週」就落在沒有資料的區間,
+  // quest 會顯示 0/3、streak 歸零,整頁看起來像壞掉。
+  // 接上真實資料後(資料會持續更新)把這行改回真實今天。
+  const TODAY = runs.length ? runs[runs.length - 1].date : "1970-01-01";
+
+  const el = (id) => document.getElementById(id);
+  const round1 = (n) => Math.round(n * 10) / 10;
+
+  // 頁首:累積數字 + streak
+  const totalKm = round1(runs.reduce((a, r) => a + r.km, 0));
+  const totalMin = runs.reduce((a, r) => a + r.min, 0);
+  el("totals").innerHTML =
+    'TOTAL <span class="num lime" style="font-size:13px">' + totalKm + " km</span> · " +
+    runs.length + " RUNS · " + round1(totalMin / 60) + " HRS";
+  el("streakVal").textContent = M.streak(runs, TODAY);
+
+  // 資料殘缺不靜默略過
+  if (invalid.length) {
+    el("dataErrors").innerHTML =
+      "<b>DATA ERROR</b> — " + invalid.length + " incomplete record(s): " +
+      invalid.map((v) => v.date + " (" + v.reason + ")").join(", ");
+  }
+})();
 </script>
 </body>
 </html>
