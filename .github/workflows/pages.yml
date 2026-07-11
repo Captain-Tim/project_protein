@@ -33,7 +33,7 @@ jobs:
       - run: node scripts/build_dashboard.js Captain
       - run: node scripts/build_dashboard.js Monkey
       # Pages 上只有 _site 裡的東西。Captain 頁同時當首頁(index.html),
-      # 也保留原檔名讓 Monkey 頁的「Captain ›」連結指得到。
+      # 也保留原檔名(已分享出去的 dashboard-captain.html 連結不會壞)。
       - run: |
           mkdir -p _site
           cp dashboard-captain.html _site/index.html
