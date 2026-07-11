@@ -54,10 +54,11 @@
   .xp { height: 9px; border-radius: 999px; background: #1e2126; overflow: hidden; }
   .xp > i { display: block; height: 100%; border-radius: 999px;
     background: linear-gradient(90deg, var(--accent-dim), var(--accent)); box-shadow: 0 0 10px rgba(201, 242, 77, .6); }
-  .qcol { display: flex; align-items: center; gap: 14px; flex: 1; }
+  .qcol { display: flex; align-items: center; gap: 14px; flex: 1 1 0; min-width: 0; }
   .qsep { width: 1px; background: var(--border); align-self: stretch; }
+  .qprog { flex: 1.1 1 0; min-width: 0; }
 
-  .pr { flex: 1; text-align: center; padding: 16px 10px; background: var(--card);
+  .pr { flex: 1 1 0; min-width: 0; text-align: center; padding: 16px 10px; background: var(--card);
     border: 1px solid var(--border); border-radius: 16px; position: relative; }
   .pr.new { border-color: var(--accent); box-shadow: 0 0 18px rgba(201, 242, 77, .28); }
   .pr .t { font-size: 26px; line-height: 1; }
@@ -74,13 +75,16 @@
   .paceBig { font-size: 40px; margin: 8px 0 2px; }
 
   /* 熱力圖:一年 52 欄放不進手機,自己在容器內橫向捲動,捲軸配合頁面改成細螢光綠 */
-  .hmScroll { overflow-x: auto; padding-bottom: 10px; scrollbar-width: thin; scrollbar-color: var(--accent) #15171a; }
+  .hmScroll { overflow-x: auto; padding-bottom: 10px; flex: 1 1 auto; min-width: 0;
+    scrollbar-width: thin; scrollbar-color: var(--accent) #15171a; }
   .hmScroll::-webkit-scrollbar { height: 7px; }
   .hmScroll::-webkit-scrollbar-track { background: #15171a; border-radius: 99px; }
   .hmScroll::-webkit-scrollbar-thumb { background: linear-gradient(90deg, var(--accent-dim), var(--accent));
     border-radius: 99px; box-shadow: 0 0 7px rgba(201, 242, 77, .5); }
-  .hmBody { display: flex; gap: 6px; }
-  .hmDays { display: grid; grid-template-rows: repeat(7, 13px); gap: 4px; font-size: 9px; color: var(--muted); }
+  /* 星期標籤放在捲動容器「外面」的獨立一欄,否則捲到最右時它會跟著消失 */
+  .hmBody { display: flex; gap: 6px; align-items: flex-start; }
+  .hmDays { display: grid; grid-template-rows: repeat(7, 13px); gap: 4px; font-size: 9px; color: var(--muted);
+    flex: 0 0 auto; margin-top: 19px; }
   .hmDays span { display: flex; align-items: center; height: 13px; }
   .hmGrid { display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, 13px); gap: 4px; }
   .hmGrid i { width: 13px; height: 13px; border-radius: 3px; display: block; background: var(--hm0); }
@@ -89,7 +93,7 @@
   .hmGrid i.l3 { background: var(--hm3); box-shadow: 0 0 7px rgba(201, 242, 77, .45); }
   .hmGrid i.empty { background: transparent; }
   .hmMon { display: grid; grid-auto-flow: column; gap: 4px; font-size: 9px; color: var(--muted);
-    margin-left: 32px; margin-bottom: 5px; }
+    margin-bottom: 5px; }
   .hmLegend { display: flex; align-items: center; gap: 6px; font-size: 9px; color: var(--muted);
     margin-top: 12px; justify-content: flex-end; }
   .hmLegend i { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
@@ -106,17 +110,22 @@
     .streak { margin-left: 0; width: 100%; justify-content: center; margin-top: 10px; }
     .row { flex-direction: column; }
 
-    /* 兩個 quest 環在手機仍並排(縮小),讓一屏內還看得到 PR 榜 */
-    .qwrap { flex-direction: row !important; }
+    /* 兩個 quest 環在手機仍並排(縮小),讓一屏內還看得到 PR 榜;
+       經驗值條擠不進同一列,改成整條 wrap 到兩環下方 */
+    .qwrap { flex-direction: row !important; flex-wrap: wrap; gap: 10px; }
     .qcol { flex-direction: column; gap: 8px; text-align: center; }
     .qsep { display: none; }
+    .qprog { flex: 1 0 100%; }
     .ring { width: 84px; height: 84px; }
     .ring > div { width: 64px; height: 64px; }
+
     #prBoard { flex-direction: row !important; gap: 8px; }
     .pr { padding: 12px 4px; }
     .pr .t { font-size: 20px; }
     .pr .v { font-size: 17px; }
+    .pr .d { font-size: 9px; }
     .pr .tag { right: 4px; }
+    .pr .lbl { letter-spacing: .3px; }
 
     /* 手機順序:AVG PACE 排在 WEEKLY DISTANCE 之前 */
     #avgPace { order: -1; }
@@ -491,7 +500,7 @@
             : '<div style="font-size:11px;color:var(--muted);margin-top:2px">' + (G.minutes - q.minutes) + " min to go</div>") +
         "</div>" +
       "</div>" +
-      '<div style="flex:1.1">' +
+      '<div class="qprog">' +
         '<div class="lbl">QUEST PROGRESS</div>' +
         '<div class="xp" style="margin-top:7px"><i style="width:' + (q.questPct * 100).toFixed(1) + '%"></i></div>' +
         '<div style="font-size:11px;color:var(--muted);margin-top:6px">Complete both to keep the streak alive</div>' +
@@ -578,10 +587,10 @@
       '<b style="font-size:13px">ACTIVITY</b>' +
       '<span class="lbl">' + hm.totalRuns + " RUNS IN THE LAST YEAR</span>" +
     "</div>" +
-    '<div class="hmScroll" id="hmScroll">' +
-      '<div class="hmMon" style="grid-template-columns:repeat(52,13px)">' + monCells + "</div>" +
-      '<div class="hmBody">' +
-        '<div class="hmDays"><span>Mon</span><span></span><span>Wed</span><span></span><span>Fri</span><span></span><span></span></div>' +
+    '<div class="hmBody">' +
+      '<div class="hmDays"><span>Mon</span><span></span><span>Wed</span><span></span><span>Fri</span><span></span><span></span></div>' +
+      '<div class="hmScroll" id="hmScroll">' +
+        '<div class="hmMon" style="grid-template-columns:repeat(52,13px)">' + monCells + "</div>" +
         '<div class="hmGrid" id="hmGrid" style="grid-template-columns:repeat(52,13px)">' + cells + "</div>" +
       "</div>" +
     "</div>" +
