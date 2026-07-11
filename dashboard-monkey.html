@@ -104,7 +104,85 @@
     return ss === 60 ? mm + 1 + ":00" : mm + ":" + String(ss).padStart(2, "0");
   }
 
-  w.MonkeyMetrics = { WEEKLY_GOAL: WEEKLY_GOAL, buildDayRuns: buildDayRuns, formatPace: formatPace };
+  const DAY = 86400000;
+  const toDate = (s) => new Date(s + "T00:00:00");
+  const toStr = (d) =>
+    d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+
+  // 週一為一週之始
+  function weekStart(dateStr) {
+    const d = toDate(dateStr);
+    const back = (d.getDay() + 6) % 7; // 週一 = 0
+    d.setDate(d.getDate() - back);
+    return toStr(d);
+  }
+  function addDays(dateStr, n) {
+    const d = toDate(dateStr);
+    d.setDate(d.getDate() + n);
+    return toStr(d);
+  }
+
+  function weekAgg(dayRuns) {
+    const map = new Map();
+    dayRuns.forEach((r) => {
+      const k = weekStart(r.date);
+      const cur = map.get(k) || { runs: 0, km: 0, min: 0 };
+      cur.runs += 1;
+      cur.km += r.km;
+      cur.min += r.min;
+      map.set(k, cur);
+    });
+    return map;
+  }
+
+  const isCompleteWeek = (a) => !!a && a.runs >= WEEKLY_GOAL.runs && a.min >= WEEKLY_GOAL.minutes;
+
+  function currentQuest(dayRuns, todayStr) {
+    const ws = weekStart(todayStr);
+    const a = weekAgg(dayRuns).get(ws) || { runs: 0, km: 0, min: 0 };
+    const runsPct = Math.min(1, a.runs / WEEKLY_GOAL.runs);
+    const minutesPct = Math.min(1, a.min / WEEKLY_GOAL.minutes);
+    const weekEnd = addDays(ws, 6);
+    const daysLeft = Math.round((toDate(weekEnd) - toDate(todayStr)) / DAY) + 1;
+    return {
+      weekStart: ws,
+      weekEnd: weekEnd,
+      runs: a.runs,
+      minutes: a.min,
+      km: Math.round(a.km * 100) / 100,
+      runsPct: runsPct,
+      minutesPct: minutesPct,
+      questPct: (runsPct + minutesPct) / 2,
+      complete: isCompleteWeek(a),
+      daysLeft: Math.max(0, daysLeft),
+    };
+  }
+
+  // 連續達標週。本週還沒結束 -> 未達標不算斷,已達標則計入。
+  function streak(dayRuns, todayStr) {
+    const agg = weekAgg(dayRuns);
+    let cursor = weekStart(todayStr);
+    let n = 0;
+    if (isCompleteWeek(agg.get(cursor))) n += 1;
+    cursor = addDays(cursor, -7);
+    while (isCompleteWeek(agg.get(cursor))) {
+      n += 1;
+      cursor = addDays(cursor, -7);
+    }
+    return n;
+  }
+
+  w.MonkeyMetrics = {
+    WEEKLY_GOAL: WEEKLY_GOAL,
+    buildDayRuns: buildDayRuns,
+    formatPace: formatPace,
+    weekStart: weekStart,
+    addDays: addDays,
+    weekAgg: weekAgg,
+    isCompleteWeek: isCompleteWeek,
+    currentQuest: currentQuest,
+    streak: streak,
+  };
 })(typeof window !== "undefined" ? window : this);
 </script>
 </body>
