@@ -81,8 +81,23 @@ node scripts/test_monkey_metrics.js
 
 # headless Chrome 抓 console 錯誤/數元素:複製成 _t.html(已 gitignore),
 # 在 </body> 前注入 <script> 把要看的數字寫進 document.title,dump-dom 後 grep <title>,看完刪掉 _t.html
-# 注意:Chrome 實際安裝在 Program Files (x86)。手機版驗收加 --window-size=390,844。
+# 注意:Chrome 實際安裝在 Program Files (x86)。
 "/c/Program Files (x86)/Google/Chrome/Application/chrome.exe" --headless --disable-gpu --dump-dom "file:///<repo>/_t.html" | grep -oE "<title>.*</title>"
+```
+
+**驗手機版不能用 `--window-size=390,844`**:Windows 的視窗最小寬度會讓實際佈局變成 463px,
+量出來的「沒有溢出」是假的。要用 iframe 強制真實寬度(`--allow-file-access-from-files` 才能讀
+iframe 內容):
+
+```html
+<!-- _t.html:量 390px 下的溢出與元素寬度 -->
+<iframe id="f" src="dashboard-monkey.html" style="width:390px;height:1400px;border:0"></iframe>
+<script>
+document.getElementById("f").addEventListener("load", function () {
+  var d = this.contentDocument;
+  document.title = "overflow=" + (d.documentElement.scrollWidth > d.documentElement.clientWidth);
+});
+</script>
 ```
 
 ## 7. 使用者偏好(務必遵守)
