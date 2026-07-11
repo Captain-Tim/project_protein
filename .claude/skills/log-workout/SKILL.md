@@ -159,4 +159,11 @@ node scripts/build_dashboard.js Monkey    # -> dashboard-monkey.html
 
 - push 到 `master` 成功 → 告訴使用者 GitHub Actions 正在部署,約 30-60 秒後
   https://captain-tim.github.io/project_protein/ 就是最新的。
-- 環境限制只能推到自己的分支 → 開 PR,並明確告訴使用者「**PR 已開,請點 merge**」,merge 之後才會部署。
+- 環境限制只能推到自己的分支 → **開 PR(base `master`)→ 直接 merge**:
+  1. `mcp__github__create_pull_request`(owner `Captain-Tim`、repo `project_protein`、
+     head 自己的分支、base `master`)開 PR。
+  2. 開好後用 `mcp__github__merge_pull_request`(`merge_method: squash`)直接 merge——
+     這個環境有 merge 權限,不用叫使用者自己點。
+  3. merge 成功後告訴使用者 GitHub Actions 正在部署,約 30-60 秒後
+     https://captain-tim.github.io/project_protein/ 就是最新的。
+  merge 若被擋(權限、衝突、CI)才回頭請使用者手動處理,並說明卡在哪。
