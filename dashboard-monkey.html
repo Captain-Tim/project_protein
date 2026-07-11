@@ -30,8 +30,31 @@
     background: radial-gradient(600px 120px at 8% -30%, rgba(181, 88, 255, .25), transparent), #0d0e10;
     border: 1px solid var(--border); border-radius: 16px; padding: 14px 16px;
   }
+  /* 頭像:光暈脈動(呼吸),點下去放大看原圖 */
   .avatar { width: 62px; height: 62px; border-radius: 50%; flex: 0 0 auto; object-fit: cover;
-    border: 2px solid var(--person); box-shadow: 0 0 18px rgba(181, 88, 255, .5); }
+    border: 2px solid var(--person); cursor: zoom-in;
+    animation: avatarPulse 2.2s ease-in-out infinite; transition: transform .15s; }
+  .avatar:hover { transform: scale(1.06); }
+  @keyframes avatarPulse {
+    0%, 100% { box-shadow: 0 0 13px rgba(181, 88, 255, .35); }
+    50%      { box-shadow: 0 0 19px rgba(181, 88, 255, .8); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .avatar { animation: none; box-shadow: 0 0 16px rgba(181, 88, 255, .5); }
+  }
+
+  /* 放大檢視 */
+  #lightbox { position: fixed; inset: 0; z-index: 100; display: none;
+    align-items: center; justify-content: center; padding: 24px;
+    background: rgba(4, 4, 5, .88); backdrop-filter: blur(6px); cursor: zoom-out; }
+  #lightbox.on { display: flex; }
+  #lightbox img { max-width: min(90vw, 640px); max-height: 86vh; border-radius: 18px;
+    border: 2px solid var(--person); box-shadow: 0 0 60px rgba(181, 88, 255, .45);
+    animation: lbIn .18s ease-out; }
+  @keyframes lbIn { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: scale(1); } }
+  #lightbox .close { position: absolute; top: 18px; right: 22px; font-size: 26px; line-height: 1;
+    color: var(--muted); background: none; border: 0; cursor: pointer; font-family: inherit; }
+  #lightbox .close:hover { color: var(--ink); }
   .who { font-size: 19px; font-weight: 800; letter-spacing: .5px; }
   .who i { color: var(--person); font-style: normal; }
   .streak { margin-left: auto; display: flex; align-items: center; gap: 8px;
@@ -132,7 +155,7 @@
 <body>
 <div class="wrap">
   <header class="hero">
-    <img class="avatar" src="profile/monkey.jpg" alt="Monkey" />
+    <img class="avatar" id="avatar" src="profile/monkey.jpg" alt="Monkey" title="Tap to view" />
     <div>
       <div class="who">MONKEY <i>·</i> TANOI</div>
       <div class="lbl" id="totals" style="margin-top:3px"></div>
@@ -158,6 +181,11 @@
   <div class="card" id="activity" style="margin-top:12px"></div>
 
   <div id="dataErrors"></div>
+</div>
+
+<div id="lightbox">
+  <button class="close" aria-label="Close">✕</button>
+  <img src="profile/monkey.jpg" alt="Monkey" />
 </div>
 
 <script>
@@ -556,6 +584,14 @@
       "<b>DATA ERROR</b> — " + invalid.length + " incomplete record(s): " +
       invalid.map((v) => v.date + " (" + v.reason + ")").join(", ");
   }
+
+  // 頭像放大檢視:點頭像開,點背景/✕/Esc 關
+  const box = el("lightbox");
+  const openBox = () => { box.classList.add("on"); document.body.style.overflow = "hidden"; };
+  const closeBox = () => { box.classList.remove("on"); document.body.style.overflow = ""; };
+  el("avatar").addEventListener("click", openBox);
+  box.addEventListener("click", closeBox);   // 點圖片本身也關(cursor 是 zoom-out,符合預期)
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeBox(); });
 })();
 </script>
 </body>
