@@ -200,3 +200,40 @@ test("avgPace:deltaSec 正值代表比前 5 次快", () => {
   assert.equal(M.formatPace(a.pace), "6:00");
   assert.equal(Math.round(a.deltaSec), 40); // 快了 40 秒
 });
+
+test("weeklyDistance:回傳固定 8 週,沒跑的週為 0,最後一週是本週", () => {
+  const { runs } = M.buildDayRuns([
+    S("2026-07-08", [run(60, 10)]),
+    S("2026-06-30", [run(30, 5)]), // 前一週
+  ]);
+  const w = M.weeklyDistance(runs, "2026-07-11");
+  assert.equal(w.length, 8);
+  assert.equal(w[7].weekStart, "2026-07-06");
+  assert.equal(w[7].km, 10);
+  assert.equal(w[7].isCurrent, true);
+  assert.equal(w[6].km, 5);
+  assert.equal(w[0].km, 0);
+  assert.equal(w[0].isCurrent, false);
+});
+
+test("heatmapLevel:0 / <=3 / <=6 / >6 四階", () => {
+  assert.equal(M.heatmapLevel(0), 0);
+  assert.equal(M.heatmapLevel(2.9), 1);
+  assert.equal(M.heatmapLevel(3), 1);
+  assert.equal(M.heatmapLevel(6), 2);
+  assert.equal(M.heatmapLevel(6.1), 3);
+});
+
+test("heatmap:52 欄 × 7 列,今天之後的格子為 null", () => {
+  const { runs } = M.buildDayRuns([S("2026-07-08", [run(38, 6.2)])]);
+  const h = M.heatmap(runs, "2026-07-11"); // 週六
+  assert.equal(h.weeks.length, 52);
+  assert.equal(h.weeks[51].length, 7);
+  assert.equal(h.weeks[51][6], null); // 本週日還沒到
+  assert.equal(h.weeks[51][5].date, "2026-07-11"); // 週六 = 今天
+  const wed = h.weeks[51][2];
+  assert.equal(wed.date, "2026-07-08");
+  assert.equal(wed.km, 6.2);
+  assert.equal(wed.level, 3);
+  assert.equal(h.totalRuns, 1);
+});

@@ -222,9 +222,50 @@
     };
   }
 
+  function weeklyDistance(dayRuns, todayStr, n) {
+    n = n || 8;
+    const agg = weekAgg(dayRuns);
+    const cur = weekStart(todayStr);
+    const out = [];
+    for (let i = n - 1; i >= 0; i--) {
+      const ws = addDays(cur, -7 * i);
+      const a = agg.get(ws);
+      out.push({ weekStart: ws, km: a ? Math.round(a.km * 10) / 10 : 0, isCurrent: i === 0 });
+    }
+    return out;
+  }
+
+  const heatmapLevel = (km) => (km <= 0 ? 0 : km <= 3 ? 1 : km <= 6 ? 2 : 3);
+
+  // 滾動一年:52 欄(週)× 7 列(週一~週日)。今天之後的格子為 null。
+  function heatmap(dayRuns, todayStr) {
+    const byDate = new Map(dayRuns.map((r) => [r.date, r]));
+    const curWeek = weekStart(todayStr);
+    const firstWeek = addDays(curWeek, -7 * 51);
+    const weeks = [];
+    let totalRuns = 0;
+    for (let w2 = 0; w2 < 52; w2++) {
+      const ws = addDays(firstWeek, 7 * w2);
+      const col = [];
+      for (let d = 0; d < 7; d++) {
+        const date = addDays(ws, d);
+        if (date > todayStr) { col.push(null); continue; }
+        const r = byDate.get(date);
+        const km = r ? r.km : 0;
+        if (r) totalRuns += 1;
+        col.push({ date: date, km: km, level: heatmapLevel(km) });
+      }
+      weeks.push(col);
+    }
+    return { weeks: weeks, totalRuns: totalRuns, firstDate: firstWeek };
+  }
+
   w.MonkeyMetrics = {
     WEEKLY_GOAL: WEEKLY_GOAL,
     MIN_PR_KM: MIN_PR_KM,
+    weeklyDistance: weeklyDistance,
+    heatmapLevel: heatmapLevel,
+    heatmap: heatmap,
     buildDayRuns: buildDayRuns,
     formatPace: formatPace,
     weekStart: weekStart,
