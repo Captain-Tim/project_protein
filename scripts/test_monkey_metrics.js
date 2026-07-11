@@ -126,3 +126,77 @@ test("streak:中間有一週沒達標就斷", () => {
   ]);
   assert.equal(M.streak(runs, "2026-07-08"), 1); // 只有本週
 });
+
+test("personalRecords:fastest pace 只計 >= 2 km 的 day-run", () => {
+  const { runs } = M.buildDayRuns([
+    S("2026-07-01", [run(4, 1)]),    // 4:00/km 但只有 1 km -> 不列入
+    S("2026-07-02", [run(30, 5)]),   // 6:00/km
+    S("2026-07-03", [run(29, 5)]),   // 5:48/km <- 應為最快
+  ]);
+  const pr = M.personalRecords(runs);
+  assert.equal(pr.fastestPace.date, "2026-07-03");
+  assert.equal(M.formatPace(pr.fastestPace.pace), "5:48");
+});
+
+test("personalRecords:longest run / longest time 各自獨立", () => {
+  const { runs } = M.buildDayRuns([
+    S("2026-07-01", [run(72, 12)]),  // 最長距離 + 最長時間
+    S("2026-07-02", [run(30, 5)]),
+  ]);
+  const pr = M.personalRecords(runs);
+  assert.equal(pr.longestRun.km, 12);
+  assert.equal(pr.longestRun.date, "2026-07-01");
+  assert.equal(pr.longestTime.min, 72);
+});
+
+test("personalRecords:紀錄產生於最近一次 -> isNew 為 true", () => {
+  const { runs } = M.buildDayRuns([
+    S("2026-07-01", [run(30, 5)]),
+    S("2026-07-08", [run(80, 14)]),  // 最新一次同時破距離與時間
+  ]);
+  const pr = M.personalRecords(runs);
+  assert.equal(pr.isNew.longestRun, true);
+  assert.equal(pr.isNew.longestTime, true);
+  assert.equal(pr.isNew.fastestPace, true); // 80/14 = 5:43,比 6:00 更快
+});
+
+test("personalRecords:平手時取較早日期,不誤觸發 NEW", () => {
+  const { runs } = M.buildDayRuns([
+    S("2026-07-01", [run(30, 5)]),
+    S("2026-07-08", [run(30, 5)]),   // 完全一樣
+  ]);
+  const pr = M.personalRecords(runs);
+  assert.equal(pr.longestRun.date, "2026-07-01");
+  assert.equal(pr.isNew.longestRun, false);
+  assert.equal(pr.isNew.fastestPace, false);
+});
+
+test("personalRecords:沒有 >= 2 km 的紀錄時 fastestPace 為 null", () => {
+  const { runs } = M.buildDayRuns([S("2026-07-01", [run(6, 1.5)])]);
+  assert.equal(M.personalRecords(runs).fastestPace, null);
+});
+
+test("avgPace:最近 5 次的加權平均(Σmin / Σkm),不是配速直接平均", () => {
+  const { runs } = M.buildDayRuns([
+    S("2026-07-01", [run(60, 10)]),
+    S("2026-07-02", [run(60, 10)]),
+    S("2026-07-03", [run(60, 10)]),
+    S("2026-07-04", [run(60, 10)]),
+    S("2026-07-05", [run(12, 1)]),   // 12:00/km 的短跑
+  ]);
+  const a = M.avgPace(runs);
+  // 加權:(60*4+12) / (10*4+1) = 252/41 = 6.146…  -> 6:09
+  assert.equal(M.formatPace(a.pace), "6:09");
+  assert.equal(a.sampleSize, 5);
+  assert.equal(a.deltaSec, null); // 不足 10 次,沒有比較基準
+});
+
+test("avgPace:deltaSec 正值代表比前 5 次快", () => {
+  const mk = (i, min, km) => S("2026-06-" + String(i).padStart(2, "0"), [run(min, km)]);
+  const older = [1, 2, 3, 4, 5].map((i) => mk(i, 60, 9));    // 6:40/km
+  const newer = [6, 7, 8, 9, 10].map((i) => mk(i, 60, 10));  // 6:00/km
+  const { runs } = M.buildDayRuns([...older, ...newer]);
+  const a = M.avgPace(runs);
+  assert.equal(M.formatPace(a.pace), "6:00");
+  assert.equal(Math.round(a.deltaSec), 40); // 快了 40 秒
+});

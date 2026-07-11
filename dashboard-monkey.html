@@ -172,8 +172,59 @@
     return n;
   }
 
+  // 短跑很容易刷出漂亮配速,設距離門檻擋掉,否則 PR 榜會被一次 1 km 衝刺永久霸榜。
+  const MIN_PR_KM = 2;
+  const paceOf = (r) => r.min / r.km;
+
+  function personalRecords(dayRuns) {
+    if (!dayRuns.length) {
+      return {
+        fastestPace: null, longestRun: null, longestTime: null,
+        isNew: { fastestPace: false, longestRun: false, longestTime: false },
+      };
+    }
+    const lastDate = dayRuns[dayRuns.length - 1].date;
+    // dayRuns 已依日期升冪;用嚴格大於/小於比較,平手時保留較早的那筆,不會誤觸發 NEW
+    let fp = null, lr = null, lt = null;
+    dayRuns.forEach((r) => {
+      if (r.km >= MIN_PR_KM && (!fp || paceOf(r) < fp.pace)) fp = { pace: paceOf(r), date: r.date, km: r.km };
+      if (!lr || r.km > lr.km) lr = { km: r.km, date: r.date };
+      if (!lt || r.min > lt.min) lt = { min: r.min, date: r.date };
+    });
+    return {
+      fastestPace: fp,
+      longestRun: lr,
+      longestTime: lt,
+      isNew: {
+        fastestPace: !!fp && fp.date === lastDate,
+        longestRun: !!lr && lr.date === lastDate,
+        longestTime: !!lt && lt.date === lastDate,
+      },
+    };
+  }
+
+  // 最近 5 次的加權平均配速(Σmin / Σkm)。用累積平均的話後期會鈍化,跑再快也推不動數字。
+  // deltaSec 與「前 5 次」比較,正值 = 變快。
+  function avgPace(dayRuns) {
+    const wavg = (arr) => {
+      const km = arr.reduce((a, r) => a + r.km, 0);
+      const min = arr.reduce((a, r) => a + r.min, 0);
+      return km > 0 ? min / km : null;
+    };
+    const last5 = dayRuns.slice(-5);
+    const prev5 = dayRuns.slice(-10, -5);
+    const pace = last5.length ? wavg(last5) : null;
+    const prev = prev5.length === 5 ? wavg(prev5) : null;
+    return {
+      pace: pace,
+      deltaSec: pace != null && prev != null ? (prev - pace) * 60 : null,
+      sampleSize: last5.length,
+    };
+  }
+
   w.MonkeyMetrics = {
     WEEKLY_GOAL: WEEKLY_GOAL,
+    MIN_PR_KM: MIN_PR_KM,
     buildDayRuns: buildDayRuns,
     formatPace: formatPace,
     weekStart: weekStart,
@@ -182,6 +233,8 @@
     isCompleteWeek: isCompleteWeek,
     currentQuest: currentQuest,
     streak: streak,
+    personalRecords: personalRecords,
+    avgPace: avgPace,
   };
 })(typeof window !== "undefined" ? window : this);
 </script>
