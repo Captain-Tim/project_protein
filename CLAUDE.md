@@ -57,15 +57,32 @@
   任務,不會被日常流程呼叫,不要刪除(歷史備查)。
 - Dashboard 視覺/版面大改是獨立任務,另用 brainstorming skill 討論,不要順手改。
 
+### 第二個人:Monkey(cardio)
+
+- `dashboard-monkey.html`:Monkey 的 cardio 頁面,與 `dashboard.html` **完全獨立**(黑底螢光綠、遊戲化),
+  兩頁頁首互有連結。視覺與指標定義見
+  `docs/superpowers/specs/2026-07-11-monkey-cardio-dashboard-design.md`。
+- **目前資料是內嵌樣本,尚未接真實資料。** cardio 必須有 `distance_km` 欄位——所有配速/距離指標都靠它。
+  但 `log-workout` skill 目前明寫「距離不記錄」,**串接時必須為 Monkey 開例外**。
+- render script 的 `TODAY` 取「資料最後一筆日期」而非真實今天(樣本資料固定,用真實時鐘會讓 quest/streak
+  隨時間歸零)。接真實資料時改回真實今天。
+- `scripts/test_monkey_metrics.js`:抽出 `dashboard-monkey.html` 的 `<script id="metrics">` 在 Node 執行並斷言。
+  **改動任何指標邏輯後必須跑** `node scripts/test_monkey_metrics.js`。
+- `profile/monkey.jpg`:頭像。repo 是 public,此圖等同公開。
+
 ## 6. 驗證
 
 ```bash
 # JS 語法快檢(不需瀏覽器)
 node -e 'const fs=require("fs");const h=fs.readFileSync("dashboard.html","utf8");const a=[...h.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m=>m[1]).pop();try{new Function(a);console.log("OK")}catch(e){console.log("ERR",e.message)}'
 
+# Monkey 頁的指標測試(改動 metrics 邏輯後必跑)
+node scripts/test_monkey_metrics.js
+
 # headless Chrome 抓 console 錯誤/數元素:複製成 _t.html(已 gitignore),
 # 在 </body> 前注入 <script> 把要看的數字寫進 document.title,dump-dom 後 grep <title>,看完刪掉 _t.html
-"/c/Program Files/Google/Chrome/Application/chrome.exe" --headless --disable-gpu --dump-dom "file:///<repo>/_t.html" | grep -oE "<title>.*</title>"
+# 注意:Chrome 實際安裝在 Program Files (x86)。手機版驗收加 --window-size=390,844。
+"/c/Program Files (x86)/Google/Chrome/Application/chrome.exe" --headless --disable-gpu --dump-dom "file:///<repo>/_t.html" | grep -oE "<title>.*</title>"
 ```
 
 ## 7. 使用者偏好(務必遵守)
