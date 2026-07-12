@@ -224,16 +224,81 @@ test("heatmapLevel:0 / <=3 / <=6 / >6 四階", () => {
   assert.equal(M.heatmapLevel(6.1), 3);
 });
 
-test("heatmap:52 欄 × 7 列,今天之後的格子為 null", () => {
+test("heatmap:過去 365 天 = 53 欄,首欄的區間外格子與今天之後的格子皆為 null", () => {
   const { runs } = M.buildDayRuns([S("2026-07-08", [run(38, 6.2)])]);
   const h = M.heatmap(runs, "2026-07-11"); // 週六
-  assert.equal(h.weeks.length, 52);
-  assert.equal(h.weeks[51].length, 7);
-  assert.equal(h.weeks[51][6], null); // 本週日還沒到
-  assert.equal(h.weeks[51][5].date, "2026-07-11"); // 週六 = 今天
-  const wed = h.weeks[51][2];
+  // 365 天 = 52 週 + 1 天 -> 首欄是不完整的一週
+  assert.equal(h.weeks.length, 53);
+  assert.equal(h.weeks[0].length, 7);
+  assert.equal(h.firstDate, "2025-07-12"); // today - 364(同為週六)
+  // 首欄週一 2025-07-07 ~ 週五 2025-07-11 在 365 天之前 -> null,週六起才進範圍
+  assert.equal(h.weeks[0][0], null);
+  assert.equal(h.weeks[0][4], null);
+  assert.equal(h.weeks[0][5].date, "2025-07-12");
+  assert.equal(h.weeks[0][6].date, "2025-07-13");
+
+  const last = h.weeks[52];
+  assert.equal(last[6], null);            // 本週日還沒到
+  assert.equal(last[5].date, "2026-07-11"); // 週六 = 今天
+  const wed = last[2];
   assert.equal(wed.date, "2026-07-08");
   assert.equal(wed.km, 6.2);
   assert.equal(wed.level, 3);
   assert.equal(h.totalRuns, 1);
+});
+
+test("heatmap:剛好滿 365 天的那筆算進去,再早一天的不算", () => {
+  const { runs } = M.buildDayRuns([
+    S("2025-07-12", [run(30, 5)]), // today - 364,邊界內
+    S("2025-07-11", [run(30, 5)]), // today - 365,邊界外
+  ]);
+  const h = M.heatmap(runs, "2026-07-11");
+  assert.equal(h.totalRuns, 1);
+});
+
+test("heatmapYear:2026 年以週一起算是 53 欄,年度外的格子為 null", () => {
+  const { runs } = M.buildDayRuns([S("2026-01-01", [run(30, 5)])]);
+  const h = M.heatmapYear(runs, 2026, "2026-07-11");
+  assert.equal(h.weeks.length, 53); // 2026-01-01 是週四 -> 首欄週一 = 2025-12-29
+  assert.equal(h.firstDate, "2026-01-01");
+  // 首欄:2025-12-29 ~ 12-31 在 2026 之外 -> null;元旦(週四)才有格子
+  assert.equal(h.weeks[0][0], null);
+  assert.equal(h.weeks[0][2], null);
+  assert.equal(h.weeks[0][3].date, "2026-01-01");
+  assert.equal(h.weeks[0][3].km, 5);
+  assert.equal(h.totalRuns, 1);
+});
+
+test("heatmapYear:今天之後的格子為 null(當年還沒過完)", () => {
+  const { runs } = M.buildDayRuns([S("2026-07-08", [run(30, 5)])]);
+  const h = M.heatmapYear(runs, 2026, "2026-07-11");
+  const cells = h.weeks.flat().filter(Boolean);
+  assert.equal(cells[cells.length - 1].date, "2026-07-11"); // 最後一格就是今天
+});
+
+test("heatmapYear:過去年份整年都有格子,且只計該年的 run", () => {
+  const { runs } = M.buildDayRuns([
+    S("2025-03-05", [run(30, 5)]),
+    S("2026-03-05", [run(30, 5)]), // 別年的不計入 2025
+  ]);
+  const h = M.heatmapYear(runs, 2025, "2026-07-11");
+  const cells = h.weeks.flat().filter(Boolean);
+  assert.equal(cells.length, 365);
+  assert.equal(cells[0].date, "2025-01-01");
+  assert.equal(cells[364].date, "2025-12-31");
+  assert.equal(h.totalRuns, 1);
+});
+
+test("heatmapYears:最早有資料的年份 ~ 今年,連續且由新到舊", () => {
+  const { runs } = M.buildDayRuns([S("2024-05-01", [run(30, 5)])]);
+  assert.deepEqual(M.heatmapYears(runs, "2026-07-11"), [2026, 2025, 2024]); // 2025 沒資料也要列,tab 才不跳號
+});
+
+test("heatmapYears:沒有任何資料時只回今年", () => {
+  assert.deepEqual(M.heatmapYears([], "2026-07-11"), [2026]);
+});
+
+test("heatmapYears:未來日期的資料不會憑空生出未來年份的 tab", () => {
+  const { runs } = M.buildDayRuns([S("2027-01-01", [run(30, 5)])]);
+  assert.deepEqual(M.heatmapYears(runs, "2026-07-11"), [2026]);
 });

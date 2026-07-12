@@ -92,7 +92,7 @@
   .barx span { flex: 1; text-align: center; }
   .paceBig { font-size: 40px; margin: 8px 0 2px; }
 
-  /* 熱力圖:一年 52 欄放不進手機,自己在容器內橫向捲動,捲軸配合頁面改成細螢光綠 */
+  /* 熱力圖:一年 53 欄放不進手機,自己在容器內橫向捲動,捲軸配合頁面改成細螢光綠 */
   .hmScroll { overflow-x: auto; padding-bottom: 10px; flex: 1 1 auto; min-width: 0;
     scrollbar-width: thin; scrollbar-color: var(--accent) #15171a; }
   .hmScroll::-webkit-scrollbar { height: 7px; }
@@ -115,6 +115,14 @@
   .hmLegend { display: flex; align-items: center; gap: 6px; font-size: 9px; color: var(--muted);
     margin-top: 12px; justify-content: flex-end; }
   .hmLegend i { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
+  /* 年份切換:窄螢幕時整列往下換行,不去擠壓標題 */
+  .hmTabs { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+  .hmTab { font: inherit; font-size: 10px; font-weight: 700; letter-spacing: .5px; cursor: pointer;
+    padding: 4px 10px; border-radius: 99px; border: 1px solid var(--border); background: transparent;
+    color: var(--muted); transition: color .15s, border-color .15s, box-shadow .15s; }
+  .hmTab:hover { color: var(--ink); border-color: var(--accent-dim); }
+  .hmTab.on { color: var(--accent); border-color: var(--accent);
+    box-shadow: 0 0 12px rgba(201, 242, 77, .25); }
 
   #dataErrors { margin-top: 24px; font-size: 12px; color: #ff8a8a;
     border: 1px solid #4a1414; background: #1a0c0c; border-radius: 12px; padding: 10px 14px; }
@@ -190,7 +198,7 @@
 
 <script>
 /* 資料由 build 腳本注入此標記區塊,請勿手改 START/END 之間(目前為樣本資料) */
-/*WORKOUT_DATA_START*/window.WORKOUT_DATA={"generated_at":"2026-07-11T14:24:43.095Z","session_count":1,"sessions":[{"date":"2026-07-07","type":"Cardio","quality":null,"strength":[],"cardio":[{"exercise":"Running","duration_min":30,"distance_km":3.1}],"note":null}]};/*WORKOUT_DATA_END*/
+/*WORKOUT_DATA_START*/window.WORKOUT_DATA={"generated_at":"2026-07-12T02:01:32.505Z","session_count":1,"sessions":[{"date":"2026-07-07","type":"Cardio","quality":null,"strength":[],"cardio":[{"exercise":"Running","duration_min":30,"distance_km":3.1}],"note":null}]};/*WORKOUT_DATA_END*/
 </script>
 
 <script id="metrics">
@@ -370,19 +378,19 @@
 
   const heatmapLevel = (km) => (km <= 0 ? 0 : km <= 3 ? 1 : km <= 6 ? 2 : 3);
 
-  // 滾動一年:52 欄(週)× 7 列(週一~週日)。今天之後的格子為 null。
-  function heatmap(dayRuns, todayStr) {
+  // 熱力圖的唯一產生器:把 [fromDate..toDate] 切成一欄一週(週一~週日)。
+  // 區間外(首尾那兩欄的邊角)與今天之後的格子都是 null,畫成透明格。
+  // RECENT 與各年份 tab 共用它——規則只有一份,不會偷偷分岔。
+  function heatmapRange(dayRuns, fromDate, toDate, todayStr) {
     const byDate = new Map(dayRuns.map((r) => [r.date, r]));
-    const curWeek = weekStart(todayStr);
-    const firstWeek = addDays(curWeek, -7 * 51);
+    const lastWeek = weekStart(toDate);
     const weeks = [];
     let totalRuns = 0;
-    for (let w2 = 0; w2 < 52; w2++) {
-      const ws = addDays(firstWeek, 7 * w2);
+    for (let ws = weekStart(fromDate); ws <= lastWeek; ws = addDays(ws, 7)) {
       const col = [];
       for (let d = 0; d < 7; d++) {
         const date = addDays(ws, d);
-        if (date > todayStr) { col.push(null); continue; }
+        if (date < fromDate || date > toDate || date > todayStr) { col.push(null); continue; }
         const r = byDate.get(date);
         const km = r ? r.km : 0;
         if (r) totalRuns += 1;
@@ -390,7 +398,29 @@
       }
       weeks.push(col);
     }
-    return { weeks: weeks, totalRuns: totalRuns, firstDate: firstWeek };
+    return { weeks: weeks, totalRuns: totalRuns, firstDate: fromDate };
+  }
+
+  // RECENT:過去 365 天(含今天)。365 = 52 週 + 1 天 -> 53 欄,首欄不完整。
+  const HEATMAP_DAYS = 365;
+  function heatmap(dayRuns, todayStr) {
+    return heatmapRange(dayRuns, addDays(todayStr, -(HEATMAP_DAYS - 1)), todayStr, todayStr);
+  }
+
+  // 日曆年:1/1 ~ 12/31。當年還沒過完的話,今天之後的格子是空的。
+  function heatmapYear(dayRuns, year, todayStr) {
+    return heatmapRange(dayRuns, year + "-01-01", year + "-12-31", todayStr);
+  }
+
+  // tab 用的年份清單:最早有資料的年份 ~ 今年,連續列出(中間空白年份也列,否則 tab 會跳號)。
+  // 今年之後的年份不列——未來日期的資料不該生出未來的 tab。
+  function heatmapYears(dayRuns, todayStr) {
+    const thisYear = Number(todayStr.slice(0, 4));
+    const first = dayRuns.reduce(
+      (min, r) => Math.min(min, Number(r.date.slice(0, 4))), thisYear);
+    const out = [];
+    for (let y = thisYear; y >= first; y--) out.push(y);
+    return out;
   }
 
   w.MonkeyMetrics = {
@@ -398,7 +428,11 @@
     MIN_PR_KM: MIN_PR_KM,
     weeklyDistance: weeklyDistance,
     heatmapLevel: heatmapLevel,
+    HEATMAP_DAYS: HEATMAP_DAYS,
+    heatmapRange: heatmapRange,
     heatmap: heatmap,
+    heatmapYear: heatmapYear,
+    heatmapYears: heatmapYears,
     buildDayRuns: buildDayRuns,
     formatPace: formatPace,
     weekStart: weekStart,
@@ -538,45 +572,68 @@
       wd.map((x) => "<span>" + (x.isCurrent ? "NOW" : x.weekStart.slice(5).replace("-", "/")) + "</span>").join("") +
     "</div>";
 
-  // ACTIVITY 熱力圖:52 欄(週)× 7 列(週一~週日)
-  const hm = M.heatmap(runs, TODAY);
+  // ACTIVITY 熱力圖:一欄一週(週一~週日)。tab 切「過去 365 天」或某個日曆年。
   const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  let lastMon = -1;
-  const monCells = hm.weeks.map((col, i) => {
-    const first = col.find((c) => c);
-    const d = new Date((first ? first.date : hm.firstDate) + "T00:00:00");
-    const mo = d.getMonth();
-    const show = mo !== lastMon && d.getDate() <= 7; // 該欄的週一落在月初才標,避免月份標在月中
-    if (show) lastMon = mo;
-    return '<span style="grid-column:' + (i + 1) + '">' + (show ? MON[mo] : "") + "</span>";
-  }).join("");
+  const HM_YEARS = M.heatmapYears(runs, TODAY);
+  const HM_COL = 17; // 13px 格子 + 4px gap,捲動定位用
 
-  const cells = hm.weeks.map((col) =>
-    col.map((c) => c
-      ? '<i class="l' + c.level + '" title="' + c.date + " · " + (c.km ? c.km + " km" : "rest") + '"></i>'
-      : '<i class="empty"></i>'
-    ).join("")
-  ).join("");
+  function renderActivity(view) {
+    const hm = view === "recent" ? M.heatmap(runs, TODAY) : M.heatmapYear(runs, Number(view), TODAY);
+    const scope = view === "recent" ? "THE PAST " + M.HEATMAP_DAYS + " DAYS" : view;
 
-  el("activity").innerHTML =
-    '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px">' +
-      '<b style="font-size:13px">ACTIVITY</b>' +
-      '<span class="lbl">' + plural(hm.totalRuns, "RUN") + " IN THE LAST YEAR</span>" +
-    "</div>" +
-    '<div class="hmBody">' +
-      '<div class="hmDays"><span>Mon</span><span></span><span>Wed</span><span></span><span>Fri</span><span></span><span></span></div>' +
-      '<div class="hmScroll" id="hmScroll">' +
-        '<div class="hmMon" style="grid-template-columns:repeat(52,13px)">' + monCells + "</div>" +
-        '<div class="hmGrid" id="hmGrid" style="grid-template-columns:repeat(52,13px)">' + cells + "</div>" +
+    let lastMon = -1;
+    const monCells = hm.weeks.map((col, i) => {
+      const first = col.find((c) => c);
+      const d = new Date((first ? first.date : hm.firstDate) + "T00:00:00");
+      const mo = d.getMonth();
+      const show = mo !== lastMon && d.getDate() <= 7; // 該欄的第一格落在月初才標,避免月份標在月中
+      if (show) lastMon = mo;
+      return '<span style="grid-column:' + (i + 1) + '">' + (show ? MON[mo] : "") + "</span>";
+    }).join("");
+
+    const cells = hm.weeks.map((col) =>
+      col.map((c) => c
+        ? '<i class="l' + c.level + '" title="' + c.date + " · " + (c.km ? c.km + " km" : "rest") + '"></i>'
+        : '<i class="empty"></i>'
+      ).join("")
+    ).join("");
+
+    const tabs = ["recent"].concat(HM_YEARS).map((v) => {
+      const on = String(v) === String(view);
+      return '<button class="hmTab' + (on ? " on" : "") + '" data-view="' + v + '" aria-pressed="' + on + '">' +
+        (v === "recent" ? "RECENT" : v) + "</button>";
+    }).join("");
+
+    const gridCols = "grid-template-columns:repeat(" + hm.weeks.length + ",13px)";
+
+    el("activity").innerHTML =
+      '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap">' +
+        '<b style="font-size:13px">ACTIVITY</b>' +
+        '<div class="hmTabs">' + tabs + "</div>" +
       "</div>" +
-    "</div>" +
-    '<div class="hmLegend">LESS' +
-      '<i style="background:var(--hm0)"></i><i style="background:var(--hm1)"></i>' +
-      '<i style="background:var(--hm2)"></i><i style="background:var(--hm3)"></i>MORE</div>';
+      '<div class="lbl" style="margin:6px 0 12px">' + plural(hm.totalRuns, "RUN") + " IN " + scope + "</div>" +
+      '<div class="hmBody">' +
+        '<div class="hmDays"><span>Mon</span><span></span><span>Wed</span><span></span><span>Fri</span><span></span><span></span></div>' +
+        '<div class="hmScroll" id="hmScroll">' +
+          '<div class="hmMon" style="' + gridCols + '">' + monCells + "</div>" +
+          '<div class="hmGrid" id="hmGrid" style="' + gridCols + '">' + cells + "</div>" +
+        "</div>" +
+      "</div>" +
+      '<div class="hmLegend">LESS' +
+        '<i style="background:var(--hm0)"></i><i style="background:var(--hm1)"></i>' +
+        '<i style="background:var(--hm2)"></i><i style="background:var(--hm3)"></i>MORE</div>';
 
-  // 手機上一年份放不下:載入時直接捲到最右(最近日期)
-  const sc = el("hmScroll");
-  if (sc) sc.scrollLeft = sc.scrollWidth;
+    // 一整年放不進手機:視圖含今天就把今天那欄捲到最右;過去年份不含今天,停在最左的一月。
+    const sc = el("hmScroll");
+    const todayCol = hm.weeks.findIndex((col) => col.some((c) => c && c.date === TODAY));
+    sc.scrollLeft = todayCol < 0 ? 0 : Math.max(0, (todayCol + 1) * HM_COL - sc.clientWidth);
+  }
+
+  renderActivity("recent");
+  el("activity").addEventListener("click", (e) => {
+    const tab = e.target.closest(".hmTab");
+    if (tab) renderActivity(tab.dataset.view);
+  });
 
   // 資料殘缺不靜默略過
   if (invalid.length) {
