@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Monkey — Tanoi</title>
 <style>
+  @property --ang { syntax: "<angle>"; initial-value: 0deg; inherits: false; }
   :root {
     --bg: #070708; --card: #111214; --border: #212328;
     --ink: #e9ecef; --muted: #7f858e;
@@ -113,6 +114,18 @@
   .pr { flex: 1 1 0; min-width: 0; text-align: center; padding: 16px 10px; background: var(--card);
     border: 1px solid var(--border); border-radius: 16px; position: relative; }
   .pr.new { border-color: var(--accent); box-shadow: 0 0 18px rgba(201, 242, 77, .28); }
+  /* NEW 紀錄卡:一段光弧繞邊框流動(漸層流動邊框) */
+  .pr.new::before { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px;
+    pointer-events: none;
+    background: conic-gradient(from var(--ang), transparent 0 55%, var(--accent) 72%,
+      #fff 80%, var(--accent) 88%, transparent 100%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude;
+    filter: drop-shadow(0 0 5px var(--accent))
+            drop-shadow(0 0 14px rgba(201, 242, 77, .35));
+    animation: flowSpin 5.1s linear infinite; }
+  @keyframes flowSpin { to { --ang: 360deg; } }
+  @media (prefers-reduced-motion: reduce) { .pr.new::before { animation: none; } }
   .pr .t { font-size: 26px; line-height: 1; }
   .pr .v { font-size: 23px; font-weight: 800; margin-top: 6px; font-family: Consolas, monospace; }
   .pr .d { font-size: 10px; color: var(--muted); margin-top: 3px; }
@@ -241,7 +254,7 @@
 
 <script>
 /* 資料由 build 腳本注入此標記區塊,請勿手改 START/END 之間(目前為樣本資料) */
-/*WORKOUT_DATA_START*/window.WORKOUT_DATA={"generated_at":"2026-07-13T08:08:51.499Z","session_count":2,"sessions":[{"date":"2026-07-07","type":"Cardio","strength":[],"cardio":[{"exercise":"Running","duration_min":30,"distance_km":3.1}],"note":null},{"date":"2026-07-12","type":"Cardio","strength":[],"cardio":[{"exercise":"Running","duration_min":30,"distance_km":3,"avg_hr_bpm":140}],"note":null}]};/*WORKOUT_DATA_END*/
+/*WORKOUT_DATA_START*/window.WORKOUT_DATA={"generated_at":"2026-07-13T08:38:59.253Z","session_count":2,"sessions":[{"date":"2026-07-07","type":"Cardio","strength":[],"cardio":[{"exercise":"Running","duration_min":30,"distance_km":3.1}],"note":null},{"date":"2026-07-12","type":"Cardio","strength":[],"cardio":[{"exercise":"Running","duration_min":30,"distance_km":3,"avg_hr_bpm":140}],"note":null}]};/*WORKOUT_DATA_END*/
 </script>
 
 <script id="metrics">
@@ -556,7 +569,6 @@
       '<div class="qprog">' +
         '<div class="lbl">QUEST PROGRESS</div>' +
         '<div class="xp" style="margin-top:7px"><i style="width:' + (q.questPct * 100).toFixed(1) + '%"></i></div>' +
-        '<div style="font-size:11px;color:var(--muted);margin-top:6px">Complete both to keep the streak alive</div>' +
       "</div>" +
     "</div>";
 
