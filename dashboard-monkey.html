@@ -110,12 +110,11 @@
   .ring > div { width: 70px; height: 70px; border-radius: 50%; background: var(--card);
     display: flex; flex-direction: column; align-items: center; justify-content: center; }
   .ring .v { font-size: 17px; font-weight: 800; font-family: Consolas, monospace; }
-  .xp { height: 9px; border-radius: 999px; background: #1e2126; overflow: hidden; }
-  .xp > i { display: block; height: 100%; border-radius: 999px;
-    background: linear-gradient(90deg, var(--accent-dim), var(--accent)); box-shadow: 0 0 10px rgba(201, 242, 77, .6); }
+  .qwrap { align-items: center; }
   .qcol { display: flex; align-items: center; gap: 14px; flex: 1 1 0; min-width: 0; }
   .qsep { width: 1px; background: var(--border); align-self: stretch; }
-  .qprog { flex: 1.1 1 0; min-width: 0; }
+  /* QUEST 環是前兩項的綜合,右邊沒有非重複的話可講,所以環在上、小標在下、置中 */
+  .qprog { flex-direction: column; justify-content: center; gap: 8px; text-align: center; }
 
   .pr { flex: 1 1 0; min-width: 0; text-align: center; padding: 16px 10px; background: var(--card);
     border: 1px solid var(--border); border-radius: 16px; position: relative; }
@@ -202,12 +201,11 @@
     .streak { margin-left: 0; width: 100%; justify-content: center; margin-top: 10px; }
     .row { flex-direction: column; }
 
-    /* 兩個 quest 環在手機仍並排(縮小),讓一屏內還看得到 PR 榜;
-       經驗值條擠不進同一列,改成整條 wrap 到兩環下方 */
-    .qwrap { flex-direction: row !important; flex-wrap: wrap; gap: 10px; }
+    /* 三個 quest 環在手機仍並排(縮小),讓一屏內還看得到 PR 榜。
+       各欄文字行數不同,改成頂端對齊,否則環會被推得高低參差 */
+    .qwrap { flex-direction: row !important; flex-wrap: wrap; gap: 10px; align-items: flex-start; }
     .qcol { flex-direction: column; gap: 8px; text-align: center; }
     .qsep { display: none; }
-    .qprog { flex: 1 0 100%; }
     .ring { width: 84px; height: 84px; }
     .ring > div { width: 64px; height: 64px; }
 
@@ -269,7 +267,7 @@
 
 <script>
 /* 資料由 build 腳本注入此標記區塊,請勿手改 START/END 之間(目前為樣本資料) */
-/*WORKOUT_DATA_START*/window.WORKOUT_DATA={"generated_at":"2026-07-13T09:03:26.400Z","session_count":2,"sessions":[{"date":"2026-07-07","type":"Cardio","strength":[],"cardio":[{"exercise":"Running","duration_min":30,"distance_km":3.1}],"note":null},{"date":"2026-07-12","type":"Cardio","strength":[],"cardio":[{"exercise":"Running","duration_min":30,"distance_km":3,"avg_hr_bpm":140}],"note":null}]};/*WORKOUT_DATA_END*/
+/*WORKOUT_DATA_START*/window.WORKOUT_DATA={"generated_at":"2026-07-13T14:54:40.847Z","session_count":2,"sessions":[{"date":"2026-07-07","type":"Cardio","strength":[],"cardio":[{"exercise":"Running","duration_min":30,"distance_km":3.1}],"note":null},{"date":"2026-07-12","type":"Cardio","strength":[],"cardio":[{"exercise":"Running","duration_min":30,"distance_km":3,"avg_hr_bpm":140}],"note":null}]};/*WORKOUT_DATA_END*/
 </script>
 
 <script id="metrics">
@@ -548,16 +546,17 @@
   // WEEKLY QUEST
   const q = M.currentQuest(runs, TODAY);
   const G = M.WEEKLY_GOAL;
+  // 弧線從 --accent-dim 沿圓弧掃到 --accent(跟 WEEKLY DISTANCE 的長條同一套配色語彙),剩下的填 --border
   const ringStyle = (pct) => {
     const p = (pct * 100).toFixed(1);
-    return "background:conic-gradient(var(--accent) 0 " + p + "%, var(--border) " + p + "% 100%)";
+    return "background:conic-gradient(var(--accent-dim) 0, var(--accent) " + p + "%, var(--border) " + p + "% 100%)";
   };
   el("quest").innerHTML =
     '<div style="display:flex;justify-content:space-between;align-items:baseline">' +
       '<div class="lbl">WEEKLY QUEST · ' + q.weekStart + " → " + q.weekEnd + "</div>" +
       '<div class="lbl">' + q.daysLeft + " DAY" + (q.daysLeft === 1 ? "" : "S") + " LEFT</div>" +
     "</div>" +
-    '<div class="row qwrap" style="margin-top:12px;align-items:center">' +
+    '<div class="row qwrap" style="margin-top:12px">' +
       '<div class="qcol">' +
         '<div class="ring' + (q.runsPct >= 1 ? " done" : "") + '" style="' + ringStyle(q.runsPct) + '">' +
           '<div><div class="v' + (q.runsPct >= 1 ? " lime" : "") + '">' + q.runs + "/" + G.runs + "</div>" +
@@ -581,9 +580,12 @@
             : '<div style="font-size:11px;color:var(--muted);margin-top:2px">' + (G.minutes - q.minutes) + " min to go</div>") +
         "</div>" +
       "</div>" +
-      '<div class="qprog">' +
+      '<div class="qsep"></div>' +
+      '<div class="qcol qprog">' +
+        '<div class="ring' + (q.complete ? " done" : "") + '" style="' + ringStyle(q.questPct) + '">' +
+          '<div><div class="v' + (q.complete ? " lime" : "") + '">' + Math.round(q.questPct * 100) + "%</div>" +
+          '<div class="lbl" style="font-size:9px">QUEST</div></div></div>' +
         '<div class="lbl">QUEST PROGRESS</div>' +
-        '<div class="xp" style="margin-top:7px"><i style="width:' + (q.questPct * 100).toFixed(1) + '%"></i></div>' +
       "</div>" +
     "</div>";
 
