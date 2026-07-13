@@ -12,6 +12,7 @@
     --accent: #c9f24d; --accent-dim: #7fae35;
     --person: #ff3b3b;
     --streak: #ffb648; --streak-bg: #1a1408; --streak-border: #4a3a12;
+    --pos: #34d399; --neg: #f87171;                     /* 漲跌:▲ 進步=綠、▼ 退步=紅 */
     --hm0: #17191c; --hm1: #2f4419; --hm2: #5f8a26; --hm3: #c9f24d;
   }
   * { box-sizing: border-box; }
@@ -25,6 +26,11 @@
   .lbl { font-size: 10px; letter-spacing: 1.1px; color: var(--muted); font-weight: 600; }
   .num { font-family: Consolas, ui-monospace, monospace; font-weight: 700; }
   .lime { color: var(--accent); }
+  /* 趨勢差值:箭頭已代表「進步/退步」(▲=配速更快),故 ▲ 綠 / ▼ 紅 */
+  .delta { font-size: 11px; margin-top: 8px; }
+  .delta.up { color: var(--pos); }
+  .delta.down { color: var(--neg); }
+  .delta.flat { color: var(--muted); }
 
   header.hero {
     display: flex; align-items: center; gap: 14px;
@@ -132,11 +138,19 @@
   .pr .tag { position: absolute; top: -8px; right: 10px; background: var(--accent); color: #0a0a0a;
     font-size: 9px; font-weight: 800; padding: 2px 7px; border-radius: 999px; letter-spacing: .5px; }
 
-  .bars { display: flex; align-items: flex-end; gap: 8px; height: 88px; }
-  .bars i { flex: 1; background: #22262b; border-radius: 5px 5px 2px 2px; display: block; min-height: 2px; }
+  /* 柱狀圖:柱體不填滿整格(留白,避免糊成色塊),空白週留淡軌道當位置參考 */
+  .bars { display: flex; align-items: flex-end; gap: 8px; height: 88px; --bw: 22px;
+    border-bottom: 1px solid var(--border); }
+  .bars .slot { position: relative; flex: 1 1 0; min-width: 0; height: 100%;
+    display: flex; align-items: flex-end; justify-content: center; }
+  .bars .slot::before { content: ""; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: var(--bw); height: 100%; border-radius: 4px 4px 0 0; background: rgba(255, 255, 255, .035); }
+  .bars i { position: relative; width: var(--bw); max-width: 100%; border-radius: 4px 4px 0 0;
+    display: block; min-height: 2px; background: transparent; }
   .bars i.on { background: linear-gradient(180deg, var(--accent), var(--accent-dim)); }
-  .barx { display: flex; font-size: 9px; color: var(--muted); margin-top: 6px; }
-  .barx span { flex: 1; text-align: center; }
+  .bars i.on.cur { box-shadow: 0 0 9px rgba(201, 242, 77, .4); }
+  .barx { display: flex; gap: 8px; font-size: 9px; color: var(--muted); margin-top: 6px; }
+  .barx span { flex: 1 1 0; min-width: 0; text-align: center; }
   .paceBig { font-size: 40px; margin: 8px 0 2px; }
 
   /* 熱力圖:一年 53 欄放不進手機,自己在容器內橫向捲動,捲軸配合頁面改成細螢光綠 */
@@ -208,7 +222,8 @@
     /* 手機順序:AVG PACE 排在 WEEKLY DISTANCE 之前 */
     #avgPace { order: -1; }
     .paceBig { font-size: 38px; }
-    .bars { height: 74px; }
+    .bars { height: 74px; gap: 5px; --bw: 16px; }
+    .barx { gap: 5px; }
   }
 </style>
 </head>
@@ -254,7 +269,7 @@
 
 <script>
 /* 資料由 build 腳本注入此標記區塊,請勿手改 START/END 之間(目前為樣本資料) */
-/*WORKOUT_DATA_START*/window.WORKOUT_DATA={"generated_at":"2026-07-13T08:38:59.253Z","session_count":2,"sessions":[{"date":"2026-07-07","type":"Cardio","strength":[],"cardio":[{"exercise":"Running","duration_min":30,"distance_km":3.1}],"note":null},{"date":"2026-07-12","type":"Cardio","strength":[],"cardio":[{"exercise":"Running","duration_min":30,"distance_km":3,"avg_hr_bpm":140}],"note":null}]};/*WORKOUT_DATA_END*/
+/*WORKOUT_DATA_START*/window.WORKOUT_DATA={"generated_at":"2026-07-13T09:03:26.400Z","session_count":2,"sessions":[{"date":"2026-07-07","type":"Cardio","strength":[],"cardio":[{"exercise":"Running","duration_min":30,"distance_km":3.1}],"note":null},{"date":"2026-07-12","type":"Cardio","strength":[],"cardio":[{"exercise":"Running","duration_min":30,"distance_km":3,"avg_hr_bpm":140}],"note":null}]};/*WORKOUT_DATA_END*/
 </script>
 
 <script id="metrics">
@@ -597,8 +612,8 @@
     ap.deltaSec == null
       ? ""
       : Math.abs(ap.deltaSec) < 1
-        ? '<div style="font-size:11px;color:var(--muted);margin-top:8px">same as previous 5</div>'
-        : '<div style="font-size:11px;color:var(--muted);margin-top:8px">' +
+        ? '<div class="delta flat">same as previous 5</div>'
+        : '<div class="delta ' + (ap.deltaSec > 0 ? "up" : "down") + '">' +
           (ap.deltaSec > 0
             ? "▲ " + Math.round(ap.deltaSec) + " sec faster"
             : "▼ " + Math.round(-ap.deltaSec) + " sec slower") +
@@ -620,8 +635,9 @@
     "</div>" +
     '<div class="bars" style="margin-top:12px">' +
       wd.map((x) =>
-        '<i class="' + (x.km > 0 ? "on" : "") + '" style="height:' + Math.max(2, (x.km / maxKm) * 100) +
-        '%" data-tip="' + x.weekStart + " · " + x.km + ' km"></i>').join("") +
+        '<span class="slot" data-tip="' + x.weekStart + " · " + x.km + ' km">' +
+        '<i class="' + (x.km > 0 ? "on" : "") + (x.isCurrent ? " cur" : "") + '" style="height:' +
+        Math.max(2, (x.km / maxKm) * 100) + '%"></i></span>').join("") +
     "</div>" +
     '<div class="barx">' +
       wd.map((x) => "<span>" + (x.isCurrent ? "NOW" : x.weekStart.slice(5).replace("-", "/")) + "</span>").join("") +
