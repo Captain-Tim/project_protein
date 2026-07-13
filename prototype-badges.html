@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>卡背 → 合成徽章 編輯器</title>
+<style>
+  :root {
+    --bg: #070708;
+    --card: #111214;
+    --border: #212328;
+    --text: #e9ecef;
+    --muted: #7f858e;
+    --accent: #c9f24d;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: Consolas, ui-monospace, monospace;
+    padding: 36px 24px 64px;
+    max-width: 1080px;
+    margin: 0 auto;
+  }
+  h1 { font-size: 18px; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 6px; }
+  .sub { color: var(--muted); font-size: 12px; letter-spacing: 1px; margin-bottom: 28px; }
+  h2 {
+    font-size: 12px; letter-spacing: 2.5px; text-transform: uppercase;
+    color: var(--muted); margin: 36px 0 14px;
+    border-bottom: 1px solid var(--border); padding-bottom: 8px;
+  }
+  .workbench { display: flex; gap: 24px; flex-wrap: wrap; }
+  .preview-box {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 26px; text-align: center; flex: 0 0 auto;
+  }
+  #preview {
+    position: relative; width: 340px; height: 340px;
+    cursor: grab; touch-action: none; user-select: none; outline: none;
+  }
+  #preview:active { cursor: grabbing; }
+  .layer { position: absolute; pointer-events: none; }
+  .layer svg { width: 100%; height: 100%; display: block; }
+  #preview .layer.active-layer { outline: 1px dashed var(--accent); outline-offset: 3px; border-radius: 6px; }
+  .hint { color: var(--muted); font-size: 11px; letter-spacing: 1px; margin-top: 14px; line-height: 1.7; }
+  .controls { flex: 1 1 340px; min-width: 320px; }
+
+  .layer-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+  .layer-chip {
+    background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+    color: var(--text); font-family: inherit; font-size: 11px; letter-spacing: 1px;
+    padding: 8px 14px; cursor: pointer;
+  }
+  .layer-chip.active { border-color: var(--accent); color: var(--accent); }
+  .layer-chip.add { color: var(--muted); }
+  .mode-row { display: flex; gap: 8px; margin: 12px 0 4px; }
+  .mode-btn {
+    flex: 1; background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+    color: var(--muted); font-family: inherit; font-size: 11px; letter-spacing: 1px;
+    padding: 8px 0; cursor: pointer;
+  }
+  .mode-btn.active { border-color: var(--accent); color: var(--accent); }
+  .mode-btn:disabled { opacity: .35; cursor: default; }
+  #delBtn {
+    background: none; border: 1px solid var(--border); border-radius: 8px;
+    color: #e07070; font-family: inherit; font-size: 11px; letter-spacing: 1px;
+    padding: 8px 14px; cursor: pointer;
+  }
+  #delBtn:disabled { opacity: .3; cursor: default; }
+
+  .shape-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(74px, 1fr));
+    gap: 8px; margin: 14px 0;
+  }
+  .shape-chip {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 8px 4px 5px; text-align: center; cursor: pointer;
+  }
+  .shape-chip.active { border-color: var(--accent); }
+  .shape-chip svg { width: 48px; height: 48px; pointer-events: none; }
+  .shape-chip .nm { font-size: 10px; color: var(--muted); letter-spacing: 1px; margin-top: 3px; }
+  .shape-chip.active .nm { color: var(--accent); }
+
+  .ctl-row { display: flex; align-items: center; gap: 12px; margin: 12px 0; font-size: 12px; }
+  .ctl-row label { color: var(--muted); letter-spacing: 1px; width: 70px; }
+  .ctl-row input[type=range] { flex: 1; accent-color: var(--accent); }
+  .ctl-row .val { width: 48px; text-align: right; }
+
+  .readout {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 16px; font-size: 11px; margin-top: 16px;
+  }
+  .readout .head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .readout .head span { color: var(--muted); letter-spacing: 1px; }
+  .readout button {
+    background: none; border: 1px solid var(--border); border-radius: 8px;
+    color: var(--text); font-family: inherit; font-size: 11px;
+    padding: 5px 12px; cursor: pointer; letter-spacing: 1px;
+  }
+  .readout button:hover { border-color: var(--accent); }
+  .readout code {
+    display: block; color: var(--accent); user-select: all;
+    white-space: pre-wrap; word-break: break-all; line-height: 1.6;
+  }
+  .strip {
+    display: flex; align-items: flex-end; gap: 30px; flex-wrap: wrap;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 14px; padding: 26px;
+  }
+  .strip .item { text-align: center; }
+  .strip .lbl { color: var(--muted); font-size: 10px; letter-spacing: 1px; margin-top: 10px; }
+</style>
+</head>
+<body>
+
+<h1>卡背 → 合成徽章 編輯器</h1>
+<p class="sub">CARD 08 — 主徽記 + 裝飾件合成。選圖層後拖曳/滾輪調整,「取材」動原圖裁切、「擺放」動徽章上的位置</p>
+
+<div class="workbench">
+  <div class="preview-box">
+    <div id="preview" tabindex="0"></div>
+    <div class="hint" id="hint"></div>
+  </div>
+  <div class="controls">
+    <h2 style="margin-top:0">圖層</h2>
+    <div class="layer-list" id="layers"></div>
+    <div class="mode-row">
+      <button class="mode-btn" id="modeSource">取材(動原圖裁切)</button>
+      <button class="mode-btn" id="modePlace">擺放(動徽章位置)</button>
+      <button id="delBtn">刪除</button>
+    </div>
+    <h2>主徽記形狀</h2>
+    <div class="shape-grid" id="shapes"></div>
+    <div class="ctl-row">
+      <label id="rLabel">裁切半徑</label>
+      <input type="range" id="rSlider" min="20" max="200" step="1">
+      <span class="val" id="rVal"></span>
+    </div>
+    <div class="readout">
+      <div class="head"><span>合成設定(調好後整段回報)</span><button id="copyBtn">複製</button></div>
+      <code id="params"></code>
+    </div>
+  </div>
+</div>
+
+<h2>即時縮放預覽 — 跟著上面的調整連動</h2>
+<div class="strip" id="strip"></div>
+
+<h2>輪廓萃取示範 — 徽章形狀來自畫面元素本身(非幾何裁切)</h2>
+<div class="strip" id="silhouette-row" style="align-items:center"></div>
+
+<script>
+const IMG = "what-do-you-think-is-the-most-impressive-cardback-v0-wgyrlt122fcd1.jpg";
+const PAD = 14;
+const BASE_INSET = 0.09;          // 主徽記內縮比例,留空間給裝飾件外溢
+
+/* ── 遮罩形狀庫(中心 0,0、基準半徑 100) ── */
+function scallopPath(n, rBase, bulge) {
+  const pts = [];
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * Math.PI * 2 - Math.PI / 2;
+    pts.push([rBase * Math.cos(a), rBase * Math.sin(a)]);
+  }
+  let d = `M ${pts[0][0].toFixed(1)} ${pts[0][1].toFixed(1)}`;
+  for (let i = 1; i <= n; i++) {
+    const [x, y] = pts[i % n];
+    d += ` A ${bulge} ${bulge} 0 0 1 ${x.toFixed(1)} ${y.toFixed(1)}`;
+  }
+  return d + " Z";
+}
+function starPath(n, rOut, rIn) {
+  let d = "";
+  for (let i = 0; i < n * 2; i++) {
+    const r = i % 2 === 0 ? rOut : rIn;
+    const a = (i / (n * 2)) * Math.PI * 2 - Math.PI / 2;
+    d += (i === 0 ? "M " : " L ") + (r * Math.cos(a)).toFixed(1) + " " + (r * Math.sin(a)).toFixed(1);
+  }
+  return d + " Z";
+}
+const SHAPES = [
+  { key: "circle",  nm: "圓形",   d: null },
+  { key: "seal",    nm: "封蠟章", d: scallopPath(12, 92, 26) },
+  { key: "star",    nm: "八芒星", d: starPath(8, 106, 82) },
+  { key: "shield",  nm: "盾形",   d: "M -92 -88 Q 0 -108 92 -88 C 95 -18 76 52 0 106 C -76 52 -95 -18 -92 -88 Z" },
+  { key: "hex",     nm: "六角",   d: "M 0 -104 L 90 -52 L 90 52 L 0 104 L -90 52 L -90 -52 Z" },
+  { key: "diamond", nm: "菱形",   d: "M 0 -108 L 82 0 L 0 108 L -82 0 Z" },
+  { key: "flame",   nm: "火焰",   d: "M 0 -114 C 34 -82 88 -52 88 22 C 88 80 50 110 0 110 C -50 110 -88 80 -88 22 C -88 -52 -34 -82 0 -114 Z" },
+];
+
+/* ── 合成狀態 ──
+   base:主徽記(硬裁+金屬環)。ornaments:裝飾件(軟邊萃取)
+   cx/cy/r = 原圖上的取材位置;px/py = 中心在徽章畫布上的相對位置(0~1);size = 相對畫布寬 */
+const state = {
+  base: { cx: 1135, cy: 705, r: 105, shape: "seal" },
+  ornaments: [
+    { cx: 1206, cy: 572, r: 52, px: 0.87, py: 0.10, size: 0.30, fade: 0.55 },
+    { cx: 1072, cy: 833, r: 42, px: 0.10, py: 0.88, size: 0.21, fade: 0.55 },
+  ],
+};
+let active = "base";              // "base" 或 ornaments 的索引
+let mode = "source";              // "source" | "place"
+let uid = 0;
+
+function shapeEl(key, extra) {
+  const s = SHAPES.find(o => o.key === key);
+  return s.d === null
+    ? `<circle cx="0" cy="0" r="100" ${extra}/>`
+    : `<path d="${s.d}" ${extra}/>`;
+}
+
+function badgeSVG({ cx, cy, r, shape }) {
+  const id = "clip" + (uid++);
+  const vp = r + PAD;
+  const t = `transform="translate(${cx} ${cy}) scale(${(r / 100).toFixed(4)})"`;
+  return `<svg style="width:100%;height:100%" viewBox="${cx - vp} ${cy - vp} ${vp * 2} ${vp * 2}">
+    <defs><clipPath id="${id}">${shapeEl(shape, t)}</clipPath></defs>
+    <image href="${IMG}" width="1372" height="991" clip-path="url(#${id})"/>
+    <g transform="translate(${cx} ${cy}) scale(${(r / 100).toFixed(4)})">
+      ${shapeEl(shape, 'fill="none" stroke="#0c0d10" stroke-width="13" stroke-linejoin="round"')}
+      ${shapeEl(shape, 'fill="none" stroke="url(#ring-metal)" stroke-width="8" stroke-linejoin="round"')}
+      ${shapeEl(shape, 'fill="none" stroke="#e9d9a8" stroke-width="1.2" opacity=".55" transform="scale(.955)" stroke-linejoin="round"')}
+    </g>
+  </svg>`;
+}
+
+function softCropSVG({ cx, cy, r, fade }) {
+  const id = "soft" + (uid++);
+  return `<svg style="width:100%;height:100%" viewBox="${cx - r} ${cy - r} ${r * 2} ${r * 2}">
+    <defs>
+      <radialGradient id="${id}g" gradientUnits="userSpaceOnUse" cx="${cx}" cy="${cy}" r="${r}">
+        <stop offset="0" stop-color="#fff"/>
+        <stop offset="${fade}" stop-color="#fff"/>
+        <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+      </radialGradient>
+      <mask id="${id}m" maskUnits="userSpaceOnUse"
+            x="${cx - r}" y="${cy - r}" width="${r * 2}" height="${r * 2}">
+        <circle cx="${cx}" cy="${cy}" r="${r}" fill="url(#${id}g)"/>
+      </mask>
+    </defs>
+    <image href="${IMG}" width="1372" height="991" mask="url(#${id}m)"/>
+  </svg>`;
+}
+
+/* 合成一枚徽章的完整 HTML(相對定位容器內疊圖層) */
+function composeHTML(st, markActive) {
+  const inset = (BASE_INSET * 100).toFixed(1) + "%";
+  const baseActive = markActive && active === "base" ? " active-layer" : "";
+  let html = `<div class="layer${baseActive}" style="inset:${inset}">${badgeSVG(st.base)}</div>`;
+  st.ornaments.forEach((o, i) => {
+    const act = markActive && active === i ? " active-layer" : "";
+    const s = (o.size * 100).toFixed(1);
+    const l = ((o.px - o.size / 2) * 100).toFixed(1);
+    const tp = ((o.py - o.size / 2) * 100).toFixed(1);
+    html += `<div class="layer${act}" style="width:${s}%;height:${s}%;left:${l}%;top:${tp}%;filter:drop-shadow(0 2px 6px rgba(0,0,0,.7))">${softCropSVG(o)}</div>`;
+  });
+  return html;
+}
+
+/* 共用金屬環漸層 */
+document.body.insertAdjacentHTML("afterbegin", `
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+    <linearGradient id="ring-metal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#d8ba6e"/><stop offset=".5" stop-color="#8a6a2e"/><stop offset="1" stop-color="#4e380f"/>
+    </linearGradient>
+  </defs></svg>`);
+
+/* ── 渲染 ── */
+function activeLayer() { return active === "base" ? state.base : state.ornaments[active]; }
+
+function render() {
+  document.getElementById("preview").innerHTML = composeHTML(state, true);
+
+  document.getElementById("strip").innerHTML = [120, 72, 40, 24].map(s =>
+    `<div class="item"><div style="position:relative;width:${s}px;height:${s}px">${
+      composeHTML(state, false)
+    }</div><div class="lbl">${s}px</div></div>`).join("");
+
+  document.getElementById("layers").innerHTML =
+    `<button class="layer-chip${active === "base" ? " active" : ""}" data-layer="base">主徽記</button>` +
+    state.ornaments.map((o, i) =>
+      `<button class="layer-chip${active === i ? " active" : ""}" data-layer="${i}">裝飾件 ${i + 1}</button>`).join("") +
+    `<button class="layer-chip add" data-layer="add">+ 新增裝飾件</button>`;
+
+  const isBase = active === "base";
+  document.getElementById("modeSource").classList.toggle("active", mode === "source");
+  document.getElementById("modePlace").classList.toggle("active", mode === "place" && !isBase);
+  document.getElementById("modePlace").disabled = isBase;
+  document.getElementById("delBtn").disabled = isBase;
+
+  document.getElementById("shapes").innerHTML = SHAPES.map(s =>
+    `<div class="shape-chip${s.key === state.base.shape ? " active" : ""}" data-shape="${s.key}">
+      ${badgeSVG({ ...state.base, shape: s.key }).replace('style="width:100%;height:100%"', 'width="48" height="48"')}
+      <div class="nm">${s.nm}</div>
+    </div>`).join("");
+
+  const lay = activeLayer();
+  document.getElementById("rLabel").textContent = isBase ? "裁切半徑" : (mode === "place" ? "擺放大小" : "裁切半徑");
+  if (!isBase && mode === "place") {
+    document.getElementById("rSlider").min = 8; document.getElementById("rSlider").max = 60;
+    document.getElementById("rSlider").value = Math.round(lay.size * 100);
+    document.getElementById("rVal").textContent = Math.round(lay.size * 100) + "%";
+  } else {
+    document.getElementById("rSlider").min = 20; document.getElementById("rSlider").max = 200;
+    document.getElementById("rSlider").value = lay.r;
+    document.getElementById("rVal").textContent = lay.r;
+  }
+
+  document.getElementById("hint").textContent = isBase
+    ? "拖曳:移動原圖裁切位置 / 滾輪:縮放裁切範圍"
+    : (mode === "source"
+      ? "拖曳:移動原圖裁切位置(取哪塊圖) / 滾輪:縮放裁切範圍"
+      : "拖曳:移動在徽章上的位置 / 滾輪:縮放擺放大小");
+
+  const fmt = o => `{cx:${Math.round(o.cx)}, cy:${Math.round(o.cy)}, r:${Math.round(o.r)}` +
+    (o.shape ? `, shape:"${o.shape}"}` : `, px:${o.px.toFixed(2)}, py:${o.py.toFixed(2)}, size:${o.size.toFixed(2)}}`);
+  document.getElementById("params").textContent =
+    `base: ${fmt(state.base)}\n` +
+    state.ornaments.map((o, i) => `orn${i + 1}: ${fmt(o)}`).join("\n");
+}
+
+/* ── 互動 ── */
+const preview = document.getElementById("preview");
+let dragging = null;
+
+preview.addEventListener("pointerdown", e => {
+  dragging = { x: e.clientX, y: e.clientY };
+  preview.setPointerCapture(e.pointerId);
+  preview.focus();
+});
+preview.addEventListener("pointermove", e => {
+  if (!dragging) return;
+  const dx = e.clientX - dragging.x, dy = e.clientY - dragging.y;
+  const lay = activeLayer();
+  if (active === "base") {
+    const basePx = preview.clientWidth * (1 - BASE_INSET * 2);
+    const sc = (2 * (lay.r + PAD)) / basePx;
+    lay.cx -= dx * sc; lay.cy -= dy * sc;
+  } else if (mode === "source") {
+    const ornPx = preview.clientWidth * lay.size;
+    const sc = (2 * lay.r) / ornPx;
+    lay.cx -= dx * sc; lay.cy -= dy * sc;
+  } else {
+    lay.px += dx / preview.clientWidth;
+    lay.py += dy / preview.clientHeight;
+  }
+  dragging = { x: e.clientX, y: e.clientY };
+  render();
+});
+preview.addEventListener("pointerup", () => { dragging = null; });
+preview.addEventListener("wheel", e => {
+  e.preventDefault();
+  const lay = activeLayer();
+  const f = e.deltaY > 0 ? 1.05 : 0.95;
+  if (active !== "base" && mode === "place") {
+    lay.size = Math.min(0.6, Math.max(0.08, lay.size * f));
+  } else {
+    lay.r = Math.min(200, Math.max(20, Math.round(lay.r * f)));
+  }
+  render();
+}, { passive: false });
+
+preview.addEventListener("keydown", e => {
+  const step = e.shiftKey ? 5 : 1;
+  const lay = activeLayer();
+  const move = (dx, dy) => {
+    if (active !== "base" && mode === "place") {
+      lay.px += dx / preview.clientWidth; lay.py += dy / preview.clientHeight;
+    } else { lay.cx += dx; lay.cy += dy; }
+  };
+  if (e.key === "ArrowLeft") move(-step, 0);
+  else if (e.key === "ArrowRight") move(step, 0);
+  else if (e.key === "ArrowUp") move(0, -step);
+  else if (e.key === "ArrowDown") move(0, step);
+  else return;
+  e.preventDefault();
+  render();
+});
+
+document.getElementById("layers").addEventListener("click", e => {
+  const chip = e.target.closest(".layer-chip");
+  if (!chip) return;
+  if (chip.dataset.layer === "add") {
+    state.ornaments.push({ cx: 1133, cy: 700, r: 50, px: 0.5, py: 0.5, size: 0.25, fade: 0.55 });
+    active = state.ornaments.length - 1;
+    mode = "source";
+  } else if (chip.dataset.layer === "base") {
+    active = "base"; mode = "source";
+  } else {
+    active = +chip.dataset.layer;
+  }
+  render();
+});
+document.getElementById("modeSource").addEventListener("click", () => { mode = "source"; render(); });
+document.getElementById("modePlace").addEventListener("click", () => {
+  if (active !== "base") { mode = "place"; render(); }
+});
+document.getElementById("delBtn").addEventListener("click", () => {
+  if (active === "base") return;
+  state.ornaments.splice(active, 1);
+  active = "base"; mode = "source";
+  render();
+});
+document.getElementById("shapes").addEventListener("click", e => {
+  const chip = e.target.closest(".shape-chip");
+  if (!chip) return;
+  state.base.shape = chip.dataset.shape;
+  render();
+});
+document.getElementById("rSlider").addEventListener("input", e => {
+  const lay = activeLayer();
+  if (active !== "base" && mode === "place") lay.size = +e.target.value / 100;
+  else lay.r = +e.target.value;
+  render();
+});
+document.getElementById("copyBtn").addEventListener("click", () => {
+  navigator.clipboard?.writeText(document.getElementById("params").textContent).then(
+    () => { document.getElementById("copyBtn").textContent = "已複製"; },
+    () => { document.getElementById("copyBtn").textContent = "請手動選取"; }
+  );
+});
+
+render();
+
+/* ══════════ 輪廓萃取示範 ══════════
+   遮罩 = 沿著畫面元素(CARD 08 中央尖刺圓盤)的實際輪廓生成:
+   盤面圓 + 依原畫尖刺分布的三角刺,整組輕微羽化。
+   徽章的形狀因此「就是那個物件」,不是幾何圖形裁切。 */
+function spikyPlateSVG({ cx, cy, rPlate, spikes, blur }, sizeAttr) {
+  const id = "sil" + (uid++);
+  const maxR = Math.max(...spikes.map(s => s.len)) + 10;
+  const tri = spikes.map(s => {
+    const a = s.ang * Math.PI / 180, w = (s.w || 7) * Math.PI / 180;
+    const bx1 = cx + (rPlate - 6) * Math.sin(a - w), by1 = cy - (rPlate - 6) * Math.cos(a - w);
+    const bx2 = cx + (rPlate - 6) * Math.sin(a + w), by2 = cy - (rPlate - 6) * Math.cos(a + w);
+    const tx = cx + s.len * Math.sin(a), ty = cy - s.len * Math.cos(a);
+    return `<path d="M ${bx1.toFixed(1)} ${by1.toFixed(1)} L ${tx.toFixed(1)} ${ty.toFixed(1)} L ${bx2.toFixed(1)} ${by2.toFixed(1)} Z" fill="#fff"/>`;
+  }).join("");
+  return `<svg ${sizeAttr || ""} viewBox="${cx - maxR} ${cy - maxR} ${maxR * 2} ${maxR * 2}">
+    <defs>
+      <filter id="${id}f" x="-15%" y="-15%" width="130%" height="130%">
+        <feGaussianBlur stdDeviation="${blur}"/>
+      </filter>
+      <mask id="${id}m" maskUnits="userSpaceOnUse"
+            x="${cx - maxR}" y="${cy - maxR}" width="${maxR * 2}" height="${maxR * 2}">
+        <g filter="url(#${id}f)">
+          <circle cx="${cx}" cy="${cy}" r="${rPlate}" fill="#fff"/>
+          ${tri}
+        </g>
+      </mask>
+    </defs>
+    <image href="${IMG}" width="1372" height="991" mask="url(#${id}m)"/>
+  </svg>`;
+}
+
+/* 尖刺分布(角度 0=正上方、順時針;長度為離盤心距離,依原畫逐根對位) */
+const PLATE = {
+  cx: 1137, cy: 699, rPlate: 76, blur: 2,
+  spikes: [
+    { ang: 2,   len: 118, w: 8 },
+    { ang: 32,  len: 100, w: 7 },
+    { ang: 62,  len: 108, w: 7 },
+    { ang: 92,  len: 96,  w: 7 },
+    { ang: 122, len: 108, w: 7 },
+    { ang: 152, len: 98,  w: 7 },
+    { ang: 182, len: 114, w: 8 },
+    { ang: 212, len: 100, w: 7 },
+    { ang: 242, len: 108, w: 7 },
+    { ang: 272, len: 96,  w: 7 },
+    { ang: 302, len: 108, w: 7 },
+    { ang: 332, len: 98,  w: 7 },
+  ],
+};
+
+document.getElementById("silhouette-row").innerHTML =
+  `<div class="item">
+    <div style="width:230px;height:230px">${spikyPlateSVG(PLATE, 'style="width:100%;height:100%"')}</div>
+    <div class="lbl">輪廓萃取 230px</div>
+  </div>` +
+  [120, 72, 40, 24].map(s =>
+    `<div class="item"><div style="width:${s}px;height:${s}px">${
+      spikyPlateSVG(PLATE, 'style="width:100%;height:100%"')
+    }</div><div class="lbl">${s}px</div></div>`).join("");
+</script>
+
+</body>
+</html>
