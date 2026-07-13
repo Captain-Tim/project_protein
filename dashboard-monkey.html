@@ -128,6 +128,11 @@
     border: 1px solid #4a1414; background: #1a0c0c; border-radius: 12px; padding: 10px 14px; }
   #dataErrors:empty { display: none; }
 
+  #tip { position: fixed; z-index: 50; pointer-events: none; opacity: 0; transition: opacity .08s;
+    background: #1a1c20; color: var(--ink); border: 1px solid var(--border); border-radius: 8px;
+    padding: 5px 9px; font-size: 12px; white-space: nowrap; box-shadow: 0 4px 14px rgba(0,0,0,.55); }
+  [data-tip] { cursor: pointer; }
+
   @media (max-width: 640px) {
     .wrap { padding: 12px 12px 48px; }
     header.hero { gap: 12px; padding: 12px 14px; flex-wrap: wrap; }
@@ -195,6 +200,8 @@
   <button class="close" aria-label="Close">✕</button>
   <img src="profile/monkey.jpg" alt="Monkey" />
 </div>
+
+<div id="tip"></div>
 
 <script>
 /* 資料由 build 腳本注入此標記區塊,請勿手改 START/END 之間(目前為樣本資料) */
@@ -565,8 +572,8 @@
     "</div>" +
     '<div class="bars" style="margin-top:12px">' +
       wd.map((x) =>
-        '<i class="' + (x.isCurrent ? "on" : "") + '" style="height:' + Math.max(2, (x.km / maxKm) * 100) +
-        '%" title="' + x.weekStart + " · " + x.km + ' km"></i>').join("") +
+        '<i class="' + (x.km > 0 ? "on" : "") + '" style="height:' + Math.max(2, (x.km / maxKm) * 100) +
+        '%" data-tip="' + x.weekStart + " · " + x.km + ' km"></i>').join("") +
     "</div>" +
     '<div class="barx">' +
       wd.map((x) => "<span>" + (x.isCurrent ? "NOW" : x.weekStart.slice(5).replace("-", "/")) + "</span>").join("") +
@@ -593,7 +600,7 @@
 
     const cells = hm.weeks.map((col) =>
       col.map((c) => c
-        ? '<i class="l' + c.level + '" title="' + c.date + " · " + (c.km ? c.km + " km" : "rest") + '"></i>'
+        ? '<i class="l' + c.level + '" data-tip="' + c.date + " · " + (c.km ? c.km + " km" : "rest") + '"></i>'
         : '<i class="empty"></i>'
       ).join("")
     ).join("");
@@ -640,6 +647,29 @@
     el("dataErrors").innerHTML =
       "<b>DATA ERROR</b> — " + invalid.length + " incomplete record(s): " +
       invalid.map((v) => v.date + " (" + v.reason + ")").join(", ");
+  }
+
+  // 提示框:滑鼠 hover 即時跟著移動;觸控裝置沒有 hover,改成點一下顯示、再點別處收起
+  const tip = el("tip");
+  if (tip) {
+    let tipEl = null;
+    const placeTip = (x, y) => {
+      tip.style.left = Math.min(x + 12, window.innerWidth - tip.offsetWidth - 6) + "px";
+      tip.style.top = (y + 14) + "px";
+    };
+    const showTip = (target, x, y) => { tipEl = target; tip.textContent = target.getAttribute("data-tip"); tip.style.opacity = "1"; placeTip(x, y); };
+    const hideTip = () => { tipEl = null; tip.style.opacity = "0"; };
+
+    document.addEventListener("mouseover", (e) => { const t = e.target.closest && e.target.closest("[data-tip]"); if (t) showTip(t, e.clientX, e.clientY); });
+    document.addEventListener("mousemove", (e) => { if (tipEl) placeTip(e.clientX, e.clientY); });
+    document.addEventListener("mouseout", (e) => { const t = e.target.closest && e.target.closest("[data-tip]"); if (t && t === tipEl) hideTip(); });
+
+    document.addEventListener("click", (e) => {
+      const t = e.target.closest && e.target.closest("[data-tip]");
+      if (!t) { hideTip(); return; }
+      if (t === tipEl) { hideTip(); return; }
+      showTip(t, e.clientX, e.clientY);
+    });
   }
 
   // 頭像放大檢視:點頭像開,點背景/✕/Esc 關

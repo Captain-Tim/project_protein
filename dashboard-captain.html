@@ -101,7 +101,7 @@
 
   .bars { display: flex; align-items: flex-end; gap: 8px; height: 88px; }
   .bars i { flex: 1; background: #22262b; border-radius: 5px 5px 2px 2px; display: block; min-height: 2px; }
-  .bars i.on { background: linear-gradient(180deg, var(--accent), var(--accent-dim)); }
+  .bars i.on { background: linear-gradient(180deg, var(--tab-c, var(--accent)), var(--accent-dim)); }
   .barx { display: flex; font-size: 9px; color: var(--muted); margin-top: 6px; }
   .barx span { flex: 1; text-align: center; }
   .paceBig { font-size: 40px; margin: 8px 0 2px; }
@@ -243,6 +243,20 @@
     return ss === 60 ? (mm + 1) + ":00" : mm + ":" + String(ss).padStart(2, "0");
   }
 
+  // Catmull-Rom → Bezier 平滑曲線,取代直線段折線
+  function smoothPath(pos) {
+    let d = "M " + pos[0][0] + " " + pos[0][1];
+    for (let i = 0; i < pos.length - 1; i++) {
+      const p0 = pos[i - 1] || pos[i], p1 = pos[i], p2 = pos[i + 1], p3 = pos[i + 2] || p2;
+      const c1x = p1[0] + (p2[0] - p0[0]) / 6, c1y = p1[1] + (p2[1] - p0[1]) / 6;
+      const c2x = p2[0] - (p3[0] - p1[0]) / 6, c2y = p2[1] - (p3[1] - p1[1]) / 6;
+      d += " C " + c1x + " " + c1y + " " + c2x + " " + c2y + " " + p2[0] + " " + p2[1];
+    }
+    return d;
+  }
+
+  let chartSeq = 0;
+
   // 單一動作的重量趨勢:直接以「這個動作出現過的那次訓練」為 X 軸,不分期
   function lineChart(points, color) {
     const W = 320, H = 128, P = { l: 38, r: 12, t: 14, b: 24 };
@@ -254,13 +268,26 @@
     yMin = Math.max(0, yMin - pad); yMax += pad;
     const X = (i) => P.l + (n <= 1 ? 0.5 : i / (n - 1)) * (W - P.l - P.r);
     const Y = (y) => H - P.b - (yMax === yMin ? 0.5 : (y - yMin) / (yMax - yMin)) * (H - P.t - P.b);
+    const baseY = H - P.b;
     [yMin, (yMin + yMax) / 2, yMax].forEach((v) => {
       s.appendChild(el("line", { x1: P.l, y1: Y(v), x2: W - P.r, y2: Y(v), stroke: "var(--grid)", "stroke-width": 1 }));
       s.appendChild(el("text", { x: P.l - 5, y: Y(v) + 3, "text-anchor": "end", "font-size": 9, fill: "var(--muted)" }, "" + round2(v)));
     });
     const every = Math.max(1, Math.ceil(n / 8));
     points.forEach((p, i) => { if (i % every === 0 || i === n - 1) s.appendChild(el("text", { x: X(i), y: H - 10, "text-anchor": "middle", "font-size": 9, fill: "var(--muted)" }, p.label)); });
-    if (n > 1) s.appendChild(el("path", { d: points.map((p, i) => (i ? "L" : "M") + X(i) + " " + Y(p.y)).join(" "), fill: "none", stroke: color, "stroke-width": 2, "stroke-linejoin": "round" }));
+    if (n > 1) {
+      const pos = points.map((p, i) => [X(i), Y(p.y)]);
+      const curve = smoothPath(pos);
+      const gradId = "trendFill" + (chartSeq++);
+      const defs = el("defs");
+      const grad = el("linearGradient", { id: gradId, x1: 0, y1: 0, x2: 0, y2: 1 });
+      grad.appendChild(el("stop", { offset: "0", "stop-color": color, "stop-opacity": .3 }));
+      grad.appendChild(el("stop", { offset: "1", "stop-color": color, "stop-opacity": 0 }));
+      defs.appendChild(grad);
+      s.appendChild(defs);
+      s.appendChild(el("path", { d: curve + " L " + pos[n - 1][0] + " " + baseY + " L " + pos[0][0] + " " + baseY + " Z", fill: "url(#" + gradId + ")", stroke: "none" }));
+      s.appendChild(el("path", { d: curve, fill: "none", stroke: color, "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round" }));
+    }
     points.forEach((p, i) => {
       const cx = X(i), cy = Y(p.y), isLast = i === n - 1;
       if (isLast) {
@@ -322,23 +349,61 @@
     return out;
   }
 
-  // ---- 重訓:單一動作的全歷史紀錄與 PR(單組最大重量) ----
-  function strengthRecords(exercise) {
-    const records = [];
+  // ---- 重訓:單一動作每次出現的 session 統計(單組最大重量 + 當次總量) ----
+  function strengthSessionStats(exercise) {
+    const stats = [];
     sessions.forEach((s) => {
+      let sets = [], unit = "";
       s.strength.forEach((ex) => {
         if (ex.exercise !== exercise) return;
-        const w = Math.max(...ex.sets.map((st) => st.weight).filter((v) => v != null));
-        if (isFinite(w)) records.push({ date: s.date, weight: w, unit: ex.unit || "" });
+        unit = ex.unit || "";
+        ex.sets.forEach((st) => { if (st.weight != null) sets.push(st); });
       });
+      if (!sets.length) return;
+      const maxWeight = Math.max(...sets.map((st) => st.weight));
+      const volume = Math.round(sets.reduce((a, st) => a + st.weight * (st.reps || 0), 0));
+      stats.push({ date: s.date, unit, maxWeight, volume });
     });
-    return records.sort((a, b) => a.date.localeCompare(b.date));
+    return stats.sort((a, b) => a.date.localeCompare(b.date));
   }
-  function strengthPR(records) {
-    if (!records.length) return null;
-    let best = records[0];
-    records.forEach((r) => { if (r.weight > best.weight) best = r; });
-    return { weight: best.weight, unit: best.unit, date: best.date, isNew: best.date === records[records.length - 1].date };
+  function strengthWeightPR(stats) {
+    if (!stats.length) return null;
+    let best = stats[0];
+    stats.forEach((r) => { if (r.maxWeight > best.maxWeight) best = r; });
+    return { weight: best.maxWeight, unit: best.unit, date: best.date, isNew: best.date === stats[stats.length - 1].date };
+  }
+  function strengthVolumePR(stats) {
+    if (!stats.length) return null;
+    let best = stats[0];
+    stats.forEach((r) => { if (r.volume > best.volume) best = r; });
+    return { volume: best.volume, unit: best.unit, date: best.date, isNew: best.date === stats[stats.length - 1].date };
+  }
+  // 該動作史上最長連續訓練週數;isNew = 目前這波連續紀錄剛好是(或追平)史上最長
+  function strengthWeeklyStreak(exercise) {
+    const weekSet = new Set();
+    sessions.forEach((s) => s.strength.forEach((ex) => { if (ex.exercise === exercise) weekSet.add(weekStart(s.date)); }));
+    const weeks = [...weekSet].sort();
+    if (!weeks.length) return null;
+    let longest = 1, cur = 1, longestEndWeek = weeks[0];
+    for (let i = 1; i < weeks.length; i++) {
+      cur = addDays(weeks[i - 1], 7) === weeks[i] ? cur + 1 : 1;
+      if (cur > longest) { longest = cur; longestEndWeek = weeks[i]; }
+    }
+    return { weeks: longest, recordWeek: longestEndWeek, isNew: longestEndWeek === weeks[weeks.length - 1] };
+  }
+  // 最近 3 次的平均重量(單純算術平均,重量本身就是量到的值,不像配速需要用距離加權)
+  function strengthAvgWeight(stats) {
+    const last3 = stats.slice(-3);
+    if (!last3.length) return { avg: null, delta: null, sampleSize: 0, unit: "" };
+    const avg = last3.reduce((a, r) => a + r.maxWeight, 0) / last3.length;
+    const prev3 = stats.slice(-6, -3);
+    const prevAvg = prev3.length === 3 ? prev3.reduce((a, r) => a + r.maxWeight, 0) / prev3.length : null;
+    return {
+      avg: Math.round(avg * 100) / 100,
+      delta: prevAvg != null ? Math.round((avg - prevAvg) * 100) / 100 : null,
+      sampleSize: last3.length,
+      unit: last3[0].unit,
+    };
   }
 
   // ---- 整體訓練:一週要三部位都練到才算達標週 ----
@@ -495,8 +560,7 @@
 
   function renderContent() {
     const isCardio = curPart === "Cardio";
-    $("prHeading").textContent = isCardio ? "🏆 PERSONAL RECORDS" : "🏆 PERSONAL RECORD";
-    $("trendRow").style.justifyContent = "";
+    $("prHeading").textContent = "🏆 PERSONAL RECORDS";
     [$("prHeading"), $("prBoard"), $("trendRow")].forEach((e) => {
       e.style.setProperty("--tab-c", TAB_COLOR[curPart]);
       e.style.setProperty("--tab-glow", TAB_GLOW28[curPart]);
@@ -527,7 +591,7 @@
             '<span class="lbl">THIS WEEK <span class="num accent" style="font-size:12px">' + wd[wd.length - 1].km + " km</span></span>" +
           "</div>" +
           '<div class="bars" style="margin-top:12px">' +
-            wd.map((x) => '<i class="' + (x.isCurrent ? "on" : "") + '" style="height:' + Math.max(2, (x.km / maxKm) * 100) + '%" title="' + x.weekStart + " · " + x.km + ' km"></i>').join("") +
+            wd.map((x) => '<i class="' + (x.km > 0 ? "on" : "") + '" style="height:' + Math.max(2, (x.km / maxKm) * 100) + '%" data-tip="' + x.weekStart + " · " + x.km + ' km"></i>').join("") +
           "</div>" +
           '<div class="barx">' + wd.map((x) => "<span>" + (x.isCurrent ? "NOW" : x.weekStart.slice(5).replace("-", "/")) + "</span>").join("") + "</div>" +
         "</div>" +
@@ -537,28 +601,38 @@
           '<div class="lbl" style="letter-spacing:.5px">MIN / KM</div>' + deltaLine +
         "</div>";
     } else {
-      // PR 卡跟趨勢圖並排在同一列(Cardio 維持原本 PR 榜獨立一列的排法)
-      $("prBoard").innerHTML = "";
-      const records = strengthRecords(curExercise);
-      const pr = strengthPR(records);
-      $("trendRow").innerHTML = pr
-        ? '<div class="pr' + (pr.isNew ? " new" : "") + '" style="flex:0 1 220px; align-self:flex-start">' +
-            (pr.isNew ? '<span class="tag">NEW!</span>' : "") +
-            '<div class="t">🏋️</div>' +
-            '<div class="v' + (pr.isNew ? " accent" : "") + '">' + pr.weight + " " + pr.unit + "</div>" +
-            '<div class="lbl" style="margin-top:2px">MAX WEIGHT · SINGLE SET</div>' +
-            '<div class="d">' + pr.date + "</div>" +
-          "</div>"
-        : '<div class="pr" style="flex:0 1 220px; align-self:flex-start"><div class="t">🏋️</div><div class="v">—</div><div class="lbl">MAX WEIGHT</div></div>';
+      const stats = strengthSessionStats(curExercise);
+      const weightPR = strengthWeightPR(stats);
+      const volumePR = strengthVolumePR(stats);
+      const streak = strengthWeeklyStreak(curExercise);
+      $("prBoard").innerHTML =
+        prCard(!!(weightPR && weightPR.isNew), "🏋️", weightPR ? weightPR.weight + " " + weightPR.unit : "—",
+          "MAX WEIGHT · SET", weightPR ? weightPR.date : "—") +
+        prCard(!!(volumePR && volumePR.isNew), "💪", volumePR ? volumePR.volume + " " + volumePR.unit : "—",
+          "MAX VOLUME · SESSION", volumePR ? volumePR.date : "—") +
+        prCard(!!(streak && streak.isNew), "🔥", streak ? streak.weeks + " WK" + (streak.weeks === 1 ? "" : "S") : "—",
+          "WEEKLY STREAK", streak ? streak.recordWeek : "—");
 
-      const recent = records.slice(-12);
-      const points = recent.map((r) => ({ label: md(parseDate(r.date)), y: r.weight, tip: r.date + "：" + r.weight + " " + r.unit }));
-      const trendCard = document.createElement("div");
-      trendCard.className = "card"; trendCard.style.cssText = "flex:1 1 320px; max-width:480px;";
-      trendCard.innerHTML = '<b style="font-size:13px">' + (curExercise || "") + " Trend</b>" +
-        '<div class="lbl" style="margin:2px 0 8px">LAST ' + points.length + " SESSION" + (points.length === 1 ? "" : "S") + "</div>";
-      if (points.length) trendCard.appendChild(lineChart(points, TAB_COLOR[curPart]));
-      $("trendRow").appendChild(trendCard);
+      const recent = stats.slice(-12);
+      const points = recent.map((r) => ({ label: md(parseDate(r.date)), y: r.maxWeight, tip: r.date + "：" + r.maxWeight + " " + r.unit }));
+
+      const aw = strengthAvgWeight(stats);
+      const awDeltaLine = aw.delta == null ? "" :
+        Math.abs(aw.delta) < 0.01 ? '<div style="font-size:11px;color:var(--muted);margin-top:8px">same as previous 3</div>' :
+        '<div style="font-size:11px;color:var(--muted);margin-top:8px">' +
+          (aw.delta > 0 ? "▲ " + aw.delta + " " + aw.unit + " heavier" : "▼ " + Math.abs(aw.delta) + " " + aw.unit + " lighter") +
+          " than previous 3</div>";
+      $("trendRow").innerHTML =
+        '<div class="card" id="weightTrendCard" style="flex:2.2; max-width:480px;">' +
+          '<b style="font-size:13px">' + (curExercise || "") + " Trend</b>" +
+          '<div class="lbl" style="margin:2px 0 8px">LAST ' + points.length + " SESSION" + (points.length === 1 ? "" : "S") + "</div>" +
+        "</div>" +
+        '<div class="card" id="avgPace" style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center">' +
+          '<div class="lbl">AVG WEIGHT · LAST ' + aw.sampleSize + " SESSION" + (aw.sampleSize === 1 ? "" : "S") + "</div>" +
+          '<div class="num accent paceBig">' + (aw.avg != null ? aw.avg + " " + aw.unit : "—") + "</div>" +
+          awDeltaLine +
+        "</div>";
+      if (points.length) $("weightTrendCard").appendChild(lineChart(points, TAB_COLOR[curPart]));
     }
   }
 
@@ -579,7 +653,7 @@
     }).join("");
 
     const cells = hm.weeks.map((col) => col.map((c) => c
-      ? '<i class="l' + c.level + '" title="' + c.date + " · " + (c.count ? c.types.join("/") : "rest") + '"></i>'
+      ? '<i class="l' + c.level + '" data-tip="' + c.date + " · " + (c.count ? c.types.join("/") : "rest") + '"></i>'
       : '<i class="empty"></i>'
     ).join("")).join("");
 
@@ -634,12 +708,27 @@
     $("totals").textContent = "No data.";
   }
 
-  // 即時 hover 提示(取代原生 <title> 的延遲),只用在重量趨勢的 SVG 折線圖上
+  // 提示框:滑鼠 hover 即時跟著移動;觸控裝置沒有 hover,改成點一下顯示、再點別處收起
   const tip = $("tip");
   if (tip) {
-    document.addEventListener("mouseover", (e) => { const t = e.target.getAttribute && e.target.getAttribute("data-tip"); if (t) { tip.textContent = t; tip.style.opacity = "1"; } });
-    document.addEventListener("mousemove", (e) => { if (tip.style.opacity === "1") { tip.style.left = Math.min(e.clientX + 12, window.innerWidth - tip.offsetWidth - 6) + "px"; tip.style.top = (e.clientY + 14) + "px"; } });
-    document.addEventListener("mouseout", (e) => { if (e.target.getAttribute && e.target.getAttribute("data-tip")) tip.style.opacity = "0"; });
+    let tipEl = null;
+    const placeTip = (x, y) => {
+      tip.style.left = Math.min(x + 12, window.innerWidth - tip.offsetWidth - 6) + "px";
+      tip.style.top = (y + 14) + "px";
+    };
+    const showTip = (el, x, y) => { tipEl = el; tip.textContent = el.getAttribute("data-tip"); tip.style.opacity = "1"; placeTip(x, y); };
+    const hideTip = () => { tipEl = null; tip.style.opacity = "0"; };
+
+    document.addEventListener("mouseover", (e) => { const el = e.target.closest && e.target.closest("[data-tip]"); if (el) showTip(el, e.clientX, e.clientY); });
+    document.addEventListener("mousemove", (e) => { if (tipEl) placeTip(e.clientX, e.clientY); });
+    document.addEventListener("mouseout", (e) => { const el = e.target.closest && e.target.closest("[data-tip]"); if (el && el === tipEl) hideTip(); });
+
+    document.addEventListener("click", (e) => {
+      const el = e.target.closest && e.target.closest("[data-tip]");
+      if (!el) { hideTip(); return; }
+      if (el === tipEl) { hideTip(); return; }
+      showTip(el, e.clientX, e.clientY);
+    });
   }
 
   // 頭像放大檢視:點頭像開,點背景/✕/Esc 關
