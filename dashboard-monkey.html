@@ -55,6 +55,40 @@
   #lightbox .close { position: absolute; top: 18px; right: 22px; font-size: 26px; line-height: 1;
     color: var(--muted); background: none; border: 0; cursor: pointer; font-family: inherit; }
   #lightbox .close:hover { color: var(--ink); }
+
+  /* 熱力圖某日詳情小卡:點有紀錄的格子跳出,後方頁面模糊 */
+  #dayModal { position: fixed; inset: 0; z-index: 110; display: none;
+    align-items: center; justify-content: center; padding: 20px;
+    background: rgba(4, 4, 5, .72); backdrop-filter: blur(7px); -webkit-backdrop-filter: blur(7px); }
+  #dayModal.on { display: flex; }
+  #dayModal .dc { position: relative; width: min(92vw, 430px); max-height: 84vh; overflow-y: auto;
+    background: var(--card); border: 1px solid var(--border); border-radius: 18px;
+    padding: 20px 20px 22px; box-shadow: 0 24px 64px rgba(0, 0, 0, .6); animation: lbIn .18s ease-out; }
+  #dayModal .dc .close { position: absolute; top: 12px; right: 14px; font-size: 20px; line-height: 1;
+    color: var(--muted); background: none; border: 0; cursor: pointer; font-family: inherit; }
+  #dayModal .dc .close:hover { color: var(--ink); }
+  .dcDate { font-family: Consolas, ui-monospace, monospace; font-weight: 800; font-size: 21px; letter-spacing: .5px; }
+  .dcWk { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .dcTypes { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 2px; }
+  .dcType { font-size: 10px; font-weight: 700; letter-spacing: .6px; padding: 3px 9px; border-radius: 99px;
+    color: var(--accent); border: 1px solid var(--accent-dim); background: rgba(255, 255, 255, .02); }
+  .dcSec { margin-top: 15px; }
+  .dcSecT { font-size: 10px; letter-spacing: 1.1px; color: var(--ink); font-weight: 700; margin-bottom: 6px; }
+  .dcEx { padding: 9px 0; border-top: 1px solid var(--border); }
+  .dcEx:first-of-type { border-top: 0; }
+  .dcExName { font-size: 13px; font-weight: 700; }
+  .dcSets { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+  .dcSet { font-family: Consolas, ui-monospace, monospace; font-size: 11px; color: var(--ink);
+    padding: 2px 7px; border-radius: 6px; background: rgba(255, 255, 255, .04); border: 1px solid var(--border); }
+  .dcMeta { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 6px; }
+  .dcMeta > div { display: flex; align-items: baseline; gap: 4px; }
+  .dcMeta b { font-family: Consolas, ui-monospace, monospace; color: var(--accent); font-weight: 800; font-size: 15px; }
+  .dcMeta span { color: var(--muted); font-size: 10px; letter-spacing: .5px; }
+  .dcNote { font-size: 11px; color: var(--muted); margin-top: 6px; line-height: 1.55; white-space: pre-wrap; }
+  .dcNoteMain { font-size: 12px; color: var(--ink); margin-top: 6px; line-height: 1.6; white-space: pre-wrap; }
+  .hmGrid i[data-date] { cursor: pointer; }
+  .hmGrid i[data-date]:hover { outline: 1.5px solid var(--hm3); outline-offset: 1px; }
+
   .who { font-size: 19px; font-weight: 800; letter-spacing: .5px; }
   .who i { color: var(--person); font-style: normal; }
   .streak { margin-left: auto; display: flex; align-items: center; gap: 8px;
@@ -203,9 +237,11 @@
 
 <div id="tip"></div>
 
+<div id="dayModal"></div>
+
 <script>
 /* 資料由 build 腳本注入此標記區塊,請勿手改 START/END 之間(目前為樣本資料) */
-/*WORKOUT_DATA_START*/window.WORKOUT_DATA={"generated_at":"2026-07-13T02:44:59.304Z","session_count":2,"sessions":[{"date":"2026-07-07","type":"Cardio","strength":[],"cardio":[{"exercise":"Running","duration_min":30,"distance_km":3.1}],"note":null},{"date":"2026-07-12","type":"Cardio","strength":[],"cardio":[{"exercise":"Running","duration_min":30,"distance_km":3,"avg_hr_bpm":140}],"note":null}]};/*WORKOUT_DATA_END*/
+/*WORKOUT_DATA_START*/window.WORKOUT_DATA={"generated_at":"2026-07-13T08:08:51.499Z","session_count":2,"sessions":[{"date":"2026-07-07","type":"Cardio","strength":[],"cardio":[{"exercise":"Running","duration_min":30,"distance_km":3.1}],"note":null},{"date":"2026-07-12","type":"Cardio","strength":[],"cardio":[{"exercise":"Running","duration_min":30,"distance_km":3,"avg_hr_bpm":140}],"note":null}]};/*WORKOUT_DATA_END*/
 </script>
 
 <script id="metrics">
@@ -600,7 +636,7 @@
 
     const cells = hm.weeks.map((col) =>
       col.map((c) => c
-        ? '<i class="l' + c.level + '" data-tip="' + c.date + " · " + (c.km ? c.km + " km" : "rest") + '"></i>'
+        ? '<i class="l' + c.level + '" data-tip="' + c.date + " · " + (c.km ? c.km + " km" : "rest") + '"' + (c.km ? ' data-date="' + c.date + '"' : "") + '></i>'
         : '<i class="empty"></i>'
       ).join("")
     ).join("");
@@ -638,6 +674,8 @@
 
   renderActivity("recent");
   el("activity").addEventListener("click", (e) => {
+    const cell = e.target.closest("[data-date]");
+    if (cell) { openDayModal(cell.dataset.date); return; }
     const tab = e.target.closest(".hmTab");
     if (tab) renderActivity(tab.dataset.view);
   });
@@ -667,10 +705,64 @@
     document.addEventListener("click", (e) => {
       const t = e.target.closest && e.target.closest("[data-tip]");
       if (!t) { hideTip(); return; }
+      if (t.hasAttribute("data-date")) { hideTip(); return; }  // 有紀錄的格子交給詳情小卡
       if (t === tipEl) { hideTip(); return; }
       showTip(t, e.clientX, e.clientY);
     });
   }
+
+  // 熱力圖某日詳情小卡:點有紀錄的格子跳出當日總覽,後方頁面模糊
+  function fmtPace(min, km) {
+    if (!(km > 0) || !(min > 0)) return "—";
+    const p = min / km, mm = Math.floor(p), ss = Math.round((p - mm) * 60);
+    return ss === 60 ? (mm + 1) + ":00" : mm + ":" + String(ss).padStart(2, "0");
+  }
+  const escHtml = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  function dayModalHTML(date) {
+    const day = (D.sessions || []).filter((s) => s.date === date);
+    const d = new Date(date + "T00:00:00");
+    const WK = ["日", "一", "二", "三", "四", "五", "六"];
+    const types = [...new Set(day.map((s) => s.type))];
+    let h = '<div class="dc"><button class="close" data-dc-close aria-label="Close">✕</button>';
+    h += '<div class="dcDate">' + (d.getMonth() + 1) + " / " + d.getDate() + "</div>";
+    h += '<div class="dcWk">' + d.getFullYear() + " · 星期" + WK[d.getDay()] + "</div>";
+    h += '<div class="dcTypes">' + types.map((t) => '<span class="dcType">' + escHtml(t) + "</span>").join("") + "</div>";
+    const strength = day.flatMap((s) => s.strength || []);
+    const cardio = day.flatMap((s) => s.cardio || []);
+    if (strength.length) {
+      h += '<div class="dcSec"><div class="dcSecT">STRENGTH</div>';
+      strength.forEach((ex) => {
+        const u = ex.unit || "";
+        h += '<div class="dcEx"><div class="dcExName">' + escHtml(ex.exercise) + "</div>";
+        h += '<div class="dcSets">' + (ex.sets || []).map((st) => '<span class="dcSet">' + st.weight + u + " × " + st.reps + "</span>").join("") + "</div>";
+        if (ex.note) h += '<div class="dcNote">' + escHtml(ex.note) + "</div>";
+        h += "</div>";
+      });
+      h += "</div>";
+    }
+    if (cardio.length) {
+      h += '<div class="dcSec"><div class="dcSecT">CARDIO</div>';
+      cardio.forEach((c) => {
+        h += '<div class="dcEx"><div class="dcExName">' + escHtml(c.exercise) + "</div>";
+        h += '<div class="dcMeta">' +
+          "<div><b>" + c.duration_min + "</b><span>MIN</span></div>" +
+          "<div><b>" + c.distance_km + "</b><span>KM</span></div>" +
+          "<div><b>" + fmtPace(c.duration_min, c.distance_km) + "</b><span>MIN/KM</span></div>" +
+          (c.avg_hr_bpm ? "<div><b>" + c.avg_hr_bpm + "</b><span>BPM</span></div>" : "") +
+        "</div>";
+        if (c.note) h += '<div class="dcNote">' + escHtml(c.note) + "</div>";
+        h += "</div>";
+      });
+      h += "</div>";
+    }
+    const notes = day.map((s) => s.note).filter(Boolean);
+    if (notes.length) h += '<div class="dcSec"><div class="dcSecT">NOTE</div><div class="dcNoteMain">' + notes.map(escHtml).join("\n") + "</div></div>";
+    return h + "</div>";
+  }
+  const dayModal = el("dayModal");
+  const openDayModal = (date) => { if (dayModal) { dayModal.innerHTML = dayModalHTML(date); dayModal.classList.add("on"); document.body.style.overflow = "hidden"; } };
+  const closeDayModal = () => { if (dayModal) { dayModal.classList.remove("on"); document.body.style.overflow = ""; } };
+  if (dayModal) dayModal.addEventListener("click", (e) => { if (e.target === dayModal || (e.target.closest && e.target.closest("[data-dc-close]"))) closeDayModal(); });
 
   // 頭像放大檢視:點頭像開,點背景/✕/Esc 關
   const box = el("lightbox");
@@ -678,7 +770,7 @@
   const closeBox = () => { box.classList.remove("on"); document.body.style.overflow = ""; };
   el("avatar").addEventListener("click", openBox);
   box.addEventListener("click", closeBox);   // 點圖片本身也關(cursor 是 zoom-out,符合預期)
-  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeBox(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") { closeBox(); closeDayModal(); } });
 })();
 </script>
 </body>
