@@ -3,21 +3,28 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Project Protein — Dashboard</title>
+<title>Captain — Tim</title>
 <style>
   :root {
     --bg: #070708; --card: #111214; --border: #212328;
     --ink: #e9ecef; --muted: #7f858e; --grid: #2b3038;
     --accent: #e3b73f; --accent-dim: #a8842a;
     --person: #38bdf8;                                  /* 人物色:取自頭像的冰藍眼睛 */
-    --c-leg: #60a5fa; --c-chest: #a78bfa; --c-cardio: #fbbf24; --c-hiit: #f87171;
+    --streak-bg: #1a1408; --streak-border: #4a3a12;
+    --c-leg: #60a5fa; --c-shoulder: #34d399; --c-chest: #a78bfa; --c-back: #f472b6; --c-cardio: #fbbf24;
+    --hm0: #17191c; --hm1: #1f5a78; --hm2: #2ea8dd; --hm3: #5cd0ff;
   }
   * { box-sizing: border-box; }
   body {
     margin: 0; background: var(--bg); color: var(--ink);
     font-family: "Segoe UI", "Microsoft JhengHei", system-ui, sans-serif; line-height: 1.5;
   }
-  .wrap { max-width: 1400px; margin: 0 auto; padding: 18px 16px 60px; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 18px 16px 60px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 14px 16px; min-width: 0; }
+  .row { display: flex; gap: 12px; }
+  .lbl { font-size: 10px; letter-spacing: 1.1px; color: var(--muted); font-weight: 600; }
+  .num { font-family: Consolas, ui-monospace, monospace; font-weight: 700; }
+  .accent { color: var(--tab-c, var(--accent)); }
 
   header.hero {
     display: flex; align-items: center; gap: 14px;
@@ -49,111 +56,136 @@
   #lightbox .close { position: absolute; top: 18px; right: 22px; font-size: 26px; line-height: 1;
     color: var(--muted); background: none; border: 0; cursor: pointer; font-family: inherit; }
   #lightbox .close:hover { color: var(--ink); }
+
   header.hero h1 { margin: 0; font-size: 19px; font-weight: 800; letter-spacing: .5px; }
   header.hero h1 i { color: var(--person); font-style: normal; }
-  header.hero .meta { font-size: 10px; letter-spacing: 1.1px; color: var(--muted); font-weight: 600; margin-top: 3px; }
-  .peer { margin-left: auto; font-size: 12px; color: var(--muted); text-decoration: none; white-space: nowrap;
+  .peer { font-size: 12px; color: var(--muted); text-decoration: none; white-space: nowrap;
     border: 1px solid var(--border); border-radius: 999px; padding: 5px 12px; }
   .peer:hover { color: var(--ink); border-color: var(--person); }
+  .streak { margin-left: auto; display: flex; align-items: center; gap: 8px;
+    background: var(--streak-bg); border: 1px solid var(--streak-border); border-radius: 999px; padding: 7px 14px; }
+  .streak .n { font-size: 20px; font-weight: 800; color: var(--accent); font-family: Consolas, monospace; }
 
-  .toolbar {
-    display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
-    position: sticky; top: 0; z-index: 20;
-    background: var(--bg); padding: 14px 0 10px;
-  }
-  .period { font-size: 22px; color: var(--ink); font-weight: 800; }
-  .period b { color: var(--accent); font-weight: 800; }
-  .phint { font-size: 11px; color: var(--muted); margin-top: 3px; }
-  .seg { display: inline-flex; background: var(--card); border: 1px solid var(--border); border-radius: 999px; padding: 3px; gap: 2px; }
-  .seg button { border: 0; background: transparent; color: var(--muted); font-size: 12px; padding: 5px 14px; border-radius: 999px; cursor: pointer; font-family: inherit; }
-  .seg button.on { background: var(--accent); color: #0a0a0a; font-weight: 700; box-shadow: 0 0 14px rgba(227, 183, 63, .35); }
-  .seg button:hover:not(.on) { color: var(--ink); }
+  h2.sec { font-size: 10px; letter-spacing: 1.1px; color: var(--muted); font-weight: 600; margin: 18px 2px 8px; }
 
-  .stats { display: flex; flex-wrap: wrap; gap: 12px; margin: 12px 0 6px; }
-  .stat { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 12px 18px; min-width: 124px;
-    display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-  .stat .n { font-size: 28px; font-weight: 800; color: var(--accent); font-family: Consolas, ui-monospace, monospace; }
-  .stat .l { font-size: 15px; color: var(--ink); }
+  /* Weekly Quest:三部位圓環,二元 0%/100% */
+  .ring { width: 88px; height: 88px; border-radius: 50%; flex: 0 0 auto;
+    display: flex; align-items: center; justify-content: center; }
+  .ring.done { box-shadow: 0 0 18px rgba(227, 183, 63, .45); }
+  .ring > div { width: 68px; height: 68px; border-radius: 50%; background: var(--card);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .ring .v { font-size: 18px; font-weight: 800; font-family: Consolas, monospace; }
+  .qwrap { justify-content: center; flex-wrap: wrap; }
+  .qcol { display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1 1 0; min-width: 90px; text-align: center; }
+  .xp { height: 9px; border-radius: 999px; background: #1e2126; overflow: hidden; }
+  .xp > i { display: block; height: 100%; border-radius: 999px;
+    background: linear-gradient(90deg, var(--accent-dim), var(--accent)); box-shadow: 0 0 10px rgba(227, 183, 63, .6); }
 
-  h2 { font-size: 10px; letter-spacing: 1.1px; color: var(--muted); font-weight: 600; margin: 22px 2px 10px; text-transform: uppercase; }
-  .grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr)); }
-  .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 14px 16px 10px; min-width: 0; }
-  .card h3 { margin: 0 0 2px; font-size: 13px; font-weight: 700; color: var(--ink); }
-  .card .sub { font-size: 10px; letter-spacing: 1.1px; color: var(--muted); font-weight: 600; margin-bottom: 6px; }
-  .full { grid-column: 1 / -1; }
+  /* 兩層 tab(部位 → 動作)與熱力圖年份 tab 共用同一套按鈕樣式 */
+  .tabRow { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tabBtn { font: inherit; font-size: 11px; font-weight: 700; letter-spacing: .4px; cursor: pointer;
+    padding: 6px 14px; border-radius: 99px; border: 1px solid var(--border); background: transparent;
+    color: var(--muted); transition: color .15s, border-color .15s, box-shadow .15s; }
+  .tabBtn:hover { color: var(--ink); border-color: var(--accent-dim); }
+  .tabBtn.on { color: var(--tab-c, var(--accent)); border-color: var(--tab-c, var(--accent));
+    border-width: 2px; padding: 5px 13px; box-shadow: 0 0 12px var(--tab-glow, rgba(227, 183, 63, .25)); }
+
+  .pr { flex: 1 1 0; min-width: 0; text-align: center; padding: 16px 10px; background: var(--card);
+    border: 1px solid var(--border); border-radius: 16px; position: relative; }
+  .pr.new { border-color: var(--tab-c, var(--accent)); box-shadow: 0 0 18px var(--tab-glow, rgba(227, 183, 63, .28)); }
+  .pr .t { font-size: 26px; line-height: 1; }
+  .pr .v { font-size: 23px; font-weight: 800; margin-top: 6px; font-family: Consolas, monospace; }
+  .pr .d { font-size: 10px; color: var(--muted); margin-top: 3px; }
+  .pr .tag { position: absolute; top: -8px; right: 10px; background: var(--tab-c, var(--accent)); color: #0a0a0a;
+    font-size: 9px; font-weight: 800; padding: 2px 7px; border-radius: 999px; letter-spacing: .5px; }
+
+  .bars { display: flex; align-items: flex-end; gap: 8px; height: 88px; }
+  .bars i { flex: 1; background: #22262b; border-radius: 5px 5px 2px 2px; display: block; min-height: 2px; }
+  .bars i.on { background: linear-gradient(180deg, var(--accent), var(--accent-dim)); }
+  .barx { display: flex; font-size: 9px; color: var(--muted); margin-top: 6px; }
+  .barx span { flex: 1; text-align: center; }
+  .paceBig { font-size: 40px; margin: 8px 0 2px; }
+
   svg { display: block; width: 100%; height: auto; overflow: visible; }
   svg text { font-family: "Segoe UI", "Microsoft JhengHei", system-ui, sans-serif; }
-  .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 11px; color: var(--muted); margin: 8px 2px 2px; }
-  .legend span { display: inline-flex; align-items: center; gap: 6px; }
-  .legend label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; user-select: none; }
-  .legend input { accent-color: var(--accent); cursor: pointer; margin: 0 2px 0 0; }
-  .dot { width: 12px; height: 3px; border-radius: 2px; display: inline-block; }
-  .dot.sq { width: 10px; height: 10px; border-radius: 3px; }
-  footer { text-align: center; color: var(--muted); font-size: 11px; letter-spacing: .6px; margin-top: 40px; }
   #tip { position: fixed; z-index: 50; pointer-events: none; opacity: 0; transition: opacity .08s;
     background: #1a1c20; color: var(--ink); border: 1px solid var(--border); border-radius: 8px;
     padding: 5px 9px; font-size: 12px; white-space: nowrap; box-shadow: 0 4px 14px rgba(0,0,0,.55); }
   [data-tip] { cursor: pointer; }
+
+  /* 熱力圖:一年 53 欄放不進手機,自己在容器內橫向捲動 */
+  .hmScroll { overflow-x: auto; padding-bottom: 10px; flex: 1 1 auto; min-width: 0;
+    scrollbar-width: thin; scrollbar-color: var(--accent) #15171a; }
+  .hmScroll::-webkit-scrollbar { height: 7px; }
+  .hmScroll::-webkit-scrollbar-track { background: #15171a; border-radius: 99px; }
+  .hmScroll::-webkit-scrollbar-thumb { background: linear-gradient(90deg, var(--accent-dim), var(--accent));
+    border-radius: 99px; box-shadow: 0 0 7px rgba(227, 183, 63, .5); }
+  .hmBody { display: flex; gap: 6px; align-items: flex-start; }
+  .hmDays { display: grid; grid-template-rows: repeat(7, 13px); gap: 4px; font-size: 9px; color: var(--muted);
+    flex: 0 0 auto; margin-top: 19px; }
+  .hmDays span { display: flex; align-items: center; height: 13px; }
+  .hmGrid { display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, 13px); gap: 4px; }
+  .hmGrid i { width: 13px; height: 13px; border-radius: 3px; display: block; background: var(--hm0); }
+  .hmGrid i.l1 { background: var(--hm1); }
+  .hmGrid i.l2 { background: var(--hm2); }
+  .hmGrid i.l3 { background: var(--hm3); box-shadow: 0 0 7px rgba(92, 208, 255, .5); }
+  .hmGrid i.empty { background: transparent; }
+  .hmMon { display: grid; grid-auto-flow: column; gap: 4px; font-size: 9px; color: var(--muted); margin-bottom: 5px; }
+  .hmLegend { display: flex; align-items: center; gap: 6px; font-size: 9px; color: var(--muted);
+    margin-top: 12px; justify-content: flex-end; }
+  .hmLegend i { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
+
   @media (max-width: 640px) {
     .wrap { padding: 12px 12px 48px; }
     header.hero { gap: 12px; padding: 12px 14px; flex-wrap: wrap; }
     .avatar { width: 52px; height: 52px; }
     header.hero h1 { font-size: 17px; }
+    .streak { margin-left: 0; width: 100%; justify-content: center; margin-top: 10px; }
     .peer { margin-left: auto; }
-    .period { font-size: 18px; }
-    .stat { min-width: 100px; padding: 10px 14px; }
-    .stat .n { font-size: 22px; }
-    .stat .l { font-size: 14px; }
-    .seg button { padding: 5px 11px; font-size: 12px; }
+    .row { flex-direction: column; }
+    .qwrap { flex-direction: row !important; flex-wrap: wrap; }
+    .ring { width: 76px; height: 76px; }
+    .ring > div { width: 58px; height: 58px; }
+    #prBoard { flex-direction: row !important; gap: 8px; }
+    .pr { padding: 12px 4px; }
+    .pr .t { font-size: 20px; }
+    .pr .v { font-size: 17px; }
+    .pr .d { font-size: 9px; }
+    .pr .tag { right: 4px; }
+    #avgPace { order: -1; }
+    .paceBig { font-size: 38px; }
+    .bars { height: 74px; }
   }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header class="hero">
-    <img class="avatar" id="avatar" src="profile/captain.jpg" alt="Captain" title="Tap to view" />
+    <img class="avatar" id="avatar" src="profile/captain-avatar.jpg" alt="Captain" title="Tap to view" />
     <div>
       <h1>CAPTAIN <i>·</i> TIM</h1>
-      <div class="meta" id="meta">Loading…</div>
+      <div class="lbl" id="totals" style="margin-top:3px"></div>
+    </div>
+    <div class="streak">
+      <span style="font-size:20px">🔥</span>
+      <div class="n" id="streakVal">0</div>
+      <div class="lbl" style="line-height:1.2">WEEK<br />STREAK</div>
     </div>
     <a class="peer" href="dashboard-monkey.html">Monkey ›</a>
   </header>
 
-  <div class="toolbar">
-    <div>
-      <div class="period" id="periodLabel"></div>
-      <div class="phint" id="periodHint"></div>
-    </div>
-    <div class="seg" id="granSeg">
-      <button data-g="week">Week</button>
-      <button data-g="month">Month</button>
-      <button data-g="quarter">Quarter</button>
-      <button data-g="year">Year</button>
-      <button data-g="all">All</button>
-    </div>
-  </div>
-  <div class="stats" id="stats"></div>
+  <div class="card" id="quest" style="margin-top:12px"></div>
 
-  <h2>Trends</h2>
-  <div class="grid" id="exerciseGrid"></div>
+  <h2 class="sec">TRAINING LOG</h2>
+  <div class="tabRow" id="tabs1"></div>
+  <div class="tabRow" id="tabs2" style="margin-top:8px"></div>
 
-  <!-- Cardio 已併入上方 Weight Progression 九宮格 -->
+  <h2 class="sec" id="prHeading"></h2>
+  <div class="row" id="prBoard"></div>
 
-  <h2>Frequency &amp; Split</h2>
-  <div class="grid">
-    <div class="card full">
-      <h3>Training Frequency</h3>
-      <div class="sub" id="freqSub"></div>
-      <div id="freqChart"></div>
-      <div class="legend" id="freqLegend">
-        <label><input type="checkbox" data-t="Leg/Shoulder Day" checked style="accent-color:var(--c-leg)">Leg/Shoulder</label>
-        <label><input type="checkbox" data-t="Chest/Back Day" checked style="accent-color:var(--c-chest)">Chest/Back</label>
-        <label><input type="checkbox" data-t="Cardio" checked style="accent-color:var(--c-cardio)">Cardio</label>
-      </div>
-    </div>
-  </div>
+  <div class="row" id="trendRow" style="margin-top:12px"></div>
 
-  <footer id="footer"></footer>
+  <div class="card" id="activity" style="margin-top:16px"></div>
 </div>
 
 <div id="lightbox">
@@ -164,8 +196,8 @@
 <div id="tip"></div>
 
 <script>
-/* 資料由 scripts/export.js 注入此標記區塊,請勿手改 START/END 之間 */
-/*WORKOUT_DATA_START*/window.WORKOUT_DATA={"generated_at":"2026-07-13T02:44:55.279Z","session_count":38,"sessions":[{"date":"2026-01-26","type":"Cardio","strength":[],"cardio":[{"exercise":"Zone 2","duration_min":60,"note":"心率 150 bpm，偏高，已超出 Zone 2 區間 (距離為推估值:速度不可考,以 7 km/h × 時間計算)","distance_km":7}],"note":null},{"date":"2026-01-28","type":"Cardio","strength":[],"cardio":[{"exercise":"Zone 2","duration_min":60,"note":"心率降至 140 bpm，較上次改善，配速 5.5–6 km/h","distance_km":5.8}],"note":null},{"date":"2026-01-29","type":"Leg/Shoulder Day","strength":[{"exercise":"Sumo Squat","unit":"kg","sets":[{"weight":40,"reps":8},{"weight":50,"reps":8},{"weight":50,"reps":8},{"weight":50,"reps":8},{"weight":50,"reps":8}],"note":"熱身組"}],"cardio":[],"note":null},{"date":"2026-01-30","type":"Cardio","strength":[],"cardio":[{"exercise":"Zone 2","duration_min":35,"note":"時間壓縮，配速拉高至 6.6 km/h，心率 160–170 bpm，已偏移至 Zone 3–4","distance_km":3.9}],"note":null},{"date":"2026-02-02","type":"Cardio","strength":[],"cardio":[{"exercise":"Zone 2","duration_min":45,"note":"配速 6 km/h，心率 130–150 bpm","distance_km":4.5}],"note":null},{"date":"2026-02-05","type":"Cardio","strength":[],"cardio":[{"exercise":"Zone 2","duration_min":60,"note":"配速 6 km/h，心率 130–140 bpm，本週累計 105 min","distance_km":6}],"note":null},{"date":"2026-02-06","type":"Chest/Back Day","strength":[{"exercise":"Bench Press","unit":"lb","sets":[{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8}],"note":"最後一組出現震盪，神經控制達臨界點"},{"exercise":"Lat Pulldown","unit":"kg","sets":[{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8}],"note":"後段組數續航力不足"},{"exercise":"Seated Row","unit":"kg","sets":[{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8}],"note":"技術突破，後三角感受度強烈"}],"cardio":[],"note":null},{"date":"2026-02-09","type":"Cardio","strength":[],"cardio":[{"exercise":"Zone 2","duration_min":40,"note":"配速 6 km/h，心率降至 ~130 bpm，有氧效率明顯提升","distance_km":4}],"note":null},{"date":"2026-02-12","type":"Leg/Shoulder Day","strength":[{"exercise":"Sumo Squat","unit":"kg","sets":[{"weight":40,"reps":8},{"weight":50,"reps":8},{"weight":50,"reps":8},{"weight":50,"reps":8},{"weight":50,"reps":8}],"note":"熱身組；時間壓縮，穩定訓練重量"}],"cardio":[],"note":null},{"date":"2026-02-14","type":"Chest/Back Day","strength":[{"exercise":"Bench Press","unit":"lb","sets":[{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":40,"reps":8},{"weight":40,"reps":8},{"weight":40,"reps":8}],"note":"降重，穩定組；40 磅吃力，穩定肌群達臨界點"},{"exercise":"Lat Pulldown","unit":"kg","sets":[{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8}],"note":"後段組數背闊肌孤立仍需加強"},{"exercise":"Seated Row","unit":"kg","sets":[{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8}],"note":"背部感受度普通，核心發力有找到"},{"exercise":"Triceps Pushdown","unit":"kg","sets":[{"weight":12.5,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8}],"note":"後段充血感強烈"}],"cardio":[],"note":null},{"date":"2026-02-19","type":"Cardio","strength":[],"cardio":[{"exercise":"HIIT","duration_min":30,"note":"12 km/h × 1 min / 5 km/h × 2 min，10 循環，最高心率 188 bpm","distance_km":3.7},{"exercise":"Zone 2","duration_min":30,"note":"接續 HIIT 執行，肝醣耗盡狀態下強迫燃脂 (距離為推估值:速度不可考,以 7 km/h × 時間計算)","distance_km":3.5}],"note":null},{"date":"2026-02-20","type":"Chest/Back Day","strength":[{"exercise":"Bench Press","unit":"lb","sets":[{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8}],"note":"向內傾斜握法，胸大肌孤立良好"},{"exercise":"Lat Pulldown","unit":"kg","sets":[{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8}],"note":"手肘朝前軌跡，闊背肌充血"},{"exercise":"Seated Row","unit":"kg","sets":[{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8}],"note":"寬握，菱形肌與中斜方肌精準命中"},{"exercise":"Triceps Pushdown","unit":"kg","sets":[{"weight":12.5,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8}],"note":"紮營站姿，底部向兩側撕裂"}],"cardio":[],"note":null},{"date":"2026-02-21","type":"Leg/Shoulder Day","strength":[{"exercise":"Split Squat","unit":"lb","sets":[{"weight":15,"reps":8},{"weight":15,"reps":8},{"weight":15,"reps":8},{"weight":15,"reps":8},{"weight":15,"reps":8}],"note":"上身直立，後腳純支架，前腳股四頭肌孤立"}],"cardio":[],"note":null},{"date":"2026-02-27","type":"Chest/Back Day","strength":[{"exercise":"Bench Press","unit":"lb","sets":[{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8}],"note":"胸肌發力比例大幅提升"},{"exercise":"Lat Pulldown","unit":"kg","sets":[{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8}],"note":"離心放慢，大圓肌與闊背肌精準刺激"},{"exercise":"Seated Row","unit":"kg","sets":[{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8}],"note":"末端組數闊背肌微幅不適，注意肩胛骨鎖定"},{"exercise":"Triceps Pushdown","unit":"kg","sets":[{"weight":10,"reps":8},{"weight":10,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8}],"note":"降重組；掌根推砸，慢速離心"}],"cardio":[],"note":null},{"date":"2026-03-06","type":"Chest/Back Day","strength":[{"exercise":"Bench Press","unit":"lb","sets":[{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":40,"reps":8},{"weight":40,"reps":8},{"weight":40,"reps":8}],"note":"穩定組；首次突破 40 磅門檻，末端需監控肩胛骨"},{"exercise":"Lat Pulldown","unit":"kg","sets":[{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8}],"note":"手肘垂直砸向口袋，頂端主動煞車"},{"exercise":"Triceps Pushdown","unit":"kg","sets":[{"weight":12.5,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8}],"note":"手肘釘死肋骨，三頭高負載"}],"cardio":[],"note":null},{"date":"2026-03-09","type":"Leg/Shoulder Day","strength":[{"exercise":"Sumo Squat","unit":"kg","sets":[{"weight":50,"reps":8},{"weight":50,"reps":8},{"weight":50,"reps":8},{"weight":50,"reps":8},{"weight":60,"reps":7}],"note":"首次觸及 60 kg，僅完成 7 下，腹內壓需鎖死"},{"exercise":"Face Pull","unit":"kg","sets":[{"weight":1.7,"reps":10},{"weight":1.7,"reps":10},{"weight":1.7,"reps":10},{"weight":1.7,"reps":10},{"weight":1.7,"reps":10}],"note":"首次加入，肩胛骨中段感受度佳，零斜方肌代償"}],"cardio":[],"note":null},{"date":"2026-03-18","type":"Cardio","strength":[],"cardio":[{"exercise":"Zone 2","duration_min":35,"note":"停機兩週後重啟，配速 8 km/h，降階為有氧暖機","distance_km":4.7}],"note":null},{"date":"2026-03-21","type":"Chest/Back Day","strength":[{"exercise":"Bench Press","unit":"lb","sets":[{"weight":40,"reps":8},{"weight":40,"reps":8},{"weight":40,"reps":8},{"weight":40,"reps":8},{"weight":35,"reps":8}],"note":"出現動作不穩，穩定肌群超載；最後一組降重"},{"exercise":"Seated Row","unit":"kg","sets":[{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8}],"note":"後段菱形肌感受度消失，出現代償"},{"exercise":"Triceps Pushdown","unit":"kg","sets":[{"weight":12.5,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8}],"note":"底部有關節卡頓感，暫不加重"}],"cardio":[],"note":null},{"date":"2026-03-23","type":"Cardio","strength":[],"cardio":[{"exercise":"Zone 2","duration_min":45,"note":"坡度 4，配速 6.0 km/h，心率 130–140 bpm","distance_km":4.5}],"note":null},{"date":"2026-03-24","type":"Cardio","strength":[],"cardio":[{"exercise":"Zone 2","duration_min":45,"note":"配速 6.6 km/h，心率 140–150 bpm，停機後過渡恢復週","distance_km":4.9}],"note":null},{"date":"2026-04-03","type":"Leg/Shoulder Day","strength":[{"exercise":"Face Pull","unit":"kg","sets":[{"weight":1.7,"reps":15},{"weight":1.7,"reps":15},{"weight":1.7,"reps":15},{"weight":1.7,"reps":15},{"weight":1.7,"reps":15}]}],"cardio":[],"note":null},{"date":"2026-04-11","type":"Chest/Back Day","strength":[{"exercise":"Bench Press","unit":"lb","sets":[{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8}]},{"exercise":"Lat Pulldown","unit":"kg","sets":[{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8}]},{"exercise":"Triceps Pushdown","unit":"kg","sets":[{"weight":12.5,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8}]}],"cardio":[],"note":"啞鈴臥推：後段三頭先力竭，下週觀察是姿勢問題或訓練空窗。滑輪下拉：末兩組末兩下力竭。三頭下壓：末兩組末兩下力竭。坐姿划船：今日跳過（器材被占用＋疲勞）。"},{"date":"2026-04-23","type":"Cardio","strength":[],"cardio":[{"exercise":"Zone 2","duration_min":38,"note":"6 km/h, ~140 bpm","distance_km":3.8}],"note":null},{"date":"2026-04-25","type":"Cardio","strength":[],"cardio":[{"exercise":"Zone 2","duration_min":60,"note":"跑步 7 km/h","distance_km":7}],"note":null},{"date":"2026-04-25","type":"Chest/Back Day","strength":[{"exercise":"Lat Pulldown","unit":"kg","sets":[{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8}]},{"exercise":"Bench Press","unit":"lb","sets":[{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8}]},{"exercise":"Seated Row","unit":"kg","sets":[{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8}]},{"exercise":"Triceps Pushdown","unit":"kg","sets":[{"weight":12.75,"reps":8},{"weight":12.75,"reps":8},{"weight":12.75,"reps":8},{"weight":12.75,"reps":8},{"weight":12.75,"reps":8}]}],"cardio":[],"note":"啞鈴臥推：手臂先痠，姿勢有點歪掉，需留意小臂垂直地面。\n坐姿寬握划船：感受度蠻好的。\n三頭下壓：第3組嘗試13.75kg，但姿勢會跑掉。"},{"date":"2026-04-27","type":"Leg/Shoulder Day","strength":[{"exercise":"Lateral Raise","unit":"kg","sets":[{"weight":1.25,"reps":15},{"weight":1.25,"reps":15},{"weight":1.25,"reps":15},{"weight":1.25,"reps":15},{"weight":1.25,"reps":15}]}],"cardio":[],"note":null},{"date":"2026-04-28","type":"Cardio","strength":[],"cardio":[{"exercise":"Zone 2","duration_min":45,"distance_km":4.5}],"note":"時速約 6 km/h，心率約 130 bpm，坡度 1.5"},{"date":"2026-05-08","type":"Chest/Back Day","strength":[{"exercise":"Bench Press","unit":"lb","sets":[{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8}]},{"exercise":"Lat Pulldown","unit":"kg","sets":[{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8}]},{"exercise":"Triceps Pushdown","unit":"kg","sets":[{"weight":11.25,"reps":8},{"weight":11.25,"reps":8},{"weight":11.25,"reps":8},{"weight":11.25,"reps":8},{"weight":11.25,"reps":8}]}],"cardio":[],"note":null},{"date":"2026-05-14","type":"Cardio","strength":[],"cardio":[{"exercise":"Zone 2","duration_min":35,"distance_km":4.1}],"note":"配速 7 km/hr。今天體感比較累，可能跟最近比較少跑、睡眠比較少有關。"},{"date":"2026-05-17","type":"Chest/Back Day","strength":[{"exercise":"Bench Press","unit":"lb","sets":[{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8}]},{"exercise":"Lat Pulldown","unit":"kg","sets":[{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8}]},{"exercise":"Seated Row","unit":"kg","sets":[{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8}]},{"exercise":"Triceps Pushdown","unit":"kg","sets":[{"weight":11.5,"reps":8},{"weight":11.5,"reps":8},{"weight":11.5,"reps":8},{"weight":11.5,"reps":8},{"weight":11.5,"reps":8}]}],"cardio":[],"note":"啞鈴臥推:採用快推慢放,變得很吃力,下週繼續努力\n坐姿划船:感受不錯,下週應該可以加重量\n三頭下拉:力竭"},{"date":"2026-05-24","type":"Chest/Back Day","strength":[{"exercise":"Lat Pulldown","unit":"kg","sets":[{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8}],"note":"第四組開始有點沒力"},{"exercise":"Seated Row","unit":"kg","sets":[{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8}],"note":"嘗試 27kg × 1 組 × 8 下後改回 24kg；今天刻意坐比較直接近 90 度,避免上週腰痠,但感覺有點代償到上斜方,明天觀察痠痛部位"},{"exercise":"Triceps Pushdown","unit":"kg","sets":[{"weight":12.75,"reps":8},{"weight":12.75,"reps":8},{"weight":12.75,"reps":8},{"weight":12.75,"reps":8},{"weight":12.75,"reps":8}],"note":"第四組開始無力做不完全程,硬撐下來"}],"cardio":[],"note":"今天沒有胸推,因為客滿了。明顯感受到最近訓練量不足,成績開始退步。\n隔天觀察痠痛部位，正常合理。不過這次多了後三角肌的痠痛，也算是坐姿划船正常出力部位"},{"date":"2026-05-26","type":"Leg/Shoulder Day","strength":[{"exercise":"Sumo Squat","unit":"kg","sets":[{"weight":40,"reps":8},{"weight":40,"reps":8},{"weight":40,"reps":8},{"weight":40,"reps":8}]},{"exercise":"Lateral Raise","unit":"kg","sets":[{"weight":1.88,"reps":15},{"weight":1.88,"reps":15},{"weight":1.88,"reps":15},{"weight":1.88,"reps":15}]}],"cardio":[],"note":"熱身組：\nSumo Squat 20 kg × 8\nCable Lateral Raise 1.25 kg × 15"},{"date":"2026-06-03","type":"Chest/Back Day","strength":[{"exercise":"Bench Press","unit":"lb","sets":[{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8}]},{"exercise":"Lat Pulldown","unit":"kg","sets":[{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8}]},{"exercise":"Triceps Pushdown","unit":"kg","sets":[{"weight":12.75,"reps":8},{"weight":12.75,"reps":8},{"weight":12.75,"reps":8},{"weight":12.75,"reps":8},{"weight":12.75,"reps":8}]}],"cardio":[],"note":null},{"date":"2026-06-13","type":"Cardio","strength":[],"cardio":[{"exercise":"Running","duration_min":50,"note":"5 公里, 配速約 6.5 km/h, 心率約 160-170","distance_km":5.4}],"note":null},{"date":"2026-06-19","type":"Leg/Shoulder Day","strength":[{"exercise":"Lateral Raise","unit":"kg","sets":[{"weight":1.88,"reps":15},{"weight":1.88,"reps":15},{"weight":1.88,"reps":15},{"weight":1.88,"reps":15},{"weight":1.88,"reps":15}]},{"exercise":"Hack Squat","unit":"lb","sets":[{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8}]}],"cardio":[],"note":null},{"date":"2026-06-27","type":"Cardio","strength":[],"cardio":[{"exercise":"Zone 2","duration_min":45,"note":"7 km/h","distance_km":5.3}],"note":null},{"date":"2026-07-11","type":"Cardio","strength":[],"cardio":[{"exercise":"Running","duration_min":45,"distance_km":4.5}],"note":null},{"date":"2026-07-12","type":"Cardio","strength":[],"cardio":[{"exercise":"Running","duration_min":30,"distance_km":3.5,"avg_hr_bpm":150}],"note":null}]};/*WORKOUT_DATA_END*/
+/* 資料由 scripts/build_dashboard.js 注入此標記區塊,請勿手改 START/END 之間 */
+/*WORKOUT_DATA_START*/window.WORKOUT_DATA={"generated_at":"2026-07-13T02:51:37.125Z","session_count":38,"sessions":[{"date":"2026-01-26","type":"Cardio","strength":[],"cardio":[{"exercise":"Zone 2","duration_min":60,"note":"心率 150 bpm，偏高，已超出 Zone 2 區間 (距離為推估值:速度不可考,以 7 km/h × 時間計算)","distance_km":7}],"note":null},{"date":"2026-01-28","type":"Cardio","strength":[],"cardio":[{"exercise":"Zone 2","duration_min":60,"note":"心率降至 140 bpm，較上次改善，配速 5.5–6 km/h","distance_km":5.8}],"note":null},{"date":"2026-01-29","type":"Leg/Shoulder Day","strength":[{"exercise":"Sumo Squat","unit":"kg","sets":[{"weight":40,"reps":8},{"weight":50,"reps":8},{"weight":50,"reps":8},{"weight":50,"reps":8},{"weight":50,"reps":8}],"note":"熱身組"}],"cardio":[],"note":null},{"date":"2026-01-30","type":"Cardio","strength":[],"cardio":[{"exercise":"Zone 2","duration_min":35,"note":"時間壓縮，配速拉高至 6.6 km/h，心率 160–170 bpm，已偏移至 Zone 3–4","distance_km":3.9}],"note":null},{"date":"2026-02-02","type":"Cardio","strength":[],"cardio":[{"exercise":"Zone 2","duration_min":45,"note":"配速 6 km/h，心率 130–150 bpm","distance_km":4.5}],"note":null},{"date":"2026-02-05","type":"Cardio","strength":[],"cardio":[{"exercise":"Zone 2","duration_min":60,"note":"配速 6 km/h，心率 130–140 bpm，本週累計 105 min","distance_km":6}],"note":null},{"date":"2026-02-06","type":"Chest/Back Day","strength":[{"exercise":"Bench Press","unit":"lb","sets":[{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8}],"note":"最後一組出現震盪，神經控制達臨界點"},{"exercise":"Lat Pulldown","unit":"kg","sets":[{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8}],"note":"後段組數續航力不足"},{"exercise":"Seated Row","unit":"kg","sets":[{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8}],"note":"技術突破，後三角感受度強烈"}],"cardio":[],"note":null},{"date":"2026-02-09","type":"Cardio","strength":[],"cardio":[{"exercise":"Zone 2","duration_min":40,"note":"配速 6 km/h，心率降至 ~130 bpm，有氧效率明顯提升","distance_km":4}],"note":null},{"date":"2026-02-12","type":"Leg/Shoulder Day","strength":[{"exercise":"Sumo Squat","unit":"kg","sets":[{"weight":40,"reps":8},{"weight":50,"reps":8},{"weight":50,"reps":8},{"weight":50,"reps":8},{"weight":50,"reps":8}],"note":"熱身組；時間壓縮，穩定訓練重量"}],"cardio":[],"note":null},{"date":"2026-02-14","type":"Chest/Back Day","strength":[{"exercise":"Bench Press","unit":"lb","sets":[{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":40,"reps":8},{"weight":40,"reps":8},{"weight":40,"reps":8}],"note":"降重，穩定組；40 磅吃力，穩定肌群達臨界點"},{"exercise":"Lat Pulldown","unit":"kg","sets":[{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8}],"note":"後段組數背闊肌孤立仍需加強"},{"exercise":"Seated Row","unit":"kg","sets":[{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8}],"note":"背部感受度普通，核心發力有找到"},{"exercise":"Triceps Pushdown","unit":"kg","sets":[{"weight":12.5,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8}],"note":"後段充血感強烈"}],"cardio":[],"note":null},{"date":"2026-02-19","type":"Cardio","strength":[],"cardio":[{"exercise":"HIIT","duration_min":30,"note":"12 km/h × 1 min / 5 km/h × 2 min，10 循環，最高心率 188 bpm","distance_km":3.7},{"exercise":"Zone 2","duration_min":30,"note":"接續 HIIT 執行，肝醣耗盡狀態下強迫燃脂 (距離為推估值:速度不可考,以 7 km/h × 時間計算)","distance_km":3.5}],"note":null},{"date":"2026-02-20","type":"Chest/Back Day","strength":[{"exercise":"Bench Press","unit":"lb","sets":[{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8}],"note":"向內傾斜握法，胸大肌孤立良好"},{"exercise":"Lat Pulldown","unit":"kg","sets":[{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8}],"note":"手肘朝前軌跡，闊背肌充血"},{"exercise":"Seated Row","unit":"kg","sets":[{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8}],"note":"寬握，菱形肌與中斜方肌精準命中"},{"exercise":"Triceps Pushdown","unit":"kg","sets":[{"weight":12.5,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8}],"note":"紮營站姿，底部向兩側撕裂"}],"cardio":[],"note":null},{"date":"2026-02-21","type":"Leg/Shoulder Day","strength":[{"exercise":"Split Squat","unit":"lb","sets":[{"weight":15,"reps":8},{"weight":15,"reps":8},{"weight":15,"reps":8},{"weight":15,"reps":8},{"weight":15,"reps":8}],"note":"上身直立，後腳純支架，前腳股四頭肌孤立"}],"cardio":[],"note":null},{"date":"2026-02-27","type":"Chest/Back Day","strength":[{"exercise":"Bench Press","unit":"lb","sets":[{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8}],"note":"胸肌發力比例大幅提升"},{"exercise":"Lat Pulldown","unit":"kg","sets":[{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8}],"note":"離心放慢，大圓肌與闊背肌精準刺激"},{"exercise":"Seated Row","unit":"kg","sets":[{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8}],"note":"末端組數闊背肌微幅不適，注意肩胛骨鎖定"},{"exercise":"Triceps Pushdown","unit":"kg","sets":[{"weight":10,"reps":8},{"weight":10,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8}],"note":"降重組；掌根推砸，慢速離心"}],"cardio":[],"note":null},{"date":"2026-03-06","type":"Chest/Back Day","strength":[{"exercise":"Bench Press","unit":"lb","sets":[{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":40,"reps":8},{"weight":40,"reps":8},{"weight":40,"reps":8}],"note":"穩定組；首次突破 40 磅門檻，末端需監控肩胛骨"},{"exercise":"Lat Pulldown","unit":"kg","sets":[{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8}],"note":"手肘垂直砸向口袋，頂端主動煞車"},{"exercise":"Triceps Pushdown","unit":"kg","sets":[{"weight":12.5,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8}],"note":"手肘釘死肋骨，三頭高負載"}],"cardio":[],"note":null},{"date":"2026-03-09","type":"Leg/Shoulder Day","strength":[{"exercise":"Sumo Squat","unit":"kg","sets":[{"weight":50,"reps":8},{"weight":50,"reps":8},{"weight":50,"reps":8},{"weight":50,"reps":8},{"weight":60,"reps":7}],"note":"首次觸及 60 kg，僅完成 7 下，腹內壓需鎖死"},{"exercise":"Face Pull","unit":"kg","sets":[{"weight":1.7,"reps":10},{"weight":1.7,"reps":10},{"weight":1.7,"reps":10},{"weight":1.7,"reps":10},{"weight":1.7,"reps":10}],"note":"首次加入，肩胛骨中段感受度佳，零斜方肌代償"}],"cardio":[],"note":null},{"date":"2026-03-18","type":"Cardio","strength":[],"cardio":[{"exercise":"Zone 2","duration_min":35,"note":"停機兩週後重啟，配速 8 km/h，降階為有氧暖機","distance_km":4.7}],"note":null},{"date":"2026-03-21","type":"Chest/Back Day","strength":[{"exercise":"Bench Press","unit":"lb","sets":[{"weight":40,"reps":8},{"weight":40,"reps":8},{"weight":40,"reps":8},{"weight":40,"reps":8},{"weight":35,"reps":8}],"note":"出現動作不穩，穩定肌群超載；最後一組降重"},{"exercise":"Seated Row","unit":"kg","sets":[{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8}],"note":"後段菱形肌感受度消失，出現代償"},{"exercise":"Triceps Pushdown","unit":"kg","sets":[{"weight":12.5,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8}],"note":"底部有關節卡頓感，暫不加重"}],"cardio":[],"note":null},{"date":"2026-03-23","type":"Cardio","strength":[],"cardio":[{"exercise":"Zone 2","duration_min":45,"note":"坡度 4，配速 6.0 km/h，心率 130–140 bpm","distance_km":4.5}],"note":null},{"date":"2026-03-24","type":"Cardio","strength":[],"cardio":[{"exercise":"Zone 2","duration_min":45,"note":"配速 6.6 km/h，心率 140–150 bpm，停機後過渡恢復週","distance_km":4.9}],"note":null},{"date":"2026-04-03","type":"Leg/Shoulder Day","strength":[{"exercise":"Face Pull","unit":"kg","sets":[{"weight":1.7,"reps":15},{"weight":1.7,"reps":15},{"weight":1.7,"reps":15},{"weight":1.7,"reps":15},{"weight":1.7,"reps":15}]}],"cardio":[],"note":null},{"date":"2026-04-11","type":"Chest/Back Day","strength":[{"exercise":"Bench Press","unit":"lb","sets":[{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8}]},{"exercise":"Lat Pulldown","unit":"kg","sets":[{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8}]},{"exercise":"Triceps Pushdown","unit":"kg","sets":[{"weight":12.5,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8}]}],"cardio":[],"note":"啞鈴臥推：後段三頭先力竭，下週觀察是姿勢問題或訓練空窗。滑輪下拉：末兩組末兩下力竭。三頭下壓：末兩組末兩下力竭。坐姿划船：今日跳過（器材被占用＋疲勞）。"},{"date":"2026-04-23","type":"Cardio","strength":[],"cardio":[{"exercise":"Zone 2","duration_min":38,"note":"6 km/h, ~140 bpm","distance_km":3.8}],"note":null},{"date":"2026-04-25","type":"Cardio","strength":[],"cardio":[{"exercise":"Zone 2","duration_min":60,"note":"跑步 7 km/h","distance_km":7}],"note":null},{"date":"2026-04-25","type":"Chest/Back Day","strength":[{"exercise":"Lat Pulldown","unit":"kg","sets":[{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8}]},{"exercise":"Bench Press","unit":"lb","sets":[{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8}]},{"exercise":"Seated Row","unit":"kg","sets":[{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8}]},{"exercise":"Triceps Pushdown","unit":"kg","sets":[{"weight":12.75,"reps":8},{"weight":12.75,"reps":8},{"weight":12.75,"reps":8},{"weight":12.75,"reps":8},{"weight":12.75,"reps":8}]}],"cardio":[],"note":"啞鈴臥推：手臂先痠，姿勢有點歪掉，需留意小臂垂直地面。\n坐姿寬握划船：感受度蠻好的。\n三頭下壓：第3組嘗試13.75kg，但姿勢會跑掉。"},{"date":"2026-04-27","type":"Leg/Shoulder Day","strength":[{"exercise":"Lateral Raise","unit":"kg","sets":[{"weight":1.25,"reps":15},{"weight":1.25,"reps":15},{"weight":1.25,"reps":15},{"weight":1.25,"reps":15},{"weight":1.25,"reps":15}]}],"cardio":[],"note":null},{"date":"2026-04-28","type":"Cardio","strength":[],"cardio":[{"exercise":"Zone 2","duration_min":45,"distance_km":4.5}],"note":"時速約 6 km/h，心率約 130 bpm，坡度 1.5"},{"date":"2026-05-08","type":"Chest/Back Day","strength":[{"exercise":"Bench Press","unit":"lb","sets":[{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8}]},{"exercise":"Lat Pulldown","unit":"kg","sets":[{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8}]},{"exercise":"Triceps Pushdown","unit":"kg","sets":[{"weight":11.25,"reps":8},{"weight":11.25,"reps":8},{"weight":11.25,"reps":8},{"weight":11.25,"reps":8},{"weight":11.25,"reps":8}]}],"cardio":[],"note":null},{"date":"2026-05-14","type":"Cardio","strength":[],"cardio":[{"exercise":"Zone 2","duration_min":35,"distance_km":4.1}],"note":"配速 7 km/hr。今天體感比較累，可能跟最近比較少跑、睡眠比較少有關。"},{"date":"2026-05-17","type":"Chest/Back Day","strength":[{"exercise":"Bench Press","unit":"lb","sets":[{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8}]},{"exercise":"Lat Pulldown","unit":"kg","sets":[{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8}]},{"exercise":"Seated Row","unit":"kg","sets":[{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8}]},{"exercise":"Triceps Pushdown","unit":"kg","sets":[{"weight":11.5,"reps":8},{"weight":11.5,"reps":8},{"weight":11.5,"reps":8},{"weight":11.5,"reps":8},{"weight":11.5,"reps":8}]}],"cardio":[],"note":"啞鈴臥推:採用快推慢放,變得很吃力,下週繼續努力\n坐姿划船:感受不錯,下週應該可以加重量\n三頭下拉:力竭"},{"date":"2026-05-24","type":"Chest/Back Day","strength":[{"exercise":"Lat Pulldown","unit":"kg","sets":[{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8}],"note":"第四組開始有點沒力"},{"exercise":"Seated Row","unit":"kg","sets":[{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8}],"note":"嘗試 27kg × 1 組 × 8 下後改回 24kg；今天刻意坐比較直接近 90 度,避免上週腰痠,但感覺有點代償到上斜方,明天觀察痠痛部位"},{"exercise":"Triceps Pushdown","unit":"kg","sets":[{"weight":12.75,"reps":8},{"weight":12.75,"reps":8},{"weight":12.75,"reps":8},{"weight":12.75,"reps":8},{"weight":12.75,"reps":8}],"note":"第四組開始無力做不完全程,硬撐下來"}],"cardio":[],"note":"今天沒有胸推,因為客滿了。明顯感受到最近訓練量不足,成績開始退步。\n隔天觀察痠痛部位，正常合理。不過這次多了後三角肌的痠痛，也算是坐姿划船正常出力部位"},{"date":"2026-05-26","type":"Leg/Shoulder Day","strength":[{"exercise":"Sumo Squat","unit":"kg","sets":[{"weight":40,"reps":8},{"weight":40,"reps":8},{"weight":40,"reps":8},{"weight":40,"reps":8}]},{"exercise":"Lateral Raise","unit":"kg","sets":[{"weight":1.88,"reps":15},{"weight":1.88,"reps":15},{"weight":1.88,"reps":15},{"weight":1.88,"reps":15}]}],"cardio":[],"note":"熱身組：\nSumo Squat 20 kg × 8\nCable Lateral Raise 1.25 kg × 15"},{"date":"2026-06-03","type":"Chest/Back Day","strength":[{"exercise":"Bench Press","unit":"lb","sets":[{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8}]},{"exercise":"Lat Pulldown","unit":"kg","sets":[{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8}]},{"exercise":"Triceps Pushdown","unit":"kg","sets":[{"weight":12.75,"reps":8},{"weight":12.75,"reps":8},{"weight":12.75,"reps":8},{"weight":12.75,"reps":8},{"weight":12.75,"reps":8}]}],"cardio":[],"note":null},{"date":"2026-06-13","type":"Cardio","strength":[],"cardio":[{"exercise":"Running","duration_min":50,"note":"5 公里, 配速約 6.5 km/h, 心率約 160-170","distance_km":5.4}],"note":null},{"date":"2026-06-19","type":"Leg/Shoulder Day","strength":[{"exercise":"Lateral Raise","unit":"kg","sets":[{"weight":1.88,"reps":15},{"weight":1.88,"reps":15},{"weight":1.88,"reps":15},{"weight":1.88,"reps":15},{"weight":1.88,"reps":15}]},{"exercise":"Hack Squat","unit":"lb","sets":[{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8}]}],"cardio":[],"note":null},{"date":"2026-06-27","type":"Cardio","strength":[],"cardio":[{"exercise":"Zone 2","duration_min":45,"note":"7 km/h","distance_km":5.3}],"note":null},{"date":"2026-07-11","type":"Cardio","strength":[],"cardio":[{"exercise":"Running","duration_min":45,"distance_km":4.5}],"note":null},{"date":"2026-07-12","type":"Cardio","strength":[],"cardio":[{"exercise":"Running","duration_min":30,"distance_km":3.5,"avg_hr_bpm":150}],"note":null}]};/*WORKOUT_DATA_END*/
 </script>
 <script>
 "use strict";
@@ -173,98 +205,64 @@
   const D = window.WORKOUT_DATA || { sessions: [] };
   const sessions = (D.sessions || []).slice().sort((a, b) => a.date.localeCompare(b.date));
   const SVGNS = "http://www.w3.org/2000/svg";
-  const palette = ["#e3b73f", "#34d399", "#f472b6", "#818cf8", "#60a5fa", "#a78bfa", "#fb923c", "#f87171", "#22d3ee"];
-  const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const MIN_PR_KM = 2;
+  const HEATMAP_DAYS = 365;
+  const WEEKLY_PARTS = ["Leg/Shoulder Day", "Chest/Back Day", "Cardio"];
+  const PART_LABEL = { "Leg/Shoulder Day": "Leg/Shoulder", "Chest/Back Day": "Chest/Back", "Cardio": "Cardio" };
 
-  function el(t, a, txt) { const e = document.createElementNS(SVGNS, t); for (const k in a) e.setAttribute(k, a[k]); if (txt != null) e.textContent = txt; return e; }
-  function svg(w, h) { return el("svg", { viewBox: `0 0 ${w} ${h}`, width: w, height: h }); }
+  // 瀏覽用的 tab 依「動作練哪個部位」分,比 WEEKLY_PARTS(訓練日類別)更細
+  const TAB_PARTS = ["Leg", "Shoulder", "Chest", "Back", "Cardio"];
+  const TAB_COLOR = { Leg: "var(--c-leg)", Shoulder: "var(--c-shoulder)", Chest: "var(--c-chest)", Back: "var(--c-back)", Cardio: "var(--c-cardio)" };
+  // PR 卡「NEW」光暈用,跟 --c-leg 等色一一對應的 rgba(.28)
+  const TAB_GLOW28 = {
+    Leg: "rgba(96, 165, 250, .28)", Shoulder: "rgba(52, 211, 153, .28)", Chest: "rgba(167, 139, 250, .28)",
+    Back: "rgba(244, 114, 182, .28)", Cardio: "rgba(251, 191, 36, .28)",
+  };
+  const EXERCISE_PART = {
+    "Sumo Squat": "Leg", "Hack Squat": "Leg", "Split Squat": "Leg",
+    "Lateral Raise": "Shoulder", "Face Pull": "Shoulder",
+    "Bench Press": "Chest", "Triceps Pushdown": "Chest",
+    "Lat Pulldown": "Back", "Seated Row": "Back",
+  };
+  const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const DAY = 86400000;
+
+  const el = (t, a, txt) => { const e = document.createElementNS(SVGNS, t); for (const k in a) e.setAttribute(k, a[k]); if (txt != null) e.textContent = txt; return e; };
+  const svg = (w, h) => el("svg", { viewBox: `0 0 ${w} ${h}`, width: w, height: h });
   const parseDate = (s) => new Date(s + "T00:00:00");
   const md = (d) => (d.getMonth() + 1) + "/" + d.getDate();
+  const toStr = (d) => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  const weekStart = (dateStr) => { const d = parseDate(dateStr); const back = (d.getDay() + 6) % 7; d.setDate(d.getDate() - back); return toStr(d); };
+  const addDays = (dateStr, n) => { const d = parseDate(dateStr); d.setDate(d.getDate() + n); return toStr(d); };
+  const round1 = (n) => Math.round(n * 10) / 10;
+  const round2 = (n) => Math.round(n * 100) / 100;
 
-  function bucketKey(d, g) {
-    if (g === "all") return "ALL";
-    if (g === "day") return "D" + d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
-    const y = d.getFullYear(), m = d.getMonth();
-    if (g === "year") return "Y" + y;
-    if (g === "quarter") return "Q" + y + "-" + (Math.floor(m / 3) + 1);
-    if (g === "month") return "M" + y + "-" + String(m + 1).padStart(2, "0");
-    const dd = new Date(d); const day = (dd.getDay() + 6) % 7; dd.setDate(dd.getDate() - day); dd.setHours(0, 0, 0, 0);
-    return "W" + dd.getFullYear() + "-" + String(dd.getMonth() + 1).padStart(2, "0") + "-" + String(dd.getDate()).padStart(2, "0");
-  }
-  function enumPeriods(first, last, g) {
-    if (g === "all") return [{ key: "ALL", label: "All", start: first }];
-    const out = []; let c;
-    if (g === "day") {
-      c = new Date(first); c.setHours(0, 0, 0, 0);
-      while (c <= last) { out.push({ key: "D" + c.getFullYear() + "-" + String(c.getMonth() + 1).padStart(2, "0") + "-" + String(c.getDate()).padStart(2, "0"), label: md(c), start: new Date(c) }); c.setDate(c.getDate() + 1); }
-      return out;
-    }
-    if (g === "year") {
-      for (let y = first.getFullYear(); y <= last.getFullYear(); y++) out.push({ key: "Y" + y, label: "" + y, start: new Date(y, 0, 1) });
-    } else if (g === "quarter") {
-      c = new Date(first.getFullYear(), Math.floor(first.getMonth() / 3) * 3, 1);
-      while (c <= last) { const q = Math.floor(c.getMonth() / 3) + 1; out.push({ key: "Q" + c.getFullYear() + "-" + q, label: ("" + c.getFullYear()).slice(2) + " Q" + q, start: new Date(c) }); c.setMonth(c.getMonth() + 3); }
-    } else if (g === "month") {
-      c = new Date(first.getFullYear(), first.getMonth(), 1);
-      while (c <= last) { out.push({ key: "M" + c.getFullYear() + "-" + String(c.getMonth() + 1).padStart(2, "0"), label: ("" + c.getFullYear()).slice(2) + "/" + (c.getMonth() + 1), start: new Date(c) }); c.setMonth(c.getMonth() + 1); }
-    } else {
-      c = new Date(first); const day = (c.getDay() + 6) % 7; c.setDate(c.getDate() - day); c.setHours(0, 0, 0, 0);
-      while (c <= last) { out.push({ key: "W" + c.getFullYear() + "-" + String(c.getMonth() + 1).padStart(2, "0") + "-" + String(c.getDate()).padStart(2, "0"), label: md(c), start: new Date(c) }); c.setDate(c.getDate() + 7); }
-    }
-    return out;
-  }
-  function periodHuman(g, start) {
-    const y = start.getFullYear(), m = start.getMonth();
-    const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    if (g === "all") return "All time";
-    if (g === "year") return "" + y;
-    if (g === "quarter") return y + " Q" + (Math.floor(m / 3) + 1);
-    if (g === "month") return MON[m] + " " + y;
-    const end = new Date(start); end.setDate(end.getDate() + 6);
-    return md(start) + " – " + md(end);
+  function formatPace(p) {
+    if (typeof p !== "number" || !isFinite(p) || p <= 0) return "—";
+    const mm = Math.floor(p), ss = Math.round((p - mm) * 60);
+    return ss === 60 ? (mm + 1) + ":00" : mm + ":" + String(ss).padStart(2, "0");
   }
 
-  // 折線(對齊 periods;skipZero=true 時不畫 0 點,適合重量;false 連續含 0,適合分鐘)
-  function xAxisTicks(periods, firstDate, withYear) {
-    const kind = periods[0] && periods[0].key ? periods[0].key[0] : "";
-    const out = [];
-    let threshold = -Infinity;
-    if (firstDate) { const y = firstDate.getFullYear(), m = firstDate.getMonth(); threshold = (kind === "Y" ? new Date(y, 0, 1) : kind === "Q" ? new Date(y, Math.floor(m / 3) * 3, 1) : new Date(y, m, 1)).getTime(); }
-    if (kind === "Y") { for (let i = 0; i < periods.length; i++) { const p = periods[i]; if (!p.start || p.start.getTime() < threshold) continue; out.push({ i: i, text: "" + p.start.getFullYear() }); } return out; }
-    if (kind === "Q") {
-      let lastQ = -1, lastY = -1;
-      for (let i = 0; i < periods.length; i++) { const p = periods[i]; if (!p.start || p.start.getTime() < threshold) continue; const qk = p.start.getFullYear() * 4 + Math.floor(p.start.getMonth() / 3); if (qk !== lastQ) { lastQ = qk; const yr = p.start.getFullYear(); const sub = (yr !== lastY) ? "" + yr : null; if (sub) lastY = yr; out.push({ i: i, text: "Q" + (Math.floor(p.start.getMonth() / 3) + 1), sub: sub }); } }
-      return out;
-    }
-    let lastM = -1, lastY = -1;
-    for (let i = 0; i < periods.length; i++) { const p = periods[i]; if (!p.start || p.start.getTime() < threshold) continue; const mk = p.start.getFullYear() * 12 + p.start.getMonth(); if (mk !== lastM) { lastM = mk; const yr = p.start.getFullYear(); const sub = (withYear && yr !== lastY) ? "" + yr : null; if (sub) lastY = yr; out.push({ i: i, text: MON[p.start.getMonth()], sub: sub }); } }
-    return out;
-  }
-  function drawXLabel(s, x, y, text, sub) {
-    s.appendChild(el("text", { x: x, y: y, "text-anchor": "middle", "font-size": 9, fill: "var(--muted)" }, text));
-    if (sub) s.appendChild(el("text", { x: x, y: y + 9, "text-anchor": "middle", "font-size": 8, fill: "var(--muted)" }, sub));
-  }
-
-  function lineChart(periods, vals, unit, color, opts) {
-    opts = opts || {}; const W = opts.W || 320, H = opts.H || 158, P = { l: 38, r: 12, t: 16, b: 30 };
+  // 單一動作的重量趨勢:直接以「這個動作出現過的那次訓練」為 X 軸,不分期
+  function lineChart(points, color) {
+    const W = 320, H = 128, P = { l: 38, r: 12, t: 14, b: 24 };
     const s = svg(W, H);
-    const pts = [];
-    periods.forEach((p, i) => { const v = vals[i]; if (v != null && (!opts.skipZero || v > 0)) pts.push({ i, y: v, label: p.label, date: opts.tipDates ? opts.tipDates[i] : null }); });
-    if (!pts.length) return s;
-    const n = periods.length, ys = pts.map((p) => p.y);
-    let yMin = opts.zeroBase ? 0 : Math.min(...ys), yMax = Math.max(...ys);
+    if (!points.length) return s;
+    const n = points.length, ys = points.map((p) => p.y);
+    let yMin = Math.min(...ys), yMax = Math.max(...ys);
     const pad = (yMax - yMin) * 0.15 || Math.max(1, yMax * 0.1);
-    if (!opts.zeroBase) yMin = Math.max(0, yMin - pad); yMax = yMax + pad;
+    yMin = Math.max(0, yMin - pad); yMax += pad;
     const X = (i) => P.l + (n <= 1 ? 0.5 : i / (n - 1)) * (W - P.l - P.r);
     const Y = (y) => H - P.b - (yMax === yMin ? 0.5 : (y - yMin) / (yMax - yMin)) * (H - P.t - P.b);
     [yMin, (yMin + yMax) / 2, yMax].forEach((v) => {
       s.appendChild(el("line", { x1: P.l, y1: Y(v), x2: W - P.r, y2: Y(v), stroke: "var(--grid)", "stroke-width": 1 }));
-      s.appendChild(el("text", { x: P.l - 5, y: Y(v) + 3, "text-anchor": "end", "font-size": 9, fill: "var(--muted)" }, "" + (Math.round(v * 100) / 100)));
+      s.appendChild(el("text", { x: P.l - 5, y: Y(v) + 3, "text-anchor": "end", "font-size": 9, fill: "var(--muted)" }, "" + round2(v)));
     });
-    xAxisTicks(periods, opts.firstDate || (pts.length ? periods[pts[0].i].start : null), opts.xYear).forEach((t) => drawXLabel(s, X(t.i), H - 16, t.text, t.sub));
-    if (pts.length > 1) s.appendChild(el("path", { d: pts.map((p, k) => (k ? "L" : "M") + X(p.i) + " " + Y(p.y)).join(" "), fill: "none", stroke: color, "stroke-width": 2, "stroke-linejoin": "round" }));
-    pts.forEach((p, pi) => {
-      const cx = X(p.i), cy = Y(p.y), isLast = pi === pts.length - 1;
+    const every = Math.max(1, Math.ceil(n / 8));
+    points.forEach((p, i) => { if (i % every === 0 || i === n - 1) s.appendChild(el("text", { x: X(i), y: H - 10, "text-anchor": "middle", "font-size": 9, fill: "var(--muted)" }, p.label)); });
+    if (n > 1) s.appendChild(el("path", { d: points.map((p, i) => (i ? "L" : "M") + X(i) + " " + Y(p.y)).join(" "), fill: "none", stroke: color, "stroke-width": 2, "stroke-linejoin": "round" }));
+    points.forEach((p, i) => {
+      const cx = X(i), cy = Y(p.y), isLast = i === n - 1;
       if (isLast) {
         const ring = el("circle", { cx, cy, r: 3.5, fill: "none", stroke: color, "stroke-width": 1.5 });
         ring.appendChild(el("animate", { attributeName: "r", values: "3.5;10", dur: "1.4s", repeatCount: "indefinite" }));
@@ -272,225 +270,372 @@
         s.appendChild(ring);
       }
       const c = el("circle", { cx, cy, r: isLast ? 4 : 3.2, fill: color });
-      if (isLast) c.appendChild(el("animate", { attributeName: "opacity", values: "1;0.3;1", dur: "1.4s", repeatCount: "indefinite" }));
-      c.setAttribute("data-tip", (p.date ? md(p.date) : p.label) + "：" + p.y + " " + unit);
+      c.setAttribute("data-tip", p.tip);
       s.appendChild(c);
     });
     return s;
   }
 
-  // 多條折線(共用 y 軸;連續含 0)
-  function multiLine(periods, series, keys, colors, unit, W) {
-    const n = periods.length; W = W || 320; const H = 150, P = { l: 38, r: 12, t: 16, b: 22 };
-    const s = svg(W, H);
-    s.appendChild(el("text", { x: 2, y: H / 2 + 3, "font-size": 9, fill: "var(--muted)" }, unit));
-    if (!n) return s;
-    let yMax = 1;
-    keys.forEach((k) => periods.forEach((_, i) => { yMax = Math.max(yMax, series[k][i] || 0); }));
-    yMax *= 1.12;
-    const X = (i) => P.l + (n <= 1 ? 0.5 : i / (n - 1)) * (W - P.l - P.r);
-    const Y = (v) => H - P.b - (v / yMax) * (H - P.t - P.b);
-    const ticks = 4;
-    for (let i = 0; i <= ticks; i++) { const v = (yMax / ticks) * i; s.appendChild(el("line", { x1: P.l, y1: Y(v), x2: W - P.r, y2: Y(v), stroke: "var(--grid)", "stroke-width": 1 })); s.appendChild(el("text", { x: P.l - 5, y: Y(v) + 3, "text-anchor": "end", "font-size": 9, fill: "var(--muted)" }, "" + Math.round(v))); }
-    const every = Math.ceil(n / 14 || 1);
-    periods.forEach((p, i) => { if (i % every === 0) s.appendChild(el("text", { x: X(i), y: H - 8, "text-anchor": "middle", "font-size": 9, fill: "var(--muted)" }, p.label)); });
-    keys.forEach((k, ki) => {
-      const d = periods.map((_, i) => ((i ? "L" : "M") + X(i) + " " + Y(series[k][i] || 0))).join(" ");
-      s.appendChild(el("path", { d, fill: "none", stroke: colors[ki], "stroke-width": 2, "stroke-linejoin": "round" }));
-      periods.forEach((p, i) => { const v = series[k][i] || 0; if (v <= 0) return; const c = el("circle", { cx: X(i), cy: Y(v), r: 2.8, fill: colors[ki] }); c.setAttribute("data-tip", p.label + " · " + k + "：" + v + " " + unit); s.appendChild(c); });
-    });
-    return s;
-  }
-
-  function stackedBars(periods, series, keys, colors, yUnit, W, monthly, xYear, firstDate) {
-    const n = periods.length; W = W || Math.max(360, n * 32 + 70); const H = 210, P = { l: 40, r: 14, t: 14, b: 30 };
-    const s = svg(W, H);
-    if (!n) return s;
-    const totals = periods.map((p, i) => keys.reduce((a, k) => a + (series[k][i] || 0), 0));
-    let yMax = Math.max(1, ...totals);
-    const step = Math.max(1, Math.ceil(yMax / 4));
-    yMax = step * Math.ceil(yMax / step);
-    const plotH = H - P.t - P.b;
-    const Y = (v) => H - P.b - (v / yMax) * plotH;
-    for (let v = 0; v <= yMax; v += step) {
-      s.appendChild(el("line", { x1: P.l, y1: Y(v), x2: W - P.r, y2: Y(v), stroke: "var(--grid)", "stroke-width": 1 }));
-      s.appendChild(el("text", { x: P.l - 6, y: Y(v) + 3, "text-anchor": "end", "font-size": 9, fill: "var(--muted)" }, "" + v));
-    }
-    const slot = (W - P.l - P.r) / n, w = Math.min(slot * 0.2, 10), every = Math.max(1, Math.ceil(26 / slot));
-    periods.forEach((p, i) => {
-      let acc = 0; const x = P.l + i * slot + (slot - w) / 2;
-      keys.forEach((k, ki) => {
-        const v = series[k][i] || 0; if (v <= 0) return;
-        const yTop = Y(acc + v), h = Math.max(2, (Y(acc) - yTop) - 1.5);
-        const r = el("rect", { x, y: yTop, width: w, height: h, rx: w / 2, fill: colors[ki] });
-        r.setAttribute("data-tip", p.label + " · " + k + "：" + v + (yUnit || ""));
-        s.appendChild(r); acc += v;
+  // ---- Cardio:依動作過濾後,同一天多筆合併成一次 day-run ----
+  function buildDayRuns(exercise) {
+    const byDate = new Map();
+    sessions.forEach((s) => {
+      s.cardio.forEach((c) => {
+        if (c.exercise !== exercise) return;
+        const cur = byDate.get(s.date) || { date: s.date, km: 0, min: 0 };
+        cur.km += c.distance_km; cur.min += c.duration_min;
+        byDate.set(s.date, cur);
       });
-      if (!monthly && i % every === 0) s.appendChild(el("text", { x: x + w / 2, y: H - 8, "text-anchor": "middle", "font-size": 9, fill: "var(--muted)" }, p.label));
     });
-    if (monthly) xAxisTicks(periods, firstDate, xYear).forEach((t) => drawXLabel(s, P.l + t.i * slot + slot / 2, H - 16, t.text, t.sub));
-    return s;
+    return [...byDate.values()].map((r) => ({ date: r.date, km: round2(r.km), min: r.min })).sort((a, b) => a.date.localeCompare(b.date));
   }
 
-  function hbars(rows) {
-    const W = 320, rowH = 30, H = rows.length * rowH + 10, s = svg(W, H);
-    const max = Math.max(1, ...rows.map((r) => r.value));
-    rows.forEach((r, i) => { const y = i * rowH + 6; s.appendChild(el("text", { x: 0, y: y + 13, "font-size": 11, fill: "var(--ink)" }, r.label)); s.appendChild(el("rect", { x: 96, y: y + 3, width: (W - 130) * (r.value / max), height: 14, fill: r.color, rx: 3 })); s.appendChild(el("text", { x: W - 4, y: y + 14, "text-anchor": "end", "font-size": 11, fill: "var(--muted)" }, "" + r.value)); });
-    return s;
+  function personalRecords(runs) {
+    if (!runs.length) return { fastestPace: null, longestRun: null, longestTime: null, isNew: {} };
+    const lastDate = runs[runs.length - 1].date;
+    let fp = null, lr = null, lt = null;
+    runs.forEach((r) => {
+      const pace = r.min / r.km;
+      if (r.km >= MIN_PR_KM && (!fp || pace < fp.pace)) fp = { pace, date: r.date, km: r.km };
+      if (!lr || r.km > lr.km) lr = { km: r.km, date: r.date };
+      if (!lt || r.min > lt.min) lt = { min: r.min, date: r.date };
+    });
+    return {
+      fastestPace: fp, longestRun: lr, longestTime: lt,
+      isNew: { fastestPace: !!fp && fp.date === lastDate, longestRun: !!lr && lr.date === lastDate, longestTime: !!lt && lt.date === lastDate },
+    };
   }
 
-  function arcPath(cx, cy, rO, rI, a1, a2) {
-    const pt = (r, a) => [cx + r * Math.cos(a), cy + r * Math.sin(a)];
-    const [x1o, y1o] = pt(rO, a1), [x2o, y2o] = pt(rO, a2), [x1i, y1i] = pt(rI, a2), [x2i, y2i] = pt(rI, a1);
-    const large = a2 - a1 > Math.PI ? 1 : 0;
-    return `M ${x1o} ${y1o} A ${rO} ${rO} 0 ${large} 1 ${x2o} ${y2o} L ${x1i} ${y1i} A ${rI} ${rI} 0 ${large} 0 ${x2i} ${y2i} Z`;
+  function avgPace(runs) {
+    const wavg = (arr) => { const km = arr.reduce((a, r) => a + r.km, 0), min = arr.reduce((a, r) => a + r.min, 0); return km > 0 ? min / km : null; };
+    const last5 = runs.slice(-5), prev5 = runs.slice(-10, -5);
+    const pace = last5.length ? wavg(last5) : null;
+    const prev = prev5.length === 5 ? wavg(prev5) : null;
+    return { pace, deltaSec: pace != null && prev != null ? (prev - pace) * 60 : null, sampleSize: last5.length };
   }
-  function donut(rows, size) {
-    size = size || 110; const cx = size / 2, cy = size / 2, rO = size / 2 - 3, rI = (size / 2 - 3) * 0.56, s = svg(size, size);
-    s.style.width = size + "px"; s.style.height = size + "px"; s.style.flexShrink = "0";
-    const total = rows.reduce((a, r) => a + r.value, 0);
-    const nz = rows.filter((r) => r.value > 0);
-    if (total === 0) {
-      s.appendChild(el("circle", { cx, cy, r: (rO + rI) / 2, fill: "none", stroke: "var(--grid)", "stroke-width": rO - rI }));
-    } else if (nz.length === 1) {
-      const o = el("circle", { cx, cy, r: rO, fill: nz[0].color }); o.setAttribute("data-tip", nz[0].label + "：" + nz[0].value); s.appendChild(o);
-      s.appendChild(el("circle", { cx, cy, r: rI, fill: "var(--card)" }));
-    } else {
-      let ang = -Math.PI / 2;
-      nz.forEach((row) => { const a2 = ang + (row.value / total) * 2 * Math.PI; const pa = el("path", { d: arcPath(cx, cy, rO, rI, ang, a2), fill: row.color }); pa.setAttribute("data-tip", row.label + "：" + row.value); s.appendChild(pa); ang = a2; });
+
+  function weeklyDistance(runs, todayStr, n) {
+    const agg = new Map();
+    runs.forEach((r) => { const ws = weekStart(r.date); const cur = agg.get(ws) || { km: 0 }; cur.km += r.km; agg.set(ws, cur); });
+    const cur = weekStart(todayStr), out = [];
+    for (let i = n - 1; i >= 0; i--) { const ws = addDays(cur, -7 * i); const a = agg.get(ws); out.push({ weekStart: ws, km: a ? round1(a.km) : 0, isCurrent: i === 0 }); }
+    return out;
+  }
+
+  // ---- 重訓:單一動作的全歷史紀錄與 PR(單組最大重量) ----
+  function strengthRecords(exercise) {
+    const records = [];
+    sessions.forEach((s) => {
+      s.strength.forEach((ex) => {
+        if (ex.exercise !== exercise) return;
+        const w = Math.max(...ex.sets.map((st) => st.weight).filter((v) => v != null));
+        if (isFinite(w)) records.push({ date: s.date, weight: w, unit: ex.unit || "" });
+      });
+    });
+    return records.sort((a, b) => a.date.localeCompare(b.date));
+  }
+  function strengthPR(records) {
+    if (!records.length) return null;
+    let best = records[0];
+    records.forEach((r) => { if (r.weight > best.weight) best = r; });
+    return { weight: best.weight, unit: best.unit, date: best.date, isNew: best.date === records[records.length - 1].date };
+  }
+
+  // ---- 整體訓練:一週要三部位都練到才算達標週 ----
+  function weekPartAgg() {
+    const map = new Map();
+    sessions.forEach((s) => {
+      const ws = weekStart(s.date);
+      const cur = map.get(ws) || { "Leg/Shoulder Day": false, "Chest/Back Day": false, "Cardio": false };
+      if (cur[s.type] != null) cur[s.type] = true;
+      map.set(ws, cur);
+    });
+    return map;
+  }
+  const isCompletePartWeek = (a) => !!a && WEEKLY_PARTS.every((p) => a[p]);
+  function partStreak(todayStr) {
+    const agg = weekPartAgg();
+    let cursor = weekStart(todayStr), n = 0;
+    if (isCompletePartWeek(agg.get(cursor))) n++;
+    cursor = addDays(cursor, -7);
+    while (isCompletePartWeek(agg.get(cursor))) { n++; cursor = addDays(cursor, -7); }
+    return n;
+  }
+  function currentPartQuest(todayStr) {
+    const ws = weekStart(todayStr);
+    const a = weekPartAgg().get(ws) || { "Leg/Shoulder Day": false, "Chest/Back Day": false, "Cardio": false };
+    const weekEnd = addDays(ws, 6);
+    const daysLeft = Math.max(0, Math.round((parseDate(weekEnd) - parseDate(todayStr)) / DAY) + 1);
+    const doneCount = WEEKLY_PARTS.filter((p) => a[p]).length;
+    return { weekStart: ws, weekEnd, parts: a, doneCount, questPct: doneCount / WEEKLY_PARTS.length, daysLeft };
+  }
+
+  // ---- Activity 熱力圖:整體訓練日總覽,依當天 session 數分級 ----
+  function buildDayActivity() {
+    const byDate = new Map();
+    sessions.forEach((s) => {
+      const cur = byDate.get(s.date) || { date: s.date, count: 0, types: new Set() };
+      cur.count++; cur.types.add(s.type);
+      byDate.set(s.date, cur);
+    });
+    return byDate;
+  }
+  const heatmapLevel = (count) => (count <= 0 ? 0 : count === 1 ? 1 : count === 2 ? 2 : 3);
+  function heatmapRange(byDate, fromDate, toDate, todayStr) {
+    const lastWeek = weekStart(toDate);
+    const weeks = []; let totalDays = 0;
+    for (let ws = weekStart(fromDate); ws <= lastWeek; ws = addDays(ws, 7)) {
+      const col = [];
+      for (let d = 0; d < 7; d++) {
+        const date = addDays(ws, d);
+        if (date < fromDate || date > toDate || date > todayStr) { col.push(null); continue; }
+        const r = byDate.get(date);
+        if (r) totalDays++;
+        col.push({ date, count: r ? r.count : 0, types: r ? [...r.types] : [], level: heatmapLevel(r ? r.count : 0) });
+      }
+      weeks.push(col);
     }
-    s.appendChild(el("text", { x: cx, y: cy + size * 0.1, "text-anchor": "middle", "font-size": size * 0.28, "font-weight": 700, fill: "var(--ink)" }, "" + total));
-    return s;
+    return { weeks, totalDays, firstDate: fromDate };
+  }
+  const heatmap = (byDate, todayStr) => heatmapRange(byDate, addDays(todayStr, -(HEATMAP_DAYS - 1)), todayStr, todayStr);
+  const heatmapYear = (byDate, year, todayStr) => heatmapRange(byDate, year + "-01-01", year + "-12-31", todayStr);
+  function heatmapYears(byDate, todayStr) {
+    const thisYear = Number(todayStr.slice(0, 4));
+    let first = thisYear;
+    byDate.forEach((_, date) => { first = Math.min(first, Number(date.slice(0, 4))); });
+    const out = []; for (let y = thisYear; y >= first; y--) out.push(y); return out;
   }
 
-  let first, last, curGran = "week", chartGranCur = "week", winStart;
-  const exMap = new Map();
-  const freqShow = { "Leg/Shoulder Day": true, "Chest/Back Day": true, "Cardio": true };
+  // ================= Render =================
+  const now = new Date();
+  const TODAY = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0") + "-" + String(now.getDate()).padStart(2, "0");
+  const $ = (id) => document.getElementById(id);
 
-  function init() {
-    if (!sessions.length) { document.getElementById("meta").textContent = "No data."; return false; }
-    first = parseDate(sessions[0].date); last = parseDate(sessions[sessions.length - 1].date);
-    document.getElementById("meta").textContent = "Fit body, sharp mind.";
-    sessions.forEach((s) => s.strength.forEach((ex) => {
-      const w = Math.max(...ex.sets.map((st) => st.weight).filter((v) => v != null));
-      if (!isFinite(w)) return;
-      if (!exMap.has(ex.exercise)) exMap.set(ex.exercise, { unit: ex.unit || "", byDate: [] });
-      exMap.get(ex.exercise).byDate.push({ d: parseDate(s.date), w });
-    }));
-    document.getElementById("footer").textContent =
-      `${sessions.length} sessions · ${sessions[0].date} → ${sessions[sessions.length - 1].date}` +
-      (D.generated_at ? ` · updated ${D.generated_at.slice(0, 10)}` : "");
-    return true;
+  function exercisesFor(part) {
+    const count = new Map();
+    if (part === "Cardio") {
+      sessions.forEach((s) => s.cardio.forEach((c) => count.set(c.exercise, (count.get(c.exercise) || 0) + 1)));
+    } else {
+      sessions.forEach((s) => s.strength.forEach((e) => { if (EXERCISE_PART[e.exercise] === part) count.set(e.exercise, (count.get(e.exercise) || 0) + 1); }));
+    }
+    return [...count.entries()].sort((a, b) => b[1] - a[1]).map(([name]) => name);
+  }
+  // 該部位最近一次練到的動作,找不到就退而求其次選最常練的
+  function mostRecentExerciseIn(part) {
+    for (let i = sessions.length - 1; i >= 0; i--) {
+      const s = sessions[i];
+      const list = part === "Cardio" ? s.cardio : s.strength.filter((e) => EXERCISE_PART[e.exercise] === part);
+      if (list.length) return list[0].exercise;
+    }
+    return exercisesFor(part)[0] || null;
+  }
+  function partOfLastSession() {
+    for (let i = sessions.length - 1; i >= 0; i--) {
+      const s = sessions[i];
+      const list = s.type === "Cardio" ? s.cardio : s.strength;
+      if (!list.length) continue;
+      const part = s.type === "Cardio" ? "Cardio" : EXERCISE_PART[list[0].exercise];
+      if (part) return part;
+    }
+    return "Cardio";
   }
 
-  function autoFine(first, last) {
-    const weeks = (last - first) / (7 * 86400000);
-    if (weeks <= 80) return "week";
-    const months = (last.getFullYear() - first.getFullYear()) * 12 + (last.getMonth() - first.getMonth());
-    return months <= 60 ? "month" : "quarter";
+  let curPart = sessions.length ? partOfLastSession() : "Cardio";
+  let curExercise = mostRecentExerciseIn(curPart);
+
+  function renderHeader() {
+    $("totals").textContent = sessions.length + " SESSIONS · " + sessions[0].date + " → " + sessions[sessions.length - 1].date;
+    $("streakVal").textContent = partStreak(TODAY);
   }
 
-  function renderFreq() {
-    const gran = chartGranCur;
-    const periods = enumPeriods(winStart, last, gran);
-    const idx = {}; periods.forEach((p, i) => (idx[p.key] = i));
-    const allKeys = ["Leg/Shoulder Day", "Chest/Back Day", "Cardio"];
-    const colorMap = { "Leg/Shoulder Day": "var(--c-leg)", "Chest/Back Day": "var(--c-chest)", "Cardio": "var(--c-cardio)" };
-    const keys = allKeys.filter((k) => freqShow[k]);
-    const fser = {}; allKeys.forEach((k) => (fser[k] = periods.map(() => 0)));
-    sessions.forEach((s) => { const i = idx[bucketKey(parseDate(s.date), gran)]; if (i != null && fser[s.type] != null) fser[s.type][i]++; });
-    const freq = document.getElementById("freqChart"); freq.innerHTML = "";
-    freq.appendChild(stackedBars(periods, fser, keys, keys.map((k) => colorMap[k]), " sessions", freq.clientWidth));
-    document.getElementById("freqSub").textContent = `Each bar = 1 ${{ week: "week", month: "month", quarter: "quarter", year: "year" }[gran]}`;
+  function renderQuest() {
+    const q = currentPartQuest(TODAY);
+    const ring = (part) => {
+      const done = q.parts[part];
+      const pct = done ? 100 : 0;
+      return '<div class="qcol">' +
+        '<div class="ring' + (done ? " done" : "") + '" style="background:conic-gradient(var(--accent) 0 ' + pct + '%, var(--border) ' + pct + '% 100%)">' +
+          '<div><div class="v' + (done ? " accent" : "") + '">' + (done ? "✓" : "—") + "</div></div></div>" +
+        '<div class="lbl">' + PART_LABEL[part].toUpperCase() + "</div>" +
+      "</div>";
+    };
+    $("quest").innerHTML =
+      '<div style="display:flex;justify-content:space-between;align-items:baseline">' +
+        '<div class="lbl">WEEKLY QUEST · ' + q.weekStart + " → " + q.weekEnd + "</div>" +
+        '<div class="lbl">' + q.daysLeft + " DAY" + (q.daysLeft === 1 ? "" : "S") + " LEFT</div>" +
+      "</div>" +
+      '<div class="row qwrap" style="margin-top:12px">' + WEEKLY_PARTS.map(ring).join("") + "</div>" +
+      '<div style="margin-top:14px">' +
+        '<div class="lbl">QUEST PROGRESS · ' + q.doneCount + "/3 PARTS</div>" +
+        '<div class="xp" style="margin-top:7px"><i style="width:' + (q.questPct * 100).toFixed(1) + '%"></i></div>' +
+        '<div style="font-size:11px;color:var(--muted);margin-top:6px">' +
+          (q.doneCount >= 3 ? "All 3 parts trained — streak alive" : (3 - q.doneCount) + " more part(s) to keep the streak alive") +
+        "</div>" +
+      "</div>";
   }
 
-  function render(gran) {
-    curGran = gran;
-    const isAll = gran === "all";
-    const chartGran = isAll ? autoFine(first, last) : gran;   // All 圖表用安全粗粒度,不會爆
-    chartGranCur = chartGran;
-    winStart = gran === "week" ? new Date(Math.max(first.getTime(), new Date(last.getFullYear(), last.getMonth() - 6, last.getDate()).getTime()))
-      : (gran === "month" || gran === "quarter") ? new Date(Math.max(first.getTime(), new Date(last.getFullYear() - 1, last.getMonth(), last.getDate()).getTime()))
-      : first;
-    const periods = enumPeriods(winStart, last, chartGran);
-    const idx = {}; periods.forEach((p, i) => (idx[p.key] = i));
-    const smallGran = chartGran, smallPeriods = periods, smallIdx = idx;
-    const gName = { week: "week", month: "month", quarter: "quarter", year: "year", day: "day" }[chartGran];
-    const cur = periods[periods.length - 1];
+  function renderTabs() {
+    $("tabs1").innerHTML = TAB_PARTS.map((p) =>
+      '<button class="tabBtn' + (p === curPart ? " on" : "") + '" data-part="' + p + '" style="--tab-c:' + TAB_COLOR[p] + '">' + p + "</button>"
+    ).join("");
+    $("tabs2").innerHTML = exercisesFor(curPart).map((name) =>
+      '<button class="tabBtn' + (name === curExercise ? " on" : "") + '" data-ex="' + name + '" style="--tab-c:' + TAB_COLOR[curPart] + '">' + name + "</button>"
+    ).join("");
+  }
 
-    // 當期統計卡(All 統計全部)
-    const inCur = isAll ? sessions.slice() : sessions.filter((s) => bucketKey(parseDate(s.date), chartGran) === cur.key);
-    const strN = inCur.filter((s) => s.type !== "Cardio").length;
-    const carN = inCur.filter((s) => s.type === "Cardio").length;
-    const carMin = inCur.reduce((a, s) => a + s.cardio.reduce((b, c) => b + (c.duration_min || 0), 0), 0);
-    const statsEl = document.getElementById("stats"); statsEl.innerHTML = "";
-    const numCol = document.createElement("div"); numCol.style.cssText = "display:flex;flex-direction:column;gap:10px;flex:1 1 auto";
-    [[inCur.length, "Sessions"], [strN, "Strength"], [carN, "Cardio"], [carMin, "Cardio min"]].forEach(([n, l]) => {
-      const d = document.createElement("div"); d.className = "stat";
-      d.innerHTML = `<div class="l">${l}</div><div class="n">${n}</div>`; numCol.appendChild(d);
+  function prCard(isNew, icon, value, label, date) {
+    return '<div class="pr' + (isNew ? " new" : "") + '">' +
+      (isNew ? '<span class="tag">NEW!</span>' : "") +
+      '<div class="t">' + icon + "</div>" +
+      '<div class="v' + (isNew ? " accent" : "") + '">' + value + "</div>" +
+      '<div class="lbl" style="margin-top:2px">' + label + "</div>" +
+      '<div class="d">' + date + "</div>" +
+    "</div>";
+  }
+
+  function renderContent() {
+    const isCardio = curPart === "Cardio";
+    $("prHeading").textContent = isCardio ? "🏆 PERSONAL RECORDS" : "🏆 PERSONAL RECORD";
+    $("trendRow").style.justifyContent = "";
+    [$("prHeading"), $("prBoard"), $("trendRow")].forEach((e) => {
+      e.style.setProperty("--tab-c", TAB_COLOR[curPart]);
+      e.style.setProperty("--tab-glow", TAB_GLOW28[curPart]);
     });
-    statsEl.appendChild(numCol);
-    const tc = { "Leg/Shoulder Day": 0, "Chest/Back Day": 0, "Cardio": 0 };
-    inCur.forEach((s) => { if (tc[s.type] != null) tc[s.type]++; });
-    const mob = window.innerWidth < 640;
-    const dcard = document.createElement("div"); dcard.className = "stat";
-    dcard.style.cssText = `display:flex;align-items:center;justify-content:flex-start;gap:${mob ? 20 : 40}px;flex:1 1 auto`;
-    dcard.appendChild(donut([
-      { label: "Leg/Shoulder", value: tc["Leg/Shoulder Day"], color: "var(--c-leg)" },
-      { label: "Chest/Back", value: tc["Chest/Back Day"], color: "var(--c-chest)" },
-      { label: "Cardio", value: tc["Cardio"], color: "var(--c-cardio)" },
-    ], mob ? 112 : 150));
-    const dleg = document.createElement("div"); dleg.style.cssText = `display:flex;flex-direction:column;gap:${mob ? 8 : 11}px;font-size:${mob ? 13 : 17}px;font-weight:600;color:var(--ink)`;
-    dleg.innerHTML = [["Leg/Shoulder", tc["Leg/Shoulder Day"], "--c-leg"], ["Chest/Back", tc["Chest/Back Day"], "--c-chest"], ["Cardio", tc["Cardio"], "--c-cardio"]]
-      .map(([l, v, c]) => `<span style="display:inline-flex;align-items:center;gap:10px"><i style="width:12px;height:12px;border-radius:3px;background:var(${c});display:inline-block"></i>${l} · ${v}</span>`).join("");
-    dcard.appendChild(dleg); statsEl.appendChild(dcard);
-    const weeksAll = Math.max(1, Math.round((last - first) / (7 * 86400000)) + 1);
-    const wk = gran === "all" ? weeksAll : { week: 1, month: 4, quarter: 13, year: 52 }[gran];
-    const c = inCur.length, thumbsAt = 2 * wk, fireAt = 5 * wk;
-    const badge = c >= fireAt ? " 🔥" : c >= thumbsAt ? " 👍" : " 😴";
-    document.getElementById("periodLabel").innerHTML = `<b>${periodHuman(gran, cur.start)}</b> Stats${badge}`;
-    document.getElementById("periodHint").textContent = isAll ? "" :
-      c >= fireAt ? "Top tier reached 🔥 — keep it up!" :
-      c >= thumbsAt ? `${fireAt - c} more to reach 🔥` :
-      `${thumbsAt - c} more to reach 👍`;
 
-    // 動作趨勢
-    const grid = document.getElementById("exerciseGrid"); grid.innerHTML = "";
-    [...exMap.entries()].sort((a, b) => b[1].byDate.length - a[1].byDate.length).forEach(([name, info], k) => {
-      const vals = smallPeriods.map(() => null), vdates = smallPeriods.map(() => null);
-      info.byDate.forEach((r) => { const i = smallIdx[bucketKey(r.d, smallGran)]; if (i == null) return; if (vals[i] == null || r.w > vals[i]) { vals[i] = r.w; vdates[i] = r.d; } });
-      const color = palette[k % palette.length];
-      const card = document.createElement("div"); card.className = "card";
-      card.innerHTML = `<h3 style="color:${color}">${name} (${info.unit}.)</h3>`;
-      card.appendChild(lineChart(smallPeriods, vals, info.unit, color, { skipZero: true, xYear: isAll, firstDate: (info.byDate.find((r) => r.d >= winStart) || {}).d || null, tipDates: smallGran === "week" ? vdates : null }));
-      grid.appendChild(card);
+    if (isCardio) {
+      const runs = buildDayRuns(curExercise);
+      const pr = personalRecords(runs);
+      $("prBoard").innerHTML =
+        prCard(pr.isNew.fastestPace, "⚡", pr.fastestPace ? formatPace(pr.fastestPace.pace) : "—", "FASTEST PACE /km",
+          pr.fastestPace ? pr.fastestPace.date + " · " + pr.fastestPace.km + " km" : "no run ≥ " + MIN_PR_KM + " km") +
+        prCard(pr.isNew.longestRun, "🥇", pr.longestRun ? pr.longestRun.km + " km" : "—", "LONGEST RUN", pr.longestRun ? pr.longestRun.date : "—") +
+        prCard(pr.isNew.longestTime, "⏱️", pr.longestTime ? pr.longestTime.min + " min" : "—", "LONGEST TIME", pr.longestTime ? pr.longestTime.date : "—");
+
+      const ap = avgPace(runs);
+      const deltaLine = ap.deltaSec == null ? "" :
+        Math.abs(ap.deltaSec) < 1 ? '<div style="font-size:11px;color:var(--muted);margin-top:8px">same as previous 5</div>' :
+        '<div style="font-size:11px;color:var(--muted);margin-top:8px">' +
+          (ap.deltaSec > 0 ? "▲ " + Math.round(ap.deltaSec) + " sec faster" : "▼ " + Math.round(-ap.deltaSec) + " sec slower") +
+          " than previous 5</div>";
+      const wd = weeklyDistance(runs, TODAY, 8);
+      const maxKm = Math.max(1, ...wd.map((x) => x.km));
+      $("trendRow").style.justifyContent = "";
+      $("trendRow").innerHTML =
+        '<div class="card" id="weeklyDist" style="flex:2.2">' +
+          '<div style="display:flex;justify-content:space-between;align-items:baseline">' +
+            '<b style="font-size:13px">WEEKLY DISTANCE</b>' +
+            '<span class="lbl">THIS WEEK <span class="num accent" style="font-size:12px">' + wd[wd.length - 1].km + " km</span></span>" +
+          "</div>" +
+          '<div class="bars" style="margin-top:12px">' +
+            wd.map((x) => '<i class="' + (x.isCurrent ? "on" : "") + '" style="height:' + Math.max(2, (x.km / maxKm) * 100) + '%" title="' + x.weekStart + " · " + x.km + ' km"></i>').join("") +
+          "</div>" +
+          '<div class="barx">' + wd.map((x) => "<span>" + (x.isCurrent ? "NOW" : x.weekStart.slice(5).replace("-", "/")) + "</span>").join("") + "</div>" +
+        "</div>" +
+        '<div class="card" id="avgPace" style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center">' +
+          '<div class="lbl">AVG PACE · LAST ' + ap.sampleSize + " RUN" + (ap.sampleSize === 1 ? "" : "S") + "</div>" +
+          '<div class="num accent paceBig">' + formatPace(ap.pace) + "</div>" +
+          '<div class="lbl" style="letter-spacing:.5px">MIN / KM</div>' + deltaLine +
+        "</div>";
+    } else {
+      // PR 卡跟趨勢圖並排在同一列(Cardio 維持原本 PR 榜獨立一列的排法)
+      $("prBoard").innerHTML = "";
+      const records = strengthRecords(curExercise);
+      const pr = strengthPR(records);
+      $("trendRow").innerHTML = pr
+        ? '<div class="pr' + (pr.isNew ? " new" : "") + '" style="flex:0 1 220px; align-self:flex-start">' +
+            (pr.isNew ? '<span class="tag">NEW!</span>' : "") +
+            '<div class="t">🏋️</div>' +
+            '<div class="v' + (pr.isNew ? " accent" : "") + '">' + pr.weight + " " + pr.unit + "</div>" +
+            '<div class="lbl" style="margin-top:2px">MAX WEIGHT · SINGLE SET</div>' +
+            '<div class="d">' + pr.date + "</div>" +
+          "</div>"
+        : '<div class="pr" style="flex:0 1 220px; align-self:flex-start"><div class="t">🏋️</div><div class="v">—</div><div class="lbl">MAX WEIGHT</div></div>';
+
+      const recent = records.slice(-12);
+      const points = recent.map((r) => ({ label: md(parseDate(r.date)), y: r.weight, tip: r.date + "：" + r.weight + " " + r.unit }));
+      const trendCard = document.createElement("div");
+      trendCard.className = "card"; trendCard.style.cssText = "flex:1 1 320px; max-width:480px;";
+      trendCard.innerHTML = '<b style="font-size:13px">' + (curExercise || "") + " Trend</b>" +
+        '<div class="lbl" style="margin:2px 0 8px">LAST ' + points.length + " SESSION" + (points.length === 1 ? "" : "S") + "</div>";
+      if (points.length) trendCard.appendChild(lineChart(points, TAB_COLOR[curPart]));
+      $("trendRow").appendChild(trendCard);
+    }
+  }
+
+  function renderActivity(view) {
+    const byDate = buildDayActivity();
+    const hm = view === "recent" ? heatmap(byDate, TODAY) : heatmapYear(byDate, Number(view), TODAY);
+    const scope = view === "recent" ? "THE PAST " + HEATMAP_DAYS + " DAYS" : view;
+    const years = heatmapYears(byDate, TODAY);
+
+    let lastMon = -1;
+    const monCells = hm.weeks.map((col, i) => {
+      const first = col.find((c) => c);
+      const d = parseDate(first ? first.date : hm.firstDate);
+      const mo = d.getMonth();
+      const show = mo !== lastMon && d.getDate() <= 7;
+      if (show) lastMon = mo;
+      return '<span style="grid-column:' + (i + 1) + '">' + (show ? MON[mo] : "") + "</span>";
+    }).join("");
+
+    const cells = hm.weeks.map((col) => col.map((c) => c
+      ? '<i class="l' + c.level + '" title="' + c.date + " · " + (c.count ? c.types.join("/") : "rest") + '"></i>'
+      : '<i class="empty"></i>'
+    ).join("")).join("");
+
+    const tabs = ["recent"].concat(years).map((v) => {
+      const on = String(v) === String(view);
+      return '<button class="tabBtn' + (on ? " on" : "") + '" data-view="' + v + '">' + (v === "recent" ? "RECENT" : v) + "</button>";
+    }).join("");
+
+    const gridCols = "grid-template-columns:repeat(" + hm.weeks.length + ",13px)";
+    $("activity").style.setProperty("--tab-c", "var(--hm3)");
+    $("activity").style.setProperty("--tab-glow", "rgba(92, 208, 255, .25)");
+    $("activity").innerHTML =
+      '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap">' +
+        '<b style="font-size:13px">ACTIVITY</b>' +
+        '<div class="tabRow">' + tabs + "</div>" +
+      "</div>" +
+      '<div class="lbl" style="margin:6px 0 12px">' + hm.totalDays + " TRAINING DAY" + (hm.totalDays === 1 ? "" : "S") + " IN " + scope + "</div>" +
+      '<div class="hmBody">' +
+        '<div class="hmDays"><span>Mon</span><span></span><span>Wed</span><span></span><span>Fri</span><span></span><span></span></div>' +
+        '<div class="hmScroll" id="hmScroll">' +
+          '<div class="hmMon" style="' + gridCols + '">' + monCells + "</div>" +
+          '<div class="hmGrid" style="' + gridCols + '">' + cells + "</div>" +
+        "</div>" +
+      "</div>" +
+      '<div class="hmLegend">LESS<i style="background:var(--hm0)"></i><i style="background:var(--hm1)"></i><i style="background:var(--hm2)"></i><i style="background:var(--hm3)"></i>MORE</div>';
+
+    const sc = $("hmScroll");
+    const todayCol = hm.weeks.findIndex((col) => col.some((c) => c && c.date === TODAY));
+    sc.scrollLeft = todayCol < 0 ? 0 : Math.max(0, (todayCol + 1) * 17 - sc.clientWidth);
+  }
+
+  function renderAll() {
+    renderHeader();
+    renderQuest();
+    renderTabs();
+    renderContent();
+  }
+
+  if (sessions.length) {
+    renderAll();
+    renderActivity("recent");
+
+    document.body.addEventListener("click", (e) => {
+      const partBtn = e.target.closest("[data-part]");
+      if (partBtn) { curPart = partBtn.dataset.part; curExercise = mostRecentExerciseIn(curPart); renderTabs(); renderContent(); return; }
+      const exBtn = e.target.closest("[data-ex]");
+      if (exBtn) { curExercise = exBtn.dataset.ex; renderTabs(); renderContent(); return; }
+      const viewBtn = e.target.closest("[data-view]");
+      if (viewBtn) renderActivity(viewBtn.dataset.view);
     });
-
-    // 頻率(類型可勾選)
-    renderFreq();
-
-    // 有氧:小卡(堆疊柱,跟著時間尺度)
-    const cser = { "Zone 2": smallPeriods.map(() => 0), "HIIT": smallPeriods.map(() => 0) };
-    sessions.forEach((s) => { const i = smallIdx[bucketKey(parseDate(s.date), smallGran)]; if (i == null) return; s.cardio.forEach((c) => { cser[c.exercise === "HIIT" ? "HIIT" : "Zone 2"][i] += c.duration_min || 0; }); });
-    const ccf = sessions.find((s) => s.cardio && s.cardio.length && parseDate(s.date) >= winStart);
-    const ccard = document.createElement("div"); ccard.className = "card";
-    ccard.innerHTML = `<h3 style="color:var(--c-cardio)">Cardio (min)</h3>`;
-    ccard.appendChild(stackedBars(smallPeriods, cser, ["Zone 2", "HIIT"], ["var(--c-cardio)", "var(--c-hiit)"], " min", 320, true, isAll, ccf ? parseDate(ccf.date) : null));
-    const clg = document.createElement("div"); clg.className = "legend"; clg.style.marginTop = "2px";
-    clg.innerHTML = `<span><i class="dot" style="background:var(--c-cardio)"></i>Zone 2</span><span><i class="dot" style="background:var(--c-hiit)"></i>HIIT</span>`;
-    ccard.appendChild(clg); grid.appendChild(ccard);
-
-    document.querySelectorAll("#granSeg button").forEach((b) => b.classList.toggle("on", b.dataset.g === gran));
+  } else {
+    $("totals").textContent = "No data.";
   }
 
-  if (init()) {
-    document.getElementById("granSeg").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) render(b.dataset.g); });
-    document.getElementById("freqLegend").addEventListener("change", (e) => { const t = e.target.dataset.t; if (t) { freqShow[t] = e.target.checked; renderFreq(); } });
-    render("week");
-  }
-
-  // 即時 hover 提示(取代原生 <title> 的延遲)
-  const tip = document.getElementById("tip");
+  // 即時 hover 提示(取代原生 <title> 的延遲),只用在重量趨勢的 SVG 折線圖上
+  const tip = $("tip");
   if (tip) {
     document.addEventListener("mouseover", (e) => { const t = e.target.getAttribute && e.target.getAttribute("data-tip"); if (t) { tip.textContent = t; tip.style.opacity = "1"; } });
     document.addEventListener("mousemove", (e) => { if (tip.style.opacity === "1") { tip.style.left = Math.min(e.clientX + 12, window.innerWidth - tip.offsetWidth - 6) + "px"; tip.style.top = (e.clientY + 14) + "px"; } });
@@ -498,11 +643,9 @@
   }
 
   // 頭像放大檢視:點頭像開,點背景/✕/Esc 關
-  const box = document.getElementById("lightbox");
+  const box = $("lightbox");
   const closeBox = () => { box.classList.remove("on"); document.body.style.overflow = ""; };
-  document.getElementById("avatar").addEventListener("click", () => {
-    box.classList.add("on"); document.body.style.overflow = "hidden";
-  });
+  $("avatar").addEventListener("click", () => { box.classList.add("on"); document.body.style.overflow = "hidden"; });
   box.addEventListener("click", closeBox);
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeBox(); });
 })();

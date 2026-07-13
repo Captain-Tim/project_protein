@@ -9,7 +9,7 @@
     --bg: #070708; --card: #111214; --border: #212328;
     --ink: #e9ecef; --muted: #7f858e;
     --accent: #c9f24d; --accent-dim: #7fae35;
-    --person: #b558ff;
+    --person: #ff3b3b;
     --streak: #ffb648; --streak-bg: #1a1408; --streak-border: #4a3a12;
     --hm0: #17191c; --hm1: #2f4419; --hm2: #5f8a26; --hm3: #c9f24d;
   }
@@ -27,7 +27,7 @@
 
   header.hero {
     display: flex; align-items: center; gap: 14px;
-    background: radial-gradient(600px 120px at 8% -30%, rgba(181, 88, 255, .25), transparent), #0d0e10;
+    background: radial-gradient(600px 120px at 8% -30%, rgba(255, 59, 59, .25), transparent), #0d0e10;
     border: 1px solid var(--border); border-radius: 16px; padding: 14px 16px;
   }
   /* 頭像:光暈脈動(呼吸),點下去放大看原圖 */
@@ -36,11 +36,11 @@
     animation: avatarPulse 2.2s ease-in-out infinite; transition: transform .15s; }
   .avatar:hover { transform: scale(1.06); }
   @keyframes avatarPulse {
-    0%, 100% { box-shadow: 0 0 13px rgba(181, 88, 255, .35); }
-    50%      { box-shadow: 0 0 19px rgba(181, 88, 255, .8); }
+    0%, 100% { box-shadow: 0 0 13px rgba(255, 59, 59, .35); }
+    50%      { box-shadow: 0 0 19px rgba(255, 59, 59, .8); }
   }
   @media (prefers-reduced-motion: reduce) {
-    .avatar { animation: none; box-shadow: 0 0 16px rgba(181, 88, 255, .5); }
+    .avatar { animation: none; box-shadow: 0 0 16px rgba(255, 59, 59, .5); }
   }
 
   /* 放大檢視 */
@@ -49,7 +49,7 @@
     background: rgba(4, 4, 5, .88); backdrop-filter: blur(6px); cursor: zoom-out; }
   #lightbox.on { display: flex; }
   #lightbox img { max-width: min(90vw, 640px); max-height: 86vh; border-radius: 18px;
-    border: 2px solid var(--person); box-shadow: 0 0 60px rgba(181, 88, 255, .45);
+    border: 2px solid var(--person); box-shadow: 0 0 60px rgba(255, 59, 59, .45);
     animation: lbIn .18s ease-out; }
   @keyframes lbIn { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: scale(1); } }
   #lightbox .close { position: absolute; top: 18px; right: 22px; font-size: 26px; line-height: 1;
@@ -163,7 +163,7 @@
 <body>
 <div class="wrap">
   <header class="hero">
-    <img class="avatar" id="avatar" src="profile/monkey.jpg" alt="Monkey" title="Tap to view" />
+    <img class="avatar" id="avatar" src="profile/monkey-avatar.jpg" alt="Monkey" title="Tap to view" />
     <div>
       <div class="who">MONKEY <i>·</i> TANOI</div>
       <div class="lbl" id="totals" style="margin-top:3px"></div>
