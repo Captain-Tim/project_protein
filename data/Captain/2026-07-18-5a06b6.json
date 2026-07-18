@@ -1,0 +1,41 @@
+{
+  "date": "2026-07-18",
+  "type": "Chest/Back Day",
+  "strength": [
+    {
+      "exercise": "Bench Press",
+      "unit": "lb",
+      "sets": [
+        { "weight": 35, "reps": 8 },
+        { "weight": 35, "reps": 8 },
+        { "weight": 35, "reps": 8 },
+        { "weight": 30, "reps": 8 },
+        { "weight": 30, "reps": 8 }
+      ]
+    },
+    {
+      "exercise": "Lat Pulldown",
+      "unit": "kg",
+      "sets": [
+        { "weight": 20, "reps": 8 },
+        { "weight": 20, "reps": 8 },
+        { "weight": 20, "reps": 8 },
+        { "weight": 20, "reps": 8 },
+        { "weight": 20, "reps": 8 }
+      ]
+    },
+    {
+      "exercise": "Seated Row",
+      "unit": "kg",
+      "sets": [
+        { "weight": 20, "reps": 8 },
+        { "weight": 20, "reps": 8 },
+        { "weight": 20, "reps": 8 },
+        { "weight": 20, "reps": 8 },
+        { "weight": 20, "reps": 8 }
+      ]
+    }
+  ],
+  "cardio": [],
+  "note": null
+}
