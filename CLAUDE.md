@@ -14,15 +14,17 @@ Node 18+)。不要引入框架、圖表函式庫,也不要把腳本改寫成 Pyt
   讀不到就**停下來問使用者**,不要猜、不要略過、不要「先記時間之後補距離」。
   `build_dashboard.js` 會 exit 1 擋下來並讓部署失敗——**build 失敗是去修資料,不是繞過檢查**。
 - **推導得出的值不要存**(例如配速 = 時間 ÷ 距離),存了就會有跟來源數字互相矛盾的一天。
-- **HTML 的 `/*WORKOUT_DATA_START*/`…`/*WORKOUT_DATA_END*/` 區塊只能由 build 腳本改寫**,
-  禁止手動編輯其間內容。
+- **HTML 裡所有 `/*…_START*/`…`/*…_END*/` 標記區塊只能由 build 腳本改寫**,禁止手動編輯其間內容
+  (`WORKOUT_DATA`、`REWARDS_DATA`,以及 `wallet-monkey.html` 的 `THEME` 與 `METRICS`)。
+- **炸雞券只有「哪張被用掉」要存**。券本身由達標週推導,存了就會跟訓練資料互相矛盾。
+  使用紀錄對不上(幽靈券、重複使用、早於取得日)一律 exit 1,**去修資料,不要繞過**。
 - **改動 metrics 邏輯後必須跑** `node scripts/test_monkey_metrics.js`。
 
 ## 指令
 
 ```bash
 node scripts/build_dashboard.js Captain   # data/Captain/ -> dashboard-captain.html
-node scripts/build_dashboard.js Monkey    # data/Monkey/  -> dashboard-monkey.html
+node scripts/build_dashboard.js Monkey    # data/Monkey/  -> dashboard-monkey.html + wallet-monkey.html
 node scripts/test_monkey_metrics.js       # 指標邏輯測試
 ```
 
@@ -31,7 +33,9 @@ node scripts/test_monkey_metrics.js       # 指標邏輯測試
 | 路徑 | 說明 |
 |---|---|
 | `data/Captain/`、`data/Monkey/` | 訓練紀錄,每次一個 JSON |
+| `data/Monkey/rewards/redemptions.json` | 炸雞券的使用紀錄(唯一 ledger)。放子資料夾才不會被當成訓練紀錄掃進去 |
 | `dashboard-captain.html`、`dashboard-monkey.html` | 兩人各自的頁面,完全獨立、互不影響 |
+| `wallet-monkey.html` | Monkey 的炸雞券票券夾。主題與 metrics 由 build 從 dashboard 複製,不自己寫一份 |
 | `scripts/build_dashboard.js <人名>` | 兩人共用一支(刻意不拆,否則規則會偷偷分岔) |
 | `scripts/test_monkey_metrics.js` | 抽出頁面裡的 metrics 區塊在 Node 跑 |
 | `profile/` | 頭像 |
@@ -43,6 +47,8 @@ node scripts/test_monkey_metrics.js       # 指標邏輯測試
 - `docs/verification.md` — headless Chrome 探針、手機版驗證(`--window-size` 在 Windows 會騙人)。
 - `docs/superpowers/specs/2026-07-11-monkey-cardio-dashboard-design.md` — Monkey 頁的視覺與指標定義
   (「一次 run」= 一天、weekly goal、streak、PR 榜的算法)。
+- `docs/superpowers/specs/2026-07-31-monkey-fried-chicken-award.md` — 炸雞券的發券規則、ledger 格式、
+  驗證條件、票券夾版面。要動獎勵系統就照它。
 
 ## 與使用者互動
 
