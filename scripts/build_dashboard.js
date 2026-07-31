@@ -52,6 +52,53 @@ let html = fs.readFileSync(dashPath, "utf8");
 const re = /\/\*WORKOUT_DATA_START\*\/[\s\S]*?\/\*WORKOUT_DATA_END\*\//;
 if (!re.test(html)) throw new Error(path.basename(dashPath) + " 找不到 WORKOUT_DATA 標記,中止以免誤改版面");
 html = html.replace(re, "/*WORKOUT_DATA_START*/window.WORKOUT_DATA=" + JSON.stringify(payload) + ";/*WORKOUT_DATA_END*/");
+
+// 炸雞券的使用紀錄(目前只有 Monkey 的頁面有 REWARDS 標記區塊)。
+// 券本身不存——由訓練資料推導。達標規則只有一份、在頁面的 metrics 區塊裡,
+// 這裡把那個區塊抽出來跑,而不是在腳本裡重寫一次判定,否則改門檻時規則會偷偷分岔。
+const rewardsRe = /\/\*REWARDS_DATA_START\*\/[\s\S]*?\/\*REWARDS_DATA_END\*\//;
+const ledgerPath = path.join(dir, "rewards", "redemptions.json");
+const hasLedger = fs.existsSync(ledgerPath);
+let couponSummary = null;
+
+if (!rewardsRe.test(html) && hasLedger) {
+  console.error("[!] " + ledgerPath + " 存在,但 " + path.basename(dashPath) + " 沒有 REWARDS 標記區塊,資料會被無聲忽略");
+  process.exit(1);
+}
+
+if (rewardsRe.test(html)) {
+  const redemptions = hasLedger ? JSON.parse(fs.readFileSync(ledgerPath, "utf8")) : [];
+  if (!Array.isArray(redemptions)) {
+    console.error("[!] " + ledgerPath + " 必須是一個陣列");
+    process.exit(1);
+  }
+
+  const block = html.match(/<script id="metrics">([\s\S]*?)<\/script>/);
+  if (!block) throw new Error(path.basename(dashPath) + ' 有 REWARDS 標記但找不到 <script id="metrics"> 區塊');
+  const win = {};
+  new Function("window", block[1])(win);
+  const M = win.MonkeyMetrics;
+
+  const result = M.coupons(M.buildDayRuns(sessions).runs, redemptions);
+  if (result.problems.length) {
+    console.error(
+      "[!] " + person + " 的炸雞券使用紀錄對不上,中止 build:\n  " +
+        result.problems.map((p) => p.week_start + ":" + p.reason).join("\n  ")
+    );
+    process.exit(1);
+  }
+
+  html = html.replace(rewardsRe, "/*REWARDS_DATA_START*/window.REWARDS_DATA=" + JSON.stringify(redemptions) + ";/*REWARDS_DATA_END*/");
+  couponSummary = { available: result.available, used: result.used };
+}
+
 fs.writeFileSync(dashPath, html, "utf8");
 
-console.log(JSON.stringify({ person, sessions: sessions.length, injectedInto: path.basename(dashPath) }));
+console.log(
+  JSON.stringify({
+    person,
+    sessions: sessions.length,
+    coupons: couponSummary,
+    injectedInto: path.basename(dashPath),
+  })
+);

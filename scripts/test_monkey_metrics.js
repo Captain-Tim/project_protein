@@ -302,3 +302,105 @@ test("heatmapYears:未來日期的資料不會憑空生出未來年份的 tab", 
   const { runs } = M.buildDayRuns([S("2027-01-01", [run(30, 5)])]);
   assert.deepEqual(M.heatmapYears(runs, "2026-07-11"), [2026]);
 });
+
+// ── 炸雞券 ────────────────────────────────────────────────────────────
+// 起算週是 2026-07-27(一)。2026-08-03 ~ 08-09、2026-08-10 ~ 08-16 都是起算後的完整週。
+const days = (rows) => M.buildDayRuns(rows.map(([d, min, km]) => S(d, [run(min, km)]))).runs;
+const GOAL_WEEK = [["2026-08-04", 60, 8], ["2026-08-06", 60, 8], ["2026-08-08", 40, 5]];
+
+test("炸雞券:一週達標核發一張,取得日是最後一項條件被滿足的那天", () => {
+  const c = M.coupons(days(GOAL_WEEK), []);
+  assert.equal(c.coupons.length, 1);
+  assert.equal(c.coupons[0].week_start, "2026-08-03");
+  assert.equal(c.coupons[0].week_end, "2026-08-09");
+  assert.equal(c.coupons[0].earned_on, "2026-08-08");
+  assert.equal(c.coupons[0].status, "available");
+  assert.equal(c.available, 1);
+  assert.equal(c.used, 0);
+});
+
+test("炸雞券:分鐘數先滿、次數後滿 -> 取得日是第三次那天", () => {
+  const c = M.coupons(days([["2026-08-04", 60, 8], ["2026-08-06", 100, 12], ["2026-08-08", 20, 3]]), []);
+  assert.equal(c.coupons[0].earned_on, "2026-08-08");
+});
+
+test("炸雞券:次數夠但分鐘數不足 -> 不發券", () => {
+  const c = M.coupons(days([["2026-08-04", 30, 5], ["2026-08-06", 30, 5], ["2026-08-08", 30, 5]]), []);
+  assert.deepEqual(c.coupons, []);
+});
+
+test("炸雞券:分鐘數夠但次數不足 -> 不發券", () => {
+  const c = M.coupons(days([["2026-08-04", 90, 12], ["2026-08-06", 90, 12]]), []);
+  assert.deepEqual(c.coupons, []);
+});
+
+test("炸雞券:一週最多一張,同週跑再多次也一樣", () => {
+  const c = M.coupons(days(GOAL_WEEK.concat([["2026-08-09", 60, 8]])), []);
+  assert.equal(c.coupons.length, 1);
+});
+
+test("炸雞券:起算週之前的達標週不回溯發券", () => {
+  const c = M.coupons(days([["2026-07-21", 60, 8], ["2026-07-22", 60, 8], ["2026-07-23", 40, 5]]), []);
+  assert.deepEqual(c.coupons, []);
+});
+
+test("炸雞券:起算週本身算數", () => {
+  const c = M.coupons(days([["2026-07-28", 60, 8], ["2026-07-29", 60, 8], ["2026-07-30", 40, 5]]), []);
+  assert.equal(c.coupons.length, 1);
+  assert.equal(c.coupons[0].week_start, M.REWARD_START_WEEK);
+});
+
+test("炸雞券:使用紀錄把券標成 used,帶 used_on 與 note", () => {
+  const c = M.coupons(days(GOAL_WEEK), [
+    { week_start: "2026-08-03", used_on: "2026-08-10", note: "繼光香香雞" },
+  ]);
+  assert.equal(c.coupons[0].status, "used");
+  assert.equal(c.coupons[0].used_on, "2026-08-10");
+  assert.equal(c.coupons[0].note, "繼光香香雞");
+  assert.equal(c.available, 0);
+  assert.equal(c.used, 1);
+  assert.deepEqual(c.problems, []);
+});
+
+test("炸雞券:使用紀錄指向沒發過券的週 -> 進 problems,且不吃掉別週的券", () => {
+  const c = M.coupons(days(GOAL_WEEK), [{ week_start: "2026-08-10", used_on: "2026-08-11" }]);
+  assert.equal(c.problems.length, 1);
+  assert.equal(c.problems[0].week_start, "2026-08-10");
+  assert.equal(c.coupons[0].status, "available");
+});
+
+test("炸雞券:同一張券用兩次 -> 第二筆進 problems,保留第一筆", () => {
+  const c = M.coupons(days(GOAL_WEEK), [
+    { week_start: "2026-08-03", used_on: "2026-08-10" },
+    { week_start: "2026-08-03", used_on: "2026-08-11" },
+  ]);
+  assert.equal(c.used, 1);
+  assert.equal(c.coupons[0].used_on, "2026-08-10");
+  assert.equal(c.problems.length, 1);
+});
+
+test("炸雞券:used_on 早於取得日 -> 進 problems,券維持可用", () => {
+  const c = M.coupons(days(GOAL_WEEK), [{ week_start: "2026-08-03", used_on: "2026-08-05" }]);
+  assert.equal(c.problems.length, 1);
+  assert.equal(c.coupons[0].status, "available");
+});
+
+test("炸雞券:缺 week_start 或 used_on 的使用紀錄 -> 進 problems", () => {
+  const c = M.coupons(days(GOAL_WEEK), [{ week_start: "2026-08-03" }, { used_on: "2026-08-10" }]);
+  assert.equal(c.problems.length, 2);
+  assert.equal(c.used, 0);
+});
+
+test("炸雞券:多張券由新到舊排列", () => {
+  const c = M.coupons(
+    days(GOAL_WEEK.concat([["2026-08-11", 60, 8], ["2026-08-13", 60, 8], ["2026-08-15", 40, 5]])), []);
+  assert.deepEqual(c.coupons.map((x) => x.week_start), ["2026-08-10", "2026-08-03"]);
+  assert.equal(c.available, 2);
+});
+
+test("炸雞券:沒有資料 / redemptions 傳 null 都不會炸", () => {
+  const c = M.coupons([], null);
+  assert.deepEqual(c.coupons, []);
+  assert.equal(c.available, 0);
+  assert.deepEqual(c.problems, []);
+});
