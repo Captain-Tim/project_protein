@@ -1,0 +1,7 @@
+{
+  "date": "2026-07-31",
+  "type": "Cardio",
+  "strength": [],
+  "cardio": [{ "exercise": "Running", "duration_min": 31.3, "distance_km": 3 }],
+  "note": null
+}
