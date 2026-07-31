@@ -125,6 +125,11 @@
     transition: border-color .15s, box-shadow .15s; }
   #wallet:hover { border-color: var(--accent-dim); box-shadow: 0 0 16px rgba(201, 242, 77, .15); }
   #wallet .go { font-size: 11px; font-weight: 700; letter-spacing: .8px; color: var(--accent); }
+  /* 下一張券還差多少。跟入口卡並排:左邊是已經有的,右邊是快到手的 */
+  #nextCoupon { display: flex; flex-direction: column; justify-content: center; }
+  #nextCoupon .v { font-size: 15px; font-weight: 800; margin-top: 4px; }
+  #nextCoupon.done { border-color: var(--accent); box-shadow: 0 0 18px rgba(201, 242, 77, .22); }
+  #nextCoupon.done .v { color: var(--accent); }
 
   .pr { flex: 1 1 0; min-width: 0; text-align: center; padding: 16px 10px; background: var(--card);
     border: 1px solid var(--border); border-radius: 16px; position: relative; }
@@ -252,7 +257,10 @@
 
   <div class="card" id="quest" style="margin-top:12px"></div>
 
-  <a class="card" id="wallet" href="wallet-monkey.html" style="margin-top:12px"></a>
+  <div class="row" style="margin-top:12px">
+    <a class="card" id="wallet" href="wallet-monkey.html" style="flex:1.25"></a>
+    <div class="card" id="nextCoupon" style="flex:1"></div>
+  </div>
 
   <h2 class="sec">🏆 PERSONAL RECORDS</h2>
   <div class="row" id="prBoard"></div>
@@ -696,6 +704,19 @@
                 : "Complete a weekly quest to earn your first coupon") +
       "</div>" +
     "</div>";
+
+  // 下一張券還差多少。quest 卡講的是 runs/minutes,這裡把它翻成獎勵的語言——
+  // Monkey 每天看的是這一屏,券的存在感不能只留在票券夾裡。
+  const thisWeekCoupon = wallet.coupons.find((c) => c.week_start === q.weekStart);
+  const gaps = [];
+  if (q.runs < G.runs) gaps.push(plural(G.runs - q.runs, "MORE RUN"));
+  if (q.minutes < G.minutes) gaps.push(Math.round((G.minutes - q.minutes) * 10) / 10 + " MIN");
+  el("nextCoupon").className = "card" + (thisWeekCoupon ? " done" : "");
+  el("nextCoupon").innerHTML = thisWeekCoupon
+    ? '<div class="lbl">🍗 COUPON EARNED</div>' +
+      '<div class="v num">' + thisWeekCoupon.earned_on + "</div>"
+    : '<div class="lbl">🍗 NEXT COUPON</div>' +
+      '<div class="v">' + (gaps.length ? gaps.join(" + ") : "—") + "</div>";
 
   // PR 榜
   const pr = M.personalRecords(runs);
