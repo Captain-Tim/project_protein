@@ -26,6 +26,7 @@ Node 18+)。不要引入框架、圖表函式庫,也不要把腳本改寫成 Pyt
 node scripts/build_dashboard.js Captain   # data/Captain/ -> dashboard-captain.html
 node scripts/build_dashboard.js Monkey    # data/Monkey/  -> dashboard-monkey.html + wallet-monkey.html
 node scripts/test_monkey_metrics.js       # 指標邏輯測試
+node scripts/list_coupons.js Monkey       # 列出炸雞券(唯讀,不改檔)
 ```
 
 ## 檔案地圖
@@ -38,12 +39,15 @@ node scripts/test_monkey_metrics.js       # 指標邏輯測試
 | `wallet-monkey.html` | Monkey 的炸雞券票券夾。主題與 metrics 由 build 從 dashboard 複製,不自己寫一份 |
 | `scripts/build_dashboard.js <人名>` | 兩人共用一支(刻意不拆,否則規則會偷偷分岔) |
 | `scripts/test_monkey_metrics.js` | 抽出頁面裡的 metrics 區塊在 Node 跑 |
+| `scripts/list_coupons.js <人名>` | 列出炸雞券,唯讀。同樣抽 metrics 區塊來跑,不重寫發券規則 |
 | `profile/` | 頭像 |
 
 ## 延伸文件(需要時再讀)
 
 - `.claude/skills/log-workout/` — **新增紀錄的唯一權威**:schema、動作對照表、單位規則、
   寫檔前的人工確認關卡。要記錄一次訓練就照它做。
+- `.claude/skills/use-coupon/` — **用掉炸雞券的唯一權威**:挑券規則、ledger 欄位、
+  寫檔前的人工確認關卡。
 - `docs/verification.md` — headless Chrome 探針、手機版驗證(`--window-size` 在 Windows 會騙人)。
 - `docs/superpowers/specs/2026-07-11-monkey-cardio-dashboard-design.md` — Monkey 頁的視覺與指標定義
   (「一次 run」= 一天、weekly goal、streak、PR 榜的算法)。

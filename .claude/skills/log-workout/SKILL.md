@@ -150,12 +150,31 @@ Running — 45 分鐘 · 7.2 km(配速 6:15/km)
 
 ```bash
 node scripts/build_dashboard.js Captain   # -> dashboard-captain.html
-node scripts/build_dashboard.js Monkey    # -> dashboard-monkey.html
+node scripts/build_dashboard.js Monkey    # -> dashboard-monkey.html + wallet-monkey.html
 ```
 
 只改了一個人的資料就只跑那一個人的。
 **不要手動編輯 `dashboard-captain.html` / `dashboard-monkey.html`** 的標記區塊,一定要跑腳本。
 腳本會擋下不完整的資料並 exit 1——**build 失敗代表資料有問題,去修資料,不要繞過檢查**。
+
+### Monkey:這次有沒有拿到炸雞券
+
+達成 weekly quest(3 次 + 150 分鐘)會核發一張炸雞券。**達標當下即發**,所以剛記完的這一筆
+就可能是讓它成立的那一次——那是這套系統最有感的一刻,不要讓它靜悄悄地過去。
+
+build 完跑一次:
+
+```bash
+node scripts/list_coupons.js Monkey
+```
+
+`available` 裡若有一張券的 `earned_on` **正好是這次記錄的日期**,就是這次賺到的,在回覆裡講明:
+
+```
+🍗 本週 quest 達標,拿到一張炸雞券,目前有 3 張可用。
+```
+
+沒有就不用提。券的使用另見 `.claude/skills/use-coupon/`。
 
 然後 commit 新的 JSON 和對應的 HTML(如果有改到 SKILL.md 的對照表,一起 commit),push。
 
