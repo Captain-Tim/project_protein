@@ -5,10 +5,20 @@
 
 ## 1. 目標與範圍
 
-Monkey 每達成一次 weekly quest,核發一張**炸雞券**。頁面上加一個**票券夾**,顯示目前有幾張可用、
-哪些已經用掉(蓋 `USED` 戳記)。
+Monkey 每達成一次 weekly quest,核發一張**炸雞券**。券累積在一個**票券夾**裡,可用的隨時看得到,
+用掉的蓋上 `USED` 戳記留著當紀錄。
 
 **範圍**:只有 Monkey。`dashboard-captain.html` 與 `data/Captain/` 完全不動,達標判定也只看 Monkey 自己的成績。
+
+### 兩個頁面
+
+| 檔案 | 角色 |
+|---|---|
+| `dashboard-monkey.html` | 只放**入口卡**:可用張數 + 最近一張的取得日 + 進入連結 |
+| `wallet-monkey.html` | 票券夾本體:`AVAILABLE` / `USED` 兩個 tab,完整清單 |
+
+券會一直累積,清單放 dashboard 上會把每天要看的東西(PR 榜、配速、熱力圖)推到很下面——
+20 張券時票券夾在手機上高 1118px,PR 榜被推到 1521px 處。所以清單獨立成頁,dashboard 只留張數。
 
 ## 2. 獎勵規則
 
@@ -63,11 +73,23 @@ const REWARD_START_WEEK = "2026-07-27";
 
 ### 注入頁面
 
-ledger 由 build 腳本注入 `dashboard-monkey.html` 的 `/*REWARDS_DATA_START*/`…`/*REWARDS_DATA_END*/`
-標記區塊,規則與 `WORKOUT_DATA` 相同——**只能由腳本改寫**。
+ledger 由 build 腳本注入 `/*REWARDS_DATA_START*/`…`/*REWARDS_DATA_END*/` 標記區塊,規則與
+`WORKOUT_DATA` 相同——**只能由腳本改寫**。
 
-`dashboard-captain.html` 沒有這個標記區塊,`data/Captain/rewards/` 也不存在。兩者缺席時腳本靜默跳過,
-不報錯。
+`wallet-monkey.html` 是自含檔,但**主題與規則都不自己寫一份**,由 build 從 `dashboard-monkey.html`
+複製過去:
+
+| 標記區塊 | 來源 | 理由 |
+|---|---|---|
+| `/*THEME_START*/`…`/*THEME_END*/` | dashboard 的 `:root { … }` | 配色改一次兩頁一起變 |
+| `/*METRICS_START*/`…`/*METRICS_END*/` | dashboard 的 `<script id="metrics">` | 達標規則只有一份來源 |
+| `WORKOUT_DATA` / `REWARDS_DATA` | 同 dashboard | 同一份資料 |
+
+版面與元件樣式(卡片、tab、券的外觀)才是各頁自己的。
+
+`dashboard-captain.html` 沒有 REWARDS 標記區塊,`data/Captain/rewards/` 與 `wallet-captain.html`
+也都不存在。缺席時腳本靜默跳過,不報錯。**唯一的例外**:ledger 存在但頁面沒有標記區塊會 exit 1,
+免得資料被無聲忽略。
 
 ## 4. 驗證規則
 
@@ -111,9 +133,24 @@ ledger,與「今天是幾號」無關。
 
 ## 6. 頁面呈現
 
-Monkey 頁新增票券夾卡片:可用張數的大數字 + 券列表,已使用的蓋 `USED` 戳記並顯示 `used_on`。
+### 入口卡(dashboard-monkey.html)
 
-版面、配色、卡片位置、手機版排序、券變多之後已使用項目的收合方式,另行定案。
+接在 WEEKLY QUEST 下面——券是 quest 的產物,因果相連,手機第一屏內看得到。整張卡是連往票券夾的連結。
+
+- 可用張數的大數字 + `LATEST <取得日> · <n> USED`
+- 一張券都沒有時改顯示 `Complete a weekly quest to earn your first coupon`
+
+### 票券夾(wallet-monkey.html)
+
+- 頁首:`‹ MONKEY` 返回連結、標題、`<n> EARNED · <n> AVAILABLE · <n> USED`
+- 兩個 tab:`AVAILABLE` / `USED`,各自帶張數,預設 `AVAILABLE`
+- 一張券一列:🍗 票根 + 撕線虛線 + `EARNED <取得日>`,已使用的多一個 `note`
+  - 已使用:整列灰階 + 內容淡化,右邊一枚紅框 `USED <日期>` 戳記
+  - 可用的券**不放狀態標籤**——列是亮的就代表可用,標籤留給戳記才有意義
+- 手機一欄一張,桌機 `auto-fill` 補成多欄,免得每列右邊空一大片
+- note 過長時省略,**日期不換行**
+
+兩個 tab 分開的理由:可用的是要行動的資訊,已使用的是歷史,混在一起兩邊都難掃。
 
 ## 7. 明確排除
 

@@ -60,6 +60,7 @@ const rewardsRe = /\/\*REWARDS_DATA_START\*\/[\s\S]*?\/\*REWARDS_DATA_END\*\//;
 const ledgerPath = path.join(dir, "rewards", "redemptions.json");
 const hasLedger = fs.existsSync(ledgerPath);
 let couponSummary = null;
+let ledger = [];
 
 if (!rewardsRe.test(html) && hasLedger) {
   console.error("[!] " + ledgerPath + " 存在,但 " + path.basename(dashPath) + " 沒有 REWARDS 標記區塊,資料會被無聲忽略");
@@ -67,8 +68,8 @@ if (!rewardsRe.test(html) && hasLedger) {
 }
 
 if (rewardsRe.test(html)) {
-  const redemptions = hasLedger ? JSON.parse(fs.readFileSync(ledgerPath, "utf8")) : [];
-  if (!Array.isArray(redemptions)) {
+  ledger = hasLedger ? JSON.parse(fs.readFileSync(ledgerPath, "utf8")) : [];
+  if (!Array.isArray(ledger)) {
     console.error("[!] " + ledgerPath + " 必須是一個陣列");
     process.exit(1);
   }
@@ -79,7 +80,7 @@ if (rewardsRe.test(html)) {
   new Function("window", block[1])(win);
   const M = win.MonkeyMetrics;
 
-  const result = M.coupons(M.buildDayRuns(sessions).runs, redemptions);
+  const result = M.coupons(M.buildDayRuns(sessions).runs, ledger);
   if (result.problems.length) {
     console.error(
       "[!] " + person + " 的炸雞券使用紀錄對不上,中止 build:\n  " +
@@ -88,17 +89,46 @@ if (rewardsRe.test(html)) {
     process.exit(1);
   }
 
-  html = html.replace(rewardsRe, "/*REWARDS_DATA_START*/window.REWARDS_DATA=" + JSON.stringify(redemptions) + ";/*REWARDS_DATA_END*/");
+  html = html.replace(rewardsRe, "/*REWARDS_DATA_START*/window.REWARDS_DATA=" + JSON.stringify(ledger) + ";/*REWARDS_DATA_END*/");
   couponSummary = { available: result.available, used: result.used };
 }
 
 fs.writeFileSync(dashPath, html, "utf8");
+
+// 票券夾獨立頁(目前只有 Monkey 有)。它是自含檔,但主題 token 與指標邏輯一律從 dashboard 複製,
+// 不在那邊自己寫一份——顏色改一次兩頁一起變,達標規則也只有一份來源。
+const walletPath = path.join(root, "wallet-" + person.toLowerCase() + ".html");
+const injectedInto = [path.basename(dashPath)];
+
+if (fs.existsSync(walletPath)) {
+  const theme = html.match(/:root\s*\{[\s\S]*?\}/);
+  const metrics = html.match(/<script id="metrics">([\s\S]*?)<\/script>/);
+  if (!theme) throw new Error(path.basename(dashPath) + " 找不到 :root 主題區塊");
+  if (!metrics) throw new Error(path.basename(dashPath) + ' 找不到 <script id="metrics"> 區塊');
+
+  const parts = [
+    [/\/\*THEME_START\*\/[\s\S]*?\/\*THEME_END\*\//, "/*THEME_START*/\n" + theme[0] + "\n/*THEME_END*/"],
+    [/\/\*METRICS_START\*\/[\s\S]*?\/\*METRICS_END\*\//, "/*METRICS_START*/" + metrics[1] + "/*METRICS_END*/"],
+    [re, "/*WORKOUT_DATA_START*/window.WORKOUT_DATA=" + JSON.stringify(payload) + ";/*WORKOUT_DATA_END*/"],
+    [rewardsRe, "/*REWARDS_DATA_START*/window.REWARDS_DATA=" + JSON.stringify(ledger) + ";/*REWARDS_DATA_END*/"],
+  ];
+
+  let wallet = fs.readFileSync(walletPath, "utf8");
+  parts.forEach(([pattern, replacement]) => {
+    if (!pattern.test(wallet)) {
+      throw new Error(path.basename(walletPath) + " 找不到標記區塊 " + pattern + ",中止以免誤改版面");
+    }
+    wallet = wallet.replace(pattern, replacement);
+  });
+  fs.writeFileSync(walletPath, wallet, "utf8");
+  injectedInto.push(path.basename(walletPath));
+}
 
 console.log(
   JSON.stringify({
     person,
     sessions: sessions.length,
     coupons: couponSummary,
-    injectedInto: path.basename(dashPath),
+    injectedInto,
   })
 );
