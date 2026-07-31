@@ -42,11 +42,9 @@ if (problems.length) {
   process.exit(1);
 }
 
-const payload = {
-  generated_at: new Date().toISOString(),
-  session_count: sessions.length,
-  sessions,
-};
+// 只放頁面真的會讀的東西。曾經有 generated_at,但沒有任何頁面用它,
+// 唯一的效果是每跑一次 build 就讓 HTML 變成 modified,真正的改動被假 diff 淹掉。
+const payload = { sessions };
 
 let html = fs.readFileSync(dashPath, "utf8");
 const re = /\/\*WORKOUT_DATA_START\*\/[\s\S]*?\/\*WORKOUT_DATA_END\*\//;
