@@ -7,6 +7,7 @@ on:
       - 'data/**'
       - 'dashboard-captain.html'
       - 'dashboard-monkey.html'
+      - 'wallet-monkey.html'
       - 'profile/**'
       - 'scripts/build_dashboard.js'
       - '.github/workflows/pages.yml'
@@ -34,11 +35,13 @@ jobs:
       - run: node scripts/build_dashboard.js Monkey
       # Pages 上只有 _site 裡的東西。Captain 頁同時當首頁(index.html),
       # 也保留原檔名(已分享出去的 dashboard-captain.html 連結不會壞)。
+      # 頁面之間有連結,漏抄任何一個就是線上 404——新增頁面時這裡一定要跟著加。
       - run: |
           mkdir -p _site
           cp dashboard-captain.html _site/index.html
           cp dashboard-captain.html _site/dashboard-captain.html
           cp dashboard-monkey.html _site/
+          cp wallet-monkey.html _site/
           cp -r profile _site/
       - uses: actions/upload-pages-artifact@v3
         with:
