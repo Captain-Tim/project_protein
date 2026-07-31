@@ -19,13 +19,13 @@ node -e 'const fs=require("fs");const h=fs.readFileSync("dashboard-captain.html"
 
 ## 用 headless Chrome 看實際渲染結果
 
-**Chrome 在 `Program Files (x86)`,不是 `Program Files`。**
+**Chrome 在 `Program Files`。** 找不到就先 `ls` 兩個路徑確認,不要照抄。
 
 複製成 `_t.html`(已 gitignore),在 `</body>` 前注入探針把要看的數字寫進 `document.title`,
 `--dump-dom` 之後 grep `<title>`,看完刪掉 `_t.html`:
 
 ```bash
-"/c/Program Files (x86)/Google/Chrome/Application/chrome.exe" --headless --disable-gpu \
+"/c/Program Files/Google/Chrome/Application/chrome.exe" --headless --disable-gpu \
   --dump-dom "file:///<repo>/_t.html" | grep -oE "<title>.*</title>"
 ```
 
@@ -35,7 +35,7 @@ node -e 'const fs=require("fs");const h=fs.readFileSync("dashboard-captain.html"
 也可以直接截圖看:
 
 ```bash
-"/c/Program Files (x86)/Google/Chrome/Application/chrome.exe" --headless --disable-gpu \
+"/c/Program Files/Google/Chrome/Application/chrome.exe" --headless --disable-gpu \
   --window-size=1200,1400 --screenshot="out.png" "file:///<repo>/dashboard-monkey.html"
 ```
 
@@ -63,7 +63,7 @@ document.getElementById("f").addEventListener("load", function () {
 ```
 
 ```bash
-"/c/Program Files (x86)/Google/Chrome/Application/chrome.exe" --headless --disable-gpu \
+"/c/Program Files/Google/Chrome/Application/chrome.exe" --headless --disable-gpu \
   --allow-file-access-from-files --virtual-time-budget=3000 \
   --dump-dom "file:///<repo>/_t.html" | grep -oE "<title>.*</title>"
 ```
