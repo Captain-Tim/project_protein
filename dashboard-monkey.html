@@ -682,9 +682,13 @@
   const q = M.currentQuest(runs, TODAY);
   const G = M.WEEKLY_GOAL;
   // 弧線從 --accent-dim 沿圓弧掃到 --accent(跟 WEEKLY DISTANCE 的長條同一套配色語彙),剩下的填 --border
+  // 對稱漸層:亮 → 暗 → 亮。單向漸層(暗→亮)在 100% 時,弧的起點與終點在 12 點鐘相接,
+  // 最暗會直接撞上最亮而露出一道硬邊;頭尾同色就沒有這個接縫。
   const ringStyle = (pct) => {
     const p = (pct * 100).toFixed(1);
-    return "background:conic-gradient(var(--accent-dim) 0, var(--accent) " + p + "%, var(--border) " + p + "% 100%)";
+    const mid = (pct * 50).toFixed(1);
+    return "background:conic-gradient(var(--accent) 0, var(--accent-dim) " + mid +
+      "%, var(--accent) " + p + "%, var(--border) " + p + "% 100%)";
   };
   el("quest").innerHTML =
     '<div style="display:flex;justify-content:space-between;align-items:baseline">' +
