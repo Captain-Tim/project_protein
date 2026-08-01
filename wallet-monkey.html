@@ -510,17 +510,17 @@
     '<button class="tab' + (i === 0 ? " on" : "") + '" data-view="' + v.key + '">' +
       v.label + " " + v.list.length + "</button>").join("");
 
-  // reason 與 note 都是人寫的自由文字,直接塞進 HTML 會被標籤字元弄壞版面
+  // note 是人寫的自由文字,直接塞進 HTML 會被標籤字元弄壞版面
   const esc = (s) => String(s).replace(/[&<>"]/g, (ch) =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[ch]);
 
+  // 核發理由只留在 grants.json 裡當稽核用,不畫在券上
   const row = (c) =>
     '<div class="cpn' + (c.status === "used" ? " used" : "") + (c.kind === "special" ? " special" : "") + '">' +
       '<div class="stub">🍗</div>' +
       '<div class="body"><span class="lbl">EARNED</span>' +
         '<span class="num" style="font-size:13px">' + c.earned_on + "</span>" +
         (c.kind === "special" ? '<span class="badge">SPECIAL</span>' : "") +
-        (c.reason ? '<span class="note">' + esc(c.reason) + "</span>" : "") +
         (c.note ? '<span class="note">' + esc(c.note) + "</span>" : "") +
       "</div>" +
       (c.status === "used" ? '<div class="stamp">USED ' + c.used_on.slice(5) + "</div>" : "") +
