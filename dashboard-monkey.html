@@ -663,11 +663,12 @@
           '<div><div class="v' + (q.minutesPct >= 1 ? " lime" : "") + '">' + Math.round(q.minutesPct * 100) + "%</div>" +
           '<div class="lbl" style="font-size:9px">TIME</div></div></div>' +
         '<div><div class="lbl">TIME · GOAL ' + G.minutes + " MIN</div>" +
-          '<div style="font-size:15px;font-weight:700"><span class="num">' + q.minutes + "</span>" +
+          // 分鐘數是浮點數加總出來的,直接印會冒出 19.30000000000001 這種殘渣
+          '<div style="font-size:15px;font-weight:700"><span class="num">' + round1(q.minutes) + "</span>" +
           '<span style="color:var(--muted);font-size:12px"> / ' + G.minutes + " min</span></div>" +
           (q.minutesPct >= 1
             ? ""
-            : '<div style="font-size:11px;color:var(--muted);margin-top:2px">' + (G.minutes - q.minutes) + " min to go</div>") +
+            : '<div style="font-size:11px;color:var(--muted);margin-top:2px">' + round1(G.minutes - q.minutes) + " min to go</div>") +
         "</div>" +
       "</div>" +
       '<div class="qsep"></div>' +
