@@ -2,6 +2,14 @@
   "date": "2026-07-31",
   "type": "Cardio",
   "strength": [],
-  "cardio": [{ "exercise": "Running", "duration_min": 30, "distance_km": 3.2 }],
+  "cardio": [
+    {
+      "exercise": "Running",
+      "duration_min": 30,
+      "distance_km": 3.2,
+      "incline_pct": 0,
+      "calories_kcal": 248
+    }
+  ],
   "note": null
 }
