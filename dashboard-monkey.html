@@ -738,10 +738,8 @@
     '<div style="display:flex;align-items:baseline;gap:14px;margin-top:2px;flex-wrap:wrap">' +
       '<div class="num lime" style="font-size:26px">' + wallet.available +
         ' <span class="lbl" style="font-size:11px">AVAILABLE</span></div>' +
-      '<div class="lbl">' +
-        (latest ? "LATEST " + latest.earned_on + " · " + wallet.used + " USED"
-                : "Complete a weekly quest to earn your first coupon") +
-      "</div>" +
+      // 一張券都沒有時才給一句提示,否則入口卡只剩一個孤零零的 0
+      (latest ? "" : '<div class="lbl">Complete a weekly quest to earn your first coupon</div>') +
     "</div>";
 
   // PR 榜
