@@ -19,10 +19,12 @@ const root = path.join(__dirname, "..");
 const dir = path.join(root, "data", person);
 const dashPath = path.join(root, "dashboard-" + person.toLowerCase() + ".html");
 const ledgerPath = path.join(dir, "rewards", "redemptions.json");
+const grantsPath = path.join(dir, "rewards", "grants.json");
 
 const files = fs.existsSync(dir) ? fs.readdirSync(dir).filter((f) => f.endsWith(".json")) : [];
 const sessions = files.map((f) => JSON.parse(fs.readFileSync(path.join(dir, f), "utf8")));
 const ledger = fs.existsSync(ledgerPath) ? JSON.parse(fs.readFileSync(ledgerPath, "utf8")) : [];
+const grants = fs.existsSync(grantsPath) ? JSON.parse(fs.readFileSync(grantsPath, "utf8")) : [];
 
 const html = fs.readFileSync(dashPath, "utf8");
 const block = html.match(/<script id="metrics">([\s\S]*?)<\/script>/);
@@ -34,7 +36,7 @@ if (!M || !M.coupons) {
   process.exit(1);
 }
 
-const result = M.coupons(M.buildDayRuns(sessions).runs, ledger);
+const result = M.coupons(M.buildDayRuns(sessions).runs, ledger, grants);
 console.log(JSON.stringify({
   person,
   available: result.coupons.filter((c) => c.status === "available"),
