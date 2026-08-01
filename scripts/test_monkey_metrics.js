@@ -404,3 +404,80 @@ test("炸雞券:沒有資料 / redemptions 傳 null 都不會炸", () => {
   assert.equal(c.available, 0);
   assert.deepEqual(c.problems, []);
 });
+
+test("炸雞券:達標券的 id 是 quest:<week_start>,kind 是 quest", () => {
+  const c = M.coupons(days(GOAL_WEEK), []);
+  assert.equal(c.coupons[0].id, "quest:2026-08-03");
+  assert.equal(c.coupons[0].kind, "quest");
+  assert.equal(c.coupons[0].reason, null);
+});
+
+// ── 特別券(手動核發)──────────────────────────────────────────────────
+const GRANT = { id: "special:2026-08-01-launch", granted_on: "2026-08-01", reason: "系統上線" };
+
+test("特別券:沒達標也發得出來,kind 是 special 並帶 reason", () => {
+  const c = M.coupons([], [], [GRANT]);
+  assert.equal(c.coupons.length, 1);
+  assert.equal(c.coupons[0].id, GRANT.id);
+  assert.equal(c.coupons[0].kind, "special");
+  assert.equal(c.coupons[0].earned_on, "2026-08-01");
+  assert.equal(c.coupons[0].reason, "系統上線");
+  assert.equal(c.coupons[0].week_start, null);
+  assert.equal(c.available, 1);
+  assert.deepEqual(c.problems, []);
+});
+
+test("特別券:不綁週,同一週的達標券照樣會另外發一張", () => {
+  // 特別券發在 08-01;GOAL_WEEK 的達標券在 08-03 那一週,兩張要並存
+  const c = M.coupons(days(GOAL_WEEK), [], [GRANT]);
+  assert.equal(c.coupons.length, 2);
+  assert.deepEqual(c.coupons.map((x) => x.kind), ["quest", "special"]); // 新的在前
+  assert.equal(c.available, 2);
+});
+
+test("特別券:grant 缺 id / granted_on / reason -> 進 problems,不發券", () => {
+  const c = M.coupons([], [], [
+    { granted_on: "2026-08-01", reason: "x" },
+    { id: "special:a", reason: "x" },
+    { id: "special:b", granted_on: "2026-08-01" },
+  ]);
+  assert.equal(c.problems.length, 3);
+  assert.deepEqual(c.coupons, []);
+});
+
+test("特別券:id 不可冒充達標券", () => {
+  const c = M.coupons(days(GOAL_WEEK), [], [
+    { id: "quest:2026-08-03", granted_on: "2026-08-01", reason: "想蓋掉達標券" },
+  ]);
+  assert.equal(c.problems.length, 1);
+  assert.equal(c.coupons.length, 1); // 原本那張達標券沒被動到
+  assert.equal(c.coupons[0].kind, "quest");
+});
+
+test("特別券:重複的 id -> 第二筆進 problems", () => {
+  const c = M.coupons([], [], [GRANT, { ...GRANT, reason: "重複" }]);
+  assert.equal(c.coupons.length, 1);
+  assert.equal(c.coupons[0].reason, "系統上線");
+  assert.equal(c.problems.length, 1);
+});
+
+test("特別券:可以用 id 兌換,規則跟達標券一樣", () => {
+  const c = M.coupons([], [{ id: GRANT.id, used_on: "2026-08-02", note: "鹹酥雞" }], [GRANT]);
+  assert.equal(c.coupons[0].status, "used");
+  assert.equal(c.coupons[0].note, "鹹酥雞");
+  assert.equal(c.used, 1);
+  assert.deepEqual(c.problems, []);
+});
+
+test("特別券:used_on 早於發券日 -> 進 problems,券維持可用", () => {
+  const c = M.coupons([], [{ id: GRANT.id, used_on: "2026-07-31" }], [GRANT]);
+  assert.equal(c.problems.length, 1);
+  assert.equal(c.coupons[0].status, "available");
+});
+
+test("炸雞券:使用紀錄指向不存在的券 -> 進 problems", () => {
+  const c = M.coupons([], [{ id: "special:nope", used_on: "2026-08-02" }], [GRANT]);
+  assert.equal(c.problems.length, 1);
+  assert.equal(c.problems[0].reason, "no such coupon");
+  assert.equal(c.coupons[0].status, "available");
+});
