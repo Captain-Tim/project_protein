@@ -70,6 +70,8 @@
   /* 特別券:人工核發的,用金色跟達標券(綠)分開,並掛一枚 SPECIAL 讓來源一眼看得出來 */
   .cpn.special { border-color: color-mix(in srgb, var(--streak) 55%, var(--border)); }
   .cpn.special .stub { border-right-color: color-mix(in srgb, var(--streak) 60%, transparent); }
+  /* 徽章是 .cpn 的直接子元素(不在 .body 裡),.body 撐開後它自然貼在最右邊、USED 戳記之前 */
+  .cpn.used .badge { opacity: .55; }
   .cpn .badge { flex: 0 0 auto; font-family: Consolas, ui-monospace, monospace;
     font-size: 9px; font-weight: 800; letter-spacing: .8px; white-space: nowrap;
     padding: 2px 7px; border-radius: 999px; color: var(--streak);
@@ -520,9 +522,10 @@
       '<div class="stub">🍗</div>' +
       '<div class="body"><span class="lbl">EARNED</span>' +
         '<span class="num" style="font-size:13px">' + c.earned_on + "</span>" +
-        (c.kind === "special" ? '<span class="badge">SPECIAL</span>' : "") +
         (c.note ? '<span class="note">' + esc(c.note) + "</span>" : "") +
       "</div>" +
+      // 徽章要放在 .body 外面:.body 有 overflow:hidden,長 note 會把徽章擠出去而被裁掉
+      (c.kind === "special" ? '<span class="badge">SPECIAL</span>' : "") +
       (c.status === "used" ? '<div class="stamp">USED ' + c.used_on.slice(5) + "</div>" : "") +
     "</div>";
 
