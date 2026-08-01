@@ -841,6 +841,9 @@
           "<div><b>" + c.distance_km + "</b><span>KM</span></div>" +
           "<div><b>" + fmtPace(c.duration_min, c.distance_km) + "</b><span>MIN/KM</span></div>" +
           (c.avg_hr_bpm ? "<div><b>" + c.avg_hr_bpm + "</b><span>BPM</span></div>" : "") +
+          // 坡度 0 是有效的實測值,所以看欄位在不在,不要看值真不真
+          (c.incline_pct != null ? "<div><b>" + c.incline_pct + "</b><span>% INCLINE</span></div>" : "") +
+          (c.calories_kcal != null ? "<div><b>" + c.calories_kcal + "</b><span>KCAL</span></div>" : "") +
         "</div>";
         if (c.note) h += '<div class="dcNote">' + esc(c.note) + "</div>";
         h += "</div>";
