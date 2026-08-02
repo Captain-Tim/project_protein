@@ -123,8 +123,13 @@ node scripts/build_dashboard.js Monkey    # -> dashboard-monkey.html + wallet-mo
 - `used_on` 早於該張券的取得日
 - grant 缺 `id` / `granted_on` / `reason`、`id` 重複、或 `id` 用了 `quest:` 開頭
 
-然後 commit ledger 和兩個 HTML,push。
+## 送出:推分支保存,但**不要自己 merge**
 
-- push 到 `master` 成功 → 告訴使用者 GitHub Actions 正在部署,約 30-60 秒後
-  https://captain-tim.github.io/project_protein/ 就是最新的。
-- 環境限制只能推到自己的分支 → **開 PR(base `master`)→ 直接 merge**,做法與 `log-workout` 相同。
+規則與 `log-workout` 相同:
+
+- **commit + push 到自己的分支** —— 做完就做,不用問。推分支不會讓任何東西上線。
+- **開 PR、merge** —— **一定要等使用者說**,那一步才是部署。
+
+push 完回報寫了什麼與 build 結果,然後停下來。使用者說要 merge 才開 PR(base `master`)、
+squash merge,並告訴使用者 GitHub Actions 正在部署,約 30-60 秒後
+https://captain-tim.github.io/project_protein/ 就是最新的。

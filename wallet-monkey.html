@@ -3,6 +3,14 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<!-- 票券夾不掛 manifest:manifest 的 start_url 指向 dashboard,掛在這裡會讓「安裝」後
+     開的是 dashboard 而不是這一頁。單獨加到主畫面時仍有圖示可用。 -->
+<link rel="apple-touch-icon" href="icons/monkey-180.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black" />
+<meta name="apple-mobile-web-app-title" content="🍗 Wallet" />
+<meta name="theme-color" content="#070708" />
 <title>Fried Chicken Wallet — Monkey</title>
 <style>
   /* 主題 token 由 build 從 dashboard-monkey.html 複製過來,請勿手改 START/END 之間 */

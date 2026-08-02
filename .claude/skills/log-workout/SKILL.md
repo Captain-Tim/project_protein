@@ -180,15 +180,24 @@ node scripts/list_coupons.js Monkey
 
 沒有就不用提。券的使用另見 `.claude/skills/use-coupon/`。
 
-然後 commit 新的 JSON 和對應的 HTML(如果有改到 SKILL.md 的對照表,一起 commit),push。
+## 送出:推分支保存,但**不要自己 merge**
 
-- push 到 `master` 成功 → 告訴使用者 GitHub Actions 正在部署,約 30-60 秒後
-  https://captain-tim.github.io/project_protein/ 就是最新的。
-- 環境限制只能推到自己的分支 → **開 PR(base `master`)→ 直接 merge**:
-  1. `mcp__github__create_pull_request`(owner `Captain-Tim`、repo `project_protein`、
-     head 自己的分支、base `master`)開 PR。
-  2. 開好後用 `mcp__github__merge_pull_request`(`merge_method: squash`)直接 merge——
-     這個環境有 merge 權限,不用叫使用者自己點。
-  3. merge 成功後告訴使用者 GitHub Actions 正在部署,約 30-60 秒後
-     https://captain-tim.github.io/project_protein/ 就是最新的。
-  merge 若被擋(權限、衝突、CI)才回頭請使用者手動處理,並說明卡在哪。
+部署只發生在 merge 進 `master` 的那一刻。推到自己的分支不會讓任何東西上線,
+所以這兩件事要分開看:
+
+1. **commit + push 到自己的分支** —— 做完就做,不用問。
+   容器是暫時的,沒推出去的東西會跟著被回收,只在本地 commit 也救不回來。
+2. **開 PR、merge** —— **一定要等使用者說**。這一步等於部署,時機是使用者的決定,不是你的。
+
+push 完回報寫了什麼、build 與測試結果,然後停下來。
+一次小改動就跑完一輪部署會把紀錄切得很碎,也讓使用者失去對「什麼時候上線」的控制。
+
+使用者說要 merge 之後:
+
+1. `mcp__github__create_pull_request`(owner `Captain-Tim`、repo `project_protein`、
+   head 自己的分支、base `master`)開 PR。
+2. `mcp__github__merge_pull_request`(`merge_method: squash`)merge——這個環境有 merge 權限。
+3. merge 成功後告訴使用者 GitHub Actions 正在部署,約 30-60 秒後
+   https://captain-tim.github.io/project_protein/ 就是最新的。
+
+merge 若被擋(權限、衝突、CI)就回頭請使用者處理,並說明卡在哪。
