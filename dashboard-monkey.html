@@ -3,12 +3,10 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<!-- 加到主畫面:iOS 靠 apple-* 這幾個,Android 靠 manifest。狀態列用不透明的 black,
+<!-- 加到主畫面(只做 iOS,不支援 Android,所以沒有 manifest)。狀態列用不透明的 black,
      black-translucent 會讓內容鑽到狀態列底下,把 header 壓掉。 -->
 <link rel="apple-touch-icon" href="icons/monkey-180.png" />
-<link rel="manifest" href="manifest-monkey.json" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black" />
 <meta name="apple-mobile-web-app-title" content="Monkey" />
 <meta name="theme-color" content="#070708" />
