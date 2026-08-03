@@ -117,7 +117,10 @@ if (fs.existsSync(walletPath)) {
   if (!metrics) throw new Error(path.basename(dashPath) + ' 找不到 <script id="metrics"> 區塊');
 
   const parts = [
-    [/\/\*THEME_START\*\/[\s\S]*?\/\*THEME_END\*\//, "/*THEME_START*/\n" + theme[0] + "\n/*THEME_END*/"],
+    // 不要自己加換行:硬寫的 \n 會在 CRLF 的檔案裡混進兩行純 LF,
+    // git 每次 build 後都會把這個檔標成已修改,但 diff 又是空的。
+    // 換行一律沿用來源檔既有的格式。
+    [/\/\*THEME_START\*\/[\s\S]*?\/\*THEME_END\*\//, "/*THEME_START*/" + theme[0] + "/*THEME_END*/"],
     [/\/\*METRICS_START\*\/[\s\S]*?\/\*METRICS_END\*\//, "/*METRICS_START*/" + metrics[1] + "/*METRICS_END*/"],
     [re, "/*WORKOUT_DATA_START*/window.WORKOUT_DATA=" + JSON.stringify(payload) + ";/*WORKOUT_DATA_END*/"],
     [rewardsRe, "/*REWARDS_DATA_START*/window.REWARDS_DATA=" + JSON.stringify({ redemptions: ledger, grants: grants }) + ";/*REWARDS_DATA_END*/"],
