@@ -143,9 +143,22 @@
   }
   #nextCoupon .chick { font-size: 17px; line-height: 1; display: inline-block;
     animation: chickWaddle .79s ease-in-out infinite; }
-  @media (prefers-reduced-motion: reduce) { #nextCoupon .chick { animation: none; } }
   #nextCoupon.done { border-color: var(--accent); box-shadow: 0 0 18px rgba(201, 242, 77, .22); }
   #nextCoupon.done .v { color: var(--accent); }
+  /* 達標之後:雞腿發光,兩側的星星交錯閃 */
+  @keyframes twinkle {
+    0%, 100% { opacity: .25; transform: scale(.8); }
+    50%      { opacity: 1; transform: scale(1.15); }
+  }
+  #nextCoupon .joy { display: flex; align-items: center; gap: 4px; }
+  #nextCoupon .joy .d { font-size: 20px; line-height: 1;
+    filter: drop-shadow(0 0 7px rgba(201, 242, 77, .8)); }
+  #nextCoupon .joy .s { font-size: 12px; line-height: 1; display: inline-block;
+    animation: twinkle 1.4s ease-in-out infinite; }
+  #nextCoupon .joy .s:last-child { animation-delay: .63s; }
+  @media (prefers-reduced-motion: reduce) {
+    #nextCoupon .chick, #nextCoupon .joy .s { animation: none; }
+  }
 
   .pr { flex: 1 1 0; min-width: 0; text-align: center; padding: 16px 10px; background: var(--card);
     border: 1px solid var(--border); border-radius: 16px; position: relative; }
@@ -775,11 +788,12 @@
   const thisWeekCoupon = wallet.coupons.find((c) => c.week_start === q.weekStart);
   const gaps = [];
   if (q.runs < G.runs) gaps.push(plural(G.runs - q.runs, "MORE RUN"));
-  if (q.minutes < G.minutes) gaps.push(Math.round((G.minutes - q.minutes) * 10) / 10 + " MIN");
+  if (q.minutes < G.minutes) gaps.push(round1(G.minutes - q.minutes) + " MIN");
   el("nextCoupon").className = "card" + (thisWeekCoupon ? " done" : "");
   el("nextCoupon").innerHTML = thisWeekCoupon
     ? '<div class="lbl">🍗 COUPON EARNED</div>' +
-      '<div class="line"><div class="v num">' + thisWeekCoupon.earned_on + "</div></div>"
+      '<div class="line"><div class="v num">' + thisWeekCoupon.earned_on + "</div>" +
+      '<span class="joy"><span class="s">✨</span><span class="d">🍗</span><span class="s">✨</span></span></div>'
     : '<div class="lbl">🍗 NEXT COUPON</div>' +
       '<div class="line"><div class="v">' + (gaps.length ? gaps.join(" + ") : "—") + "</div>" +
       '<span class="chick">🐔</span></div>';
