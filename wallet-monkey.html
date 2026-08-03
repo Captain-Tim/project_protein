@@ -81,6 +81,51 @@
     padding: 2px 7px; border-radius: 999px; color: var(--streak);
     border: 1px solid color-mix(in srgb, var(--streak) 55%, transparent); background: var(--streak-bg); }
 
+  /* 今天剛拿到的券:外圍光暈一亮一暗,券本身完全不動。
+     顏色跟著券自己走——達標券綠、特別券金,不要硬寫死一種。
+     CSS 沒有「每次重複之間留白」這種屬性,所以停頓做進 keyframes 的百分比:
+     上升 1200ms(→41.38%)、下降 900ms(→72.41%),剩下的 800ms 全暗。 */
+  .cpn { --glow: 201, 242, 77; }
+  .cpn.special { --glow: 255, 182, 72; }
+  @keyframes couponGlow {
+    0%     { box-shadow: 0 0 0 0 rgba(var(--glow), 0); }
+    41.38% { box-shadow: 0 0 61px 11px rgba(var(--glow), .5); }
+    72.41% { box-shadow: 0 0 0 0 rgba(var(--glow), 0); }
+    100%   { box-shadow: 0 0 0 0 rgba(var(--glow), 0); }
+  }
+  .cpn.fresh { animation: couponGlow 2900ms linear infinite; }
+
+  /* 使用一張券:USED 戳記從大縮小砸下,券跟著震一下。
+     這只是演出——ledger 沒動,重新整理就回到可用。真正生效要跑 use-coupon。 */
+  .cpn.tapable { cursor: pointer; }
+  @keyframes couponSlam {
+    0%   { opacity: 0; transform: scale(4.32) rotate(-26deg); }
+    65%  { opacity: 1; transform: scale(.9) rotate(-6deg); }
+    100% { opacity: 1; transform: scale(1) rotate(0deg); }
+  }
+  @keyframes couponJolt {
+    0%, 100% { transform: translateX(0); }
+    30%      { transform: translateX(-7px); }
+    70%      { transform: translateX(7px); }
+  }
+  .cpn.go { animation: couponJolt 260ms ease-out 234ms both; }
+  .cpn.go .stamp { animation: couponSlam 312ms cubic-bezier(.3, 1.5, .5, 1) both; }
+
+  /* 就地確認:券上直接浮出 USE? */
+  .ask { position: absolute; inset: 0; border-radius: inherit; display: flex; align-items: center;
+    justify-content: center; gap: 10px; background: rgba(10, 11, 12, .82);
+    backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
+    font-size: 11px; font-weight: 800; letter-spacing: 1px; animation: askIn .16s ease-out; }
+  @keyframes askIn { from { opacity: 0; } to { opacity: 1; } }
+  .ask button { font: inherit; font-size: 12px; cursor: pointer; border-radius: 99px;
+    padding: 3px 12px; background: transparent; }
+  .ask .yes { color: #0a0b0c; background: var(--accent); border: 1px solid var(--accent); }
+  .ask .no { color: var(--muted); border: 1px solid var(--border); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cpn.fresh, .cpn.go, .cpn.go .stamp, .ask { animation: none; }
+  }
+
   #empty { font-size: 12px; color: var(--muted); margin-top: 16px; text-align: center;
     padding: 24px 0; }
 
@@ -114,8 +159,8 @@
 /*REWARDS_DATA_START*/window.REWARDS_DATA={"redemptions":[],"grants":[{"id":"special:2026-08-01-launch","granted_on":"2026-08-01","reason":"炸雞系統上線 & 本週完成 3 次訓練"}]};/*REWARDS_DATA_END*/
 </script>
 
-<!-- 指標邏輯由 build 從 dashboard-monkey.html 的 <script id="metrics"> 複製進來。
-     規則只有一份來源,這裡不自己寫一份達標判定。 -->
+<!-- 指標邏輯由 build 從 dashboard-monkey.html 的 metrics 區塊複製進來(規則只有一份來源,
+     這裡不自己寫一份達標判定)。註解裡不要寫出完整的 script 標籤——會害掃描用的正則抓錯位置。 -->
 <script id="metricsSlot">/*METRICS_START*/
 "use strict";
 (function (w) {
@@ -500,29 +545,54 @@
   const available = wallet.coupons.filter((c) => c.status === "available");
   const used = wallet.coupons.filter((c) => c.status === "used");
 
-  el("totals").innerHTML =
-    '<span class="num lime" style="font-size:13px">' + wallet.coupons.length + "</span> EARNED · " +
-    '<span class="num lime" style="font-size:13px">' + wallet.available + "</span> AVAILABLE · " +
-    '<span class="num" style="font-size:13px">' + wallet.used + "</span> USED";
+  // 真實今天(本地時區)。今天拿到的券會發光,隔天就安靜。
+  const now = new Date();
+  const TODAY = now.getFullYear() + "-" +
+    String(now.getMonth() + 1).padStart(2, "0") + "-" +
+    String(now.getDate()).padStart(2, "0");
+
+  // 這次瀏覽中被「用掉」的券。純演出——ledger 沒動,重新整理就回到可用。
+  // 真正生效要由 Captain 跑 use-coupon,下次部署後才是真的。
+  const pending = new Set();
+
+  // 兩個清單都要把 pending 算進去,否則會出現「USED 1」但點進去是空的。
+  // 這樣頁面內自洽,看起來也跟之後真的寫進 ledger、重新部署完全一樣。
+  const availList = () => available.filter((c) => !pending.has(c.id));
+  const usedList = () => used.concat(available.filter((c) => pending.has(c.id)));
+
+  function renderTotals() {
+    el("totals").innerHTML =
+      '<span class="num lime" style="font-size:13px">' + wallet.coupons.length + "</span> EARNED · " +
+      '<span class="num lime" style="font-size:13px">' + availList().length + "</span> AVAILABLE · " +
+      '<span class="num" style="font-size:13px">' + usedList().length + "</span> USED";
+  }
 
   const VIEWS = [
-    { key: "available", label: "AVAILABLE", list: available,
-      empty: used.length ? "All coupons used — go earn another one" :
+    { key: "available", label: "AVAILABLE", list: availList,
+      empty: () => usedList().length ? "All coupons used — go earn another one" :
         "No coupons yet — complete a weekly quest to earn one" },
-    { key: "used", label: "USED", list: used, empty: "Nothing used yet" },
+    { key: "used", label: "USED", list: usedList, empty: () => "Nothing used yet" },
   ];
 
-  el("tabs").innerHTML = VIEWS.map((v, i) =>
-    '<button class="tab' + (i === 0 ? " on" : "") + '" data-view="' + v.key + '">' +
-      v.label + " " + v.list.length + "</button>").join("");
+  function renderTabs(active) {
+    el("tabs").innerHTML = VIEWS.map((v) =>
+      '<button class="tab' + (v.key === active ? " on" : "") + '" data-view="' + v.key + '">' +
+        v.label + " " + v.list().length + "</button>").join("");
+  }
 
   // note 是人寫的自由文字,直接塞進 HTML 會被標籤字元弄壞版面
   const esc = (s) => String(s).replace(/[&<>"]/g, (ch) =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[ch]);
 
   // 核發理由只留在 grants.json 裡當稽核用,不畫在券上
-  const row = (c) =>
-    '<div class="cpn' + (c.status === "used" ? " used" : "") + (c.kind === "special" ? " special" : "") + '">' +
+  const row = (c) => {
+    const spent = pending.has(c.id);
+    const isUsed = c.status === "used" || spent;
+    const stamp = spent ? TODAY.slice(5) : c.status === "used" ? c.used_on.slice(5) : null;
+    return '<div class="cpn' + (isUsed ? " used" : " tapable") +
+      (c.kind === "special" ? " special" : "") +
+      // 今天拿到、還沒用掉的券才發光
+      (!isUsed && c.earned_on === TODAY ? " fresh" : "") + '" data-id="' + esc(c.id) + '">' +
       '<div class="stub">🍗</div>' +
       '<div class="body"><span class="lbl">EARNED</span>' +
         '<span class="num" style="font-size:13px">' + c.earned_on + "</span>" +
@@ -530,15 +600,62 @@
       "</div>" +
       // 徽章要放在 .body 外面:.body 有 overflow:hidden,長 note 會把徽章擠出去而被裁掉
       (c.kind === "special" ? '<span class="badge">SPECIAL</span>' : "") +
-      (c.status === "used" ? '<div class="stamp">USED ' + c.used_on.slice(5) + "</div>" : "") +
+      // 可用的券不放戳記元素:opacity:0 仍然佔寬度,會把日期擠到被裁掉。
+      // 要用的時候再由 spend() 建立。
+      (isUsed ? '<div class="stamp">USED ' + stamp + "</div>" : "") +
     "</div>";
+  };
 
+  let currentView = "available";
   function render(key) {
+    currentView = key;
     const v = VIEWS.find((x) => x.key === key);
-    el("list").innerHTML = v.list.length
-      ? '<div class="cpnList">' + v.list.map(row).join("") + "</div>"
-      : '<div id="empty">' + v.empty + "</div>";
+    const list = v.list();
+    el("list").innerHTML = list.length
+      ? '<div class="cpnList">' + list.map(row).join("") + "</div>"
+      : '<div id="empty">' + v.empty() + "</div>";
   }
+
+  // 點券 -> 就地確認 -> 蓋章。這一段全是演出,不寫任何資料。
+  function ask(node, onYes) {
+    if (node.querySelector(".ask")) return;
+    const box = document.createElement("div");
+    box.className = "ask";
+    box.innerHTML = '<span>USE?</span><button class="yes">✓</button><button class="no">✗</button>';
+    node.appendChild(box);
+    box.addEventListener("click", (e) => {
+      const b = e.target.closest("button");
+      if (!b) return;
+      e.stopPropagation();
+      box.remove();
+      if (b.classList.contains("yes")) onYes();
+    });
+  }
+
+  function spend(node) {
+    node.classList.remove("fresh", "tapable");
+    const stamp = document.createElement("div");
+    stamp.className = "stamp";
+    stamp.textContent = "USED " + TODAY.slice(5);
+    stamp.style.opacity = 0;
+    node.appendChild(stamp);
+    void node.offsetWidth;
+    node.classList.add("go");
+    setTimeout(() => {
+      node.classList.add("used");
+      // 戳記的最終狀態自己設,不靠 animation-fill-mode——使用者若關掉動態效果,
+      // 動畫整個不跑,戳記就永遠不會出現。
+      stamp.style.opacity = 1;
+      pending.add(node.dataset.id);
+      renderTotals();
+      renderTabs(currentView);
+    }, 234);
+  }
+
+  el("list").addEventListener("click", (e) => {
+    const node = e.target.closest(".cpn.tapable");
+    if (node) ask(node, () => spend(node));
+  });
 
   el("tabs").addEventListener("click", (e) => {
     const b = e.target.closest(".tab");
@@ -547,6 +664,8 @@
     render(b.dataset.view);
   });
 
+  renderTotals();
+  renderTabs("available");
   render("available");
 
   // 資料有問題不靜默略過(build 已經會擋,這是最後一道)
