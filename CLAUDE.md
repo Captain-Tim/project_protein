@@ -16,8 +16,10 @@ Node 18+)。不要引入框架、圖表函式庫,也不要把腳本改寫成 Pyt
 - **推導得出的值不要存**(例如配速 = 時間 ÷ 距離),存了就會有跟來源數字互相矛盾的一天。
 - **HTML 裡所有 `/*…_START*/`…`/*…_END*/` 標記區塊只能由 build 腳本改寫**,禁止手動編輯其間內容
   (`WORKOUT_DATA`、`REWARDS_DATA`,以及 `wallet-monkey.html` 的 `THEME` 與 `METRICS`)。
-- **炸雞券只有「哪張被用掉」要存**。券本身由達標週推導,存了就會跟訓練資料互相矛盾。
-  使用紀錄對不上(幽靈券、重複使用、早於取得日)一律 exit 1,**去修資料,不要繞過**。
+- **炸雞券只存兩件推導不出來的事**:「哪張被用掉」(`redemptions.json`)和「手動發了哪些特別券」
+  (`grants.json`)。**達標券本身由達標週推導,不存**,存了就會跟訓練資料互相矛盾。
+  紀錄對不上(幽靈券、重複使用、早於取得日、grant 缺欄位或冒充 `quest:` id)一律 exit 1,
+  **去修資料,不要繞過**。發特別券是繞過達標規則的例外,**一定要先問過使用者**。
 - **改動 metrics 邏輯後必須跑** `node scripts/test_monkey_metrics.js`。
 - **新增頁面就要同步改 `.github/workflows/pages.yml`**:`paths` 觸發清單加一筆、`_site` 複製步驟加一行。
   Pages 上只有 `_site` 裡的東西,漏抄就是線上 404,本地開卻完全正常——這種 bug 只有部署後才看得到。
@@ -36,7 +38,8 @@ node scripts/list_coupons.js Monkey       # 列出炸雞券(唯讀,不改檔)
 | 路徑 | 說明 |
 |---|---|
 | `data/Captain/`、`data/Monkey/` | 訓練紀錄,每次一個 JSON |
-| `data/Monkey/rewards/redemptions.json` | 炸雞券的使用紀錄(唯一 ledger)。放子資料夾才不會被當成訓練紀錄掃進去 |
+| `data/Monkey/rewards/redemptions.json` | 炸雞券的使用紀錄(哪張被用掉)。放子資料夾才不會被當成訓練紀錄掃進去 |
+| `data/Monkey/rewards/grants.json` | 手動核發的特別券。達標券是推導的、不存;特別券是人的決定,推導不出來所以要存 |
 | `dashboard-captain.html`、`dashboard-monkey.html` | 兩人各自的頁面,完全獨立、互不影響 |
 | `wallet-monkey.html` | Monkey 的炸雞券票券夾。主題與 metrics 由 build 從 dashboard 複製,不自己寫一份 |
 | `scripts/build_dashboard.js <人名>` | 兩人共用一支(刻意不拆,否則規則會偷偷分岔) |

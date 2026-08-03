@@ -9,6 +9,7 @@ on:
       - 'dashboard-monkey.html'
       - 'wallet-monkey.html'
       - 'profile/**'
+      - 'icons/**'
       - 'scripts/build_dashboard.js'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
@@ -43,6 +44,8 @@ jobs:
           cp dashboard-monkey.html _site/
           cp wallet-monkey.html _site/
           cp -r profile _site/
+          # 加到主畫面用的圖示。漏抄的話主畫面圖示會變空白。
+          cp -r icons _site/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site

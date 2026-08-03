@@ -73,10 +73,14 @@ Running — 45 分鐘 · 7.2 km(配速 6:15/km)
 
 - `exercise`:`Zone 2` / `HIIT` / `Running` 三選一。
 - **配速不記錄**——它是 `duration_min ÷ distance_km` 算出來的,存了只會有跟來源數字互相矛盾的一天。
-- **心率是選填欄位 `avg_hr_bpm`(平均心率,單位 bpm)**:照片/敘述有給就記,沒有就整個欄位省略
-  (不要填 `null`、不要填 `0`)。目前 dashboard 還沒呈現它,但資料先存著。它是量到的來源值、
-  不是推導值,所以可以存;`build_dashboard.js` 不檢查也不擋這個欄位。
-- 卡路里、坡度**不記錄**(schema 沒有對應欄位)。
+- 以下三個是**選填欄位**,共通規則:照片/敘述有給就記,沒有就**整個欄位省略**(不要填 `null`)。
+  它們都是量到的來源值、不是推導值,所以可以存;`build_dashboard.js` 不檢查也不擋這些欄位。
+  三個都會顯示在熱力圖點開的日卡片上。
+  - `avg_hr_bpm` — 平均心率,單位 bpm。跑步機螢幕顯示 `0` 代表沒握感應器、沒量到,**這種情況要省略欄位**。
+  - `incline_level` — 跑步機坡度**檔位**(不是百分比,所以欄位名不要用 `_pct`、卡片上也不要標 `%`)。
+    檔位 0 是有意義的實測值,可以填 `0`。
+  - `calories_kcal` — 卡路里,單位 kcal。注意 Vision 跑步機第 4 格上排是火焰(卡路里)、下排標 `METS`,
+    **只有火焰那個指示燈亮時才是卡路里**;METS 是強度指數(個位數等級),看到三位數就是卡路里。
 
 ### 共通
 
@@ -176,15 +180,24 @@ node scripts/list_coupons.js Monkey
 
 沒有就不用提。券的使用另見 `.claude/skills/use-coupon/`。
 
-然後 commit 新的 JSON 和對應的 HTML(如果有改到 SKILL.md 的對照表,一起 commit),push。
+## 送出:推分支保存,但**不要自己 merge**
 
-- push 到 `master` 成功 → 告訴使用者 GitHub Actions 正在部署,約 30-60 秒後
-  https://captain-tim.github.io/project_protein/ 就是最新的。
-- 環境限制只能推到自己的分支 → **開 PR(base `master`)→ 直接 merge**:
-  1. `mcp__github__create_pull_request`(owner `Captain-Tim`、repo `project_protein`、
-     head 自己的分支、base `master`)開 PR。
-  2. 開好後用 `mcp__github__merge_pull_request`(`merge_method: squash`)直接 merge——
-     這個環境有 merge 權限,不用叫使用者自己點。
-  3. merge 成功後告訴使用者 GitHub Actions 正在部署,約 30-60 秒後
-     https://captain-tim.github.io/project_protein/ 就是最新的。
-  merge 若被擋(權限、衝突、CI)才回頭請使用者手動處理,並說明卡在哪。
+部署只發生在 merge 進 `master` 的那一刻。推到自己的分支不會讓任何東西上線,
+所以這兩件事要分開看:
+
+1. **commit + push 到自己的分支** —— 做完就做,不用問。
+   容器是暫時的,沒推出去的東西會跟著被回收,只在本地 commit 也救不回來。
+2. **開 PR、merge** —— **一定要等使用者說**。這一步等於部署,時機是使用者的決定,不是你的。
+
+push 完回報寫了什麼、build 與測試結果,然後停下來。
+一次小改動就跑完一輪部署會把紀錄切得很碎,也讓使用者失去對「什麼時候上線」的控制。
+
+使用者說要 merge 之後:
+
+1. `mcp__github__create_pull_request`(owner `Captain-Tim`、repo `project_protein`、
+   head 自己的分支、base `master`)開 PR。
+2. `mcp__github__merge_pull_request`(`merge_method: squash`)merge——這個環境有 merge 權限。
+3. merge 成功後告訴使用者 GitHub Actions 正在部署,約 30-60 秒後
+   https://captain-tim.github.io/project_protein/ 就是最新的。
+
+merge 若被擋(權限、衝突、CI)就回頭請使用者處理,並說明卡在哪。
