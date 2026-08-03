@@ -127,7 +127,16 @@
   #wallet .go { font-size: 11px; font-weight: 700; letter-spacing: .8px; color: var(--accent); }
   /* 下一張券還差多少。跟入口卡並排:左邊是已經有的,右邊是快到手的 */
   #nextCoupon { display: flex; flex-direction: column; justify-content: center; }
-  #nextCoupon .v { font-size: 15px; font-weight: 800; margin-top: 4px; }
+  #nextCoupon .line { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+  #nextCoupon .v { font-size: 15px; font-weight: 800; }
+  /* 小雞在字尾左右擺,填掉右邊的空白。純旋轉不位移,所以卡片高度一點都不變 */
+  @keyframes chickWaddle {
+    0%, 100% { transform: rotate(-7deg); }
+    50%      { transform: rotate(7deg); }
+  }
+  #nextCoupon .chick { font-size: 17px; line-height: 1; display: inline-block;
+    animation: chickWaddle .79s ease-in-out infinite; }
+  @media (prefers-reduced-motion: reduce) { #nextCoupon .chick { animation: none; } }
   #nextCoupon.done { border-color: var(--accent); box-shadow: 0 0 18px rgba(201, 242, 77, .22); }
   #nextCoupon.done .v { color: var(--accent); }
 
@@ -258,8 +267,8 @@
   <div class="card" id="quest" style="margin-top:12px"></div>
 
   <div class="row" style="margin-top:12px">
-    <a class="card" id="wallet" href="wallet-monkey.html" style="flex:1.25"></a>
     <div class="card" id="nextCoupon" style="flex:1"></div>
+    <a class="card" id="wallet" href="wallet-monkey.html" style="flex:1.25"></a>
   </div>
 
   <h2 class="sec">🏆 PERSONAL RECORDS</h2>
@@ -714,9 +723,10 @@
   el("nextCoupon").className = "card" + (thisWeekCoupon ? " done" : "");
   el("nextCoupon").innerHTML = thisWeekCoupon
     ? '<div class="lbl">🍗 COUPON EARNED</div>' +
-      '<div class="v num">' + thisWeekCoupon.earned_on + "</div>"
+      '<div class="line"><div class="v num">' + thisWeekCoupon.earned_on + "</div></div>"
     : '<div class="lbl">🍗 NEXT COUPON</div>' +
-      '<div class="v">' + (gaps.length ? gaps.join(" + ") : "—") + "</div>";
+      '<div class="line"><div class="v">' + (gaps.length ? gaps.join(" + ") : "—") + "</div>" +
+      '<span class="chick">🐔</span></div>';
 
   // PR 榜
   const pr = M.personalRecords(runs);
