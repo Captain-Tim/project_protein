@@ -19,6 +19,7 @@
     --accent: #c9f24d; --accent-dim: #7fae35;
     --person: #ff3b3b;
     --streak: #ffb648; --streak-bg: #1a1408; --streak-border: #4a3a12;
+    --star: #ffc93c; --star-off: #4a4d55;               /* 睡眠品質星等:實星黃、空星壓暗 */
     --pos: #34d399; --neg: #f87171;                     /* 漲跌:▲ 進步=綠、▼ 退步=紅 */
     --hm0: #17191c; --hm1: #2f4419; --hm2: #5f8a26; --hm3: #c9f24d;
   }
@@ -254,6 +255,12 @@
     text-shadow: 0 0 3px #000, 0 0 3px #000; }
   .stamp.none { background: transparent; border-style: dashed; border-color: #2b2e34; }
   .stamp.last { box-shadow: 0 0 0 2px var(--accent-dim); }
+  /* 星等要蓋掉繼承來的顏色(.lbl 的灰、.dcMeta b 的萊姆綠),所以自己帶 color */
+  .stars { color: var(--star); letter-spacing: 1.5px; }
+  .stars .off { color: var(--star-off); }
+  /* 彈窗裡 .dcMeta span 的 specificity 比 .stars 高,會把顏色跟字級一起吃掉。
+     這條是為了搶回來,不是重複——刪掉星星就會變回灰色的 10px。 */
+  .dcMeta .stars { color: var(--star); font-size: inherit; }
   .stampFoot { margin-top: 12px; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
   .stampFoot .v { font-family: Consolas, ui-monospace, monospace; font-weight: 800; font-size: 15px; }
   .stampLegend { display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
@@ -1176,6 +1183,8 @@
   const SLEEP = window.SLEEP_DATA || { nights: [] };
   const WKDAY = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
   const mdOf = (date) => Number(date.slice(5, 7)) + "/" + Number(date.slice(8, 10));
+  const starsHTML = (q) =>
+    '<span class="stars">' + "★".repeat(q) + '<span class="off">' + "☆".repeat(5 - q) + "</span></span>";
 
   function sleepModalHTML(date) {
     const n = M.nightOn(SLEEP.nights, date);
@@ -1191,7 +1200,7 @@
     const took = !!(n.medication && n.medication.taken);
     h += '<div class="dcSec"><div class="dcSecT">' + (took ? "💊 TAKEN" : "NOT TAKEN") + "</div>";
     h += '<div class="dcMeta">' +
-      "<div><b>" + "★".repeat(n.quality) + "☆".repeat(5 - n.quality) + "</b><span>QUALITY</span></div>" +
+      "<div><b>" + starsHTML(n.quality) + "</b><span>QUALITY</span></div>" +
       "<div><b>" + M.formatHours(M.timeInBed(n)) + "</b><span>IN BED</span></div>" +
       "<div><b>" + n.bedtime + "–" + n.wake_time + "</b><span>BED–WAKE</span></div>" +
       "<div><b>" + (n.morning_grogginess ? "GROGGY" : "CLEAR") + "</b><span>MORNING</span></div>" +
@@ -1219,7 +1228,7 @@
       "</div>" +
       '<div class="stampFoot"><span class="lbl">LAST NIGHT</span>' +
       '<span class="v ' + (lastState === "taken" ? "lime" : "") + '">' + label[lastState] + "</span>" +
-      (last ? '<span class="lbl">· ' + "★".repeat(last.quality) + "☆".repeat(5 - last.quality) +
+      (last ? '<span class="lbl">· ' + starsHTML(last.quality) +
         " · IN BED " + M.formatHours(M.timeInBed(last)) + "</span>" : "") +
       "</div>" +
       '<div class="stampLegend">' +
