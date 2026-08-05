@@ -51,6 +51,27 @@ const re = /\/\*WORKOUT_DATA_START\*\/[\s\S]*?\/\*WORKOUT_DATA_END\*\//;
 if (!re.test(html)) throw new Error(path.basename(dashPath) + " 找不到 WORKOUT_DATA 標記,中止以免誤改版面");
 html = html.replace(re, "/*WORKOUT_DATA_START*/window.WORKOUT_DATA=" + JSON.stringify(payload) + ";/*WORKOUT_DATA_END*/");
 
+// 頁面裡的 metrics 區塊是規則的唯一來源。這裡把它抽出來在 Node 跑,而不是在腳本
+// 裡重寫一次判定,否則改規則時兩邊會偷偷分岔。metrics 區塊本身不會被 build 改寫,
+// 所以抽一次就夠。
+let metricsCache = null;
+function loadMetrics(why) {
+  if (metricsCache) return metricsCache;
+  const block = html.match(/<script id="metrics">([\s\S]*?)<\/script>/);
+  if (!block) throw new Error(path.basename(dashPath) + " 有 " + why + ' 標記但找不到 <script id="metrics"> 區塊');
+  const win = {};
+  new Function("window", block[1])(win);
+  metricsCache = win.MonkeyMetrics;
+  return metricsCache;
+}
+
+// 本地時區的今天。睡眠紀錄的「date 不能晚於今天」用它判斷。
+const now = new Date();
+const todayStr =
+  now.getFullYear() + "-" +
+  String(now.getMonth() + 1).padStart(2, "0") + "-" +
+  String(now.getDate()).padStart(2, "0");
+
 // 炸雞券的使用紀錄(目前只有 Monkey 的頁面有 REWARDS 標記區塊)。
 // 券本身不存——由訓練資料推導。達標規則只有一份、在頁面的 metrics 區塊裡,
 // 這裡把那個區塊抽出來跑,而不是在腳本裡重寫一次判定,否則改門檻時規則會偷偷分岔。
@@ -81,11 +102,7 @@ if (rewardsRe.test(html)) {
     process.exit(1);
   }
 
-  const block = html.match(/<script id="metrics">([\s\S]*?)<\/script>/);
-  if (!block) throw new Error(path.basename(dashPath) + ' 有 REWARDS 標記但找不到 <script id="metrics"> 區塊');
-  const win = {};
-  new Function("window", block[1])(win);
-  const M = win.MonkeyMetrics;
+  const M = loadMetrics("REWARDS");
 
   const result = M.coupons(M.buildDayRuns(sessions).runs, ledger, grants);
   if (result.problems.length) {
@@ -101,6 +118,49 @@ if (rewardsRe.test(html)) {
     "/*REWARDS_DATA_START*/window.REWARDS_DATA=" + JSON.stringify({ redemptions: ledger, grants: grants }) + ";/*REWARDS_DATA_END*/"
   );
   couponSummary = { available: result.available, used: result.used };
+}
+
+// 睡眠與用藥紀錄(目前只有 Monkey 的頁面有 SLEEP 標記區塊)。一晚一檔,放在
+// sleep/ 子資料夾——上面掃訓練紀錄的 readdirSync 不遞迴,所以不會被誤抓,理由跟
+// rewards/ 完全一樣。
+//
+// 減藥計畫不在這裡,也不在任何地方:它隨睡眠狀況變動,存了就會跟實際脫節。
+// 資料層只有事實。
+const sleepRe = /\/\*SLEEP_DATA_START\*\/[\s\S]*?\/\*SLEEP_DATA_END\*\//;
+const sleepDir = path.join(dir, "sleep");
+const sleepFiles = fs.existsSync(sleepDir)
+  ? fs.readdirSync(sleepDir).filter((f) => f.endsWith(".json")).sort()
+  : [];
+let nights = [];
+
+if (!sleepRe.test(html) && sleepFiles.length) {
+  console.error("[!] " + sleepDir + " 有資料,但 " + path.basename(dashPath) + " 沒有 SLEEP 標記區塊,資料會被無聲忽略");
+  process.exit(1);
+}
+
+if (sleepRe.test(html)) {
+  const entries = sleepFiles.map((f) => ({
+    file: f,
+    data: JSON.parse(fs.readFileSync(path.join(sleepDir, f), "utf8")),
+  }));
+
+  // 必填缺一不可(見 CLAUDE.md)。缺就 exit 1,連帶讓部署失敗。
+  // 注意這裡「不」檢查有沒有漏記某幾晚——漏記是集章卡上的空格,是要被看見的事實,
+  // 不是要被擋下的錯誤。
+  const problems = loadMetrics("SLEEP").validateNights(entries, todayStr);
+  if (problems.length) {
+    console.error(
+      "[!] " + person + " 的睡眠紀錄不完整,中止 build:\n  " +
+        problems.map((p) => p.file + ":" + p.reason).join("\n  ")
+    );
+    process.exit(1);
+  }
+
+  nights = entries.map((e) => e.data).sort((a, b) => a.date.localeCompare(b.date));
+  html = html.replace(
+    sleepRe,
+    "/*SLEEP_DATA_START*/window.SLEEP_DATA=" + JSON.stringify({ nights: nights }) + ";/*SLEEP_DATA_END*/"
+  );
 }
 
 fs.writeFileSync(dashPath, html, "utf8");
@@ -142,6 +202,7 @@ console.log(
     person,
     sessions: sessions.length,
     coupons: couponSummary,
+    nights: nights.length,
     injectedInto,
   })
 );

@@ -237,6 +237,32 @@
     padding: 5px 9px; font-size: 12px; white-space: nowrap; box-shadow: 0 4px 14px rgba(0,0,0,.55); }
   [data-tip] { cursor: pointer; }
 
+  /* 集章卡:一晚一格,最右是昨晚。三態——蓋章(吃了)/ 空心點(沒吃)/ 虛線框(沒記錄)。
+     沒記錄刻意畫成空格而不是第三種顏色,缺口要看起來像缺口。 */
+  .stamps { display: flex; flex-wrap: wrap; gap: 8px; }
+  .stamp { width: 34px; height: 34px; border-radius: 10px; flex: 0 0 auto; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; font-size: 15px; line-height: 1;
+    border: 1px solid var(--border); background: #17191c; transition: transform .12s, border-color .12s; }
+  .stamp:hover { transform: translateY(-2px); border-color: var(--accent-dim); }
+  .stamp.taken { background: var(--streak-bg); border-color: var(--streak-border); }
+  .stamp.skipped::after { content: ""; width: 7px; height: 7px; border-radius: 50%;
+    border: 1.5px solid var(--muted); }
+  .stamp.none { background: transparent; border-style: dashed; border-color: #2b2e34; }
+  .stamp.last { box-shadow: 0 0 0 2px var(--accent-dim); }
+  .stampFoot { margin-top: 12px; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .stampFoot .v { font-family: Consolas, ui-monospace, monospace; font-weight: 800; font-size: 15px; }
+  .stampLegend { display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    font-size: 9px; letter-spacing: .5px; color: var(--muted); margin-top: 10px; }
+  .stampLegend span { display: flex; align-items: center; gap: 5px; }
+  .stampLegend i { width: 13px; height: 13px; border-radius: 4px; display: inline-block;
+    border: 1px solid var(--border); background: #17191c; }
+  .stampLegend i.taken { background: var(--streak-bg); border-color: var(--streak-border); }
+  .stampLegend i.none { background: transparent; border-style: dashed; border-color: #2b2e34; }
+  /* 圖例要跟格子長一樣,不然「沒吃」在圖例是空方塊、在卡上是空心點,對不起來 */
+  .stampLegend i.skipped { display: inline-flex; align-items: center; justify-content: center; }
+  .stampLegend i.skipped::after { content: ""; width: 5px; height: 5px; border-radius: 50%;
+    border: 1.5px solid var(--muted); }
+
   @media (max-width: 640px) {
     .wrap { padding: 12px 12px 48px; }
     header.hero { gap: 12px; padding: 12px 14px; flex-wrap: wrap; }
@@ -302,6 +328,9 @@
 
   <div class="card" id="activity" style="margin-top:12px"></div>
 
+  <h2 class="sec" id="sleepSec" style="display:none">🛏 SLEEP</h2>
+  <div class="card" id="sleep" style="display:none"></div>
+
   <div id="dataErrors"></div>
 </div>
 
@@ -318,6 +347,7 @@
 /* 資料由 build 腳本注入此標記區塊,請勿手改 START/END 之間(目前為樣本資料) */
 /*WORKOUT_DATA_START*/window.WORKOUT_DATA={"sessions":[{"date":"2026-07-07","type":"Cardio","strength":[],"cardio":[{"exercise":"Running","duration_min":30,"distance_km":3.1}],"note":null},{"date":"2026-07-12","type":"Cardio","strength":[],"cardio":[{"exercise":"Running","duration_min":30,"distance_km":3,"avg_hr_bpm":140}],"note":null},{"date":"2026-07-18","type":"Cardio","strength":[],"cardio":[{"exercise":"Running","duration_min":45,"distance_km":4.65}],"note":null},{"date":"2026-07-28","type":"Cardio","strength":[],"cardio":[{"exercise":"Zone 2","duration_min":47.6,"distance_km":3.95}],"note":null},{"date":"2026-07-31","type":"Cardio","strength":[],"cardio":[{"exercise":"Running","duration_min":31.3,"distance_km":3,"incline_level":1,"calories_kcal":196}],"note":null},{"date":"2026-08-01","type":"Cardio","strength":[],"cardio":[{"exercise":"Zone 2","duration_min":51.8,"distance_km":5.15,"incline_level":3,"avg_hr_bpm":140,"calories_kcal":330}],"note":null}]};/*WORKOUT_DATA_END*/
 /*REWARDS_DATA_START*/window.REWARDS_DATA={"redemptions":[],"grants":[{"id":"special:2026-08-01-launch","granted_on":"2026-08-01","reason":"炸雞系統上線 & 本週完成 3 次訓練"}]};/*REWARDS_DATA_END*/
+/*SLEEP_DATA_START*/window.SLEEP_DATA={"nights":[{"date":"2026-08-04","medication":{"taken":false},"bedtime":"02:00","wake_time":"09:30","quality":1,"morning_grogginess":true,"note":null}]};/*SLEEP_DATA_END*/
 </script>
 
 <script id="metrics">
@@ -660,6 +690,113 @@
     return out;
   }
 
+  // ---- 睡眠與用藥 -----------------------------------------------------------
+  // 一晚一檔的事實紀錄:那晚吃沒吃、躺床區間、主觀品質。
+  // 減藥計畫「不存」(它隨睡眠狀況變動,存了就會腐化),所以這裡沒有任何
+  // 「今晚該不該吃」的判定——集章卡只講發生過的事,不講計畫。
+  const STAMP_NIGHTS = 14;
+
+  const isDateStr = (s) =>
+    typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s) && toStr(toDate(s)) === s;
+
+  // "HH:MM" -> 當日分鐘數。格式不合回 null,由呼叫端決定怎麼處理。
+  function parseClock(s) {
+    const m = typeof s === "string" && s.match(/^([01]\d|2[0-3]):([0-5]\d)$/);
+    return m ? Number(m[1]) * 60 + Number(m[2]) : null;
+  }
+
+  // 躺床時數。wake <= bed 視為跨過午夜。
+  // 這是睡眠長度的近似而已:入睡花了多久沒有記錄,所以它一定略高於真正睡著的
+  // 時數——頁面上不要叫它「睡眠時數」。
+  function timeInBed(night) {
+    const bed = parseClock(night && night.bedtime);
+    const wake = parseClock(night && night.wake_time);
+    if (bed == null || wake == null) return null;
+    return ((wake <= bed ? wake + 1440 : wake) - bed) / 60;
+  }
+
+  function formatHours(h) {
+    if (typeof h !== "number" || !isFinite(h) || h < 0) return "—";
+    const total = Math.round(h * 60);
+    return Math.floor(total / 60) + "h" + String(total % 60).padStart(2, "0");
+  }
+
+  const nightsByDate = (nights) => {
+    const m = new Map();
+    (nights || []).forEach((n) => { if (n && isDateStr(n.date)) m.set(n.date, n); });
+    return m;
+  };
+
+  const nightOn = (nights, dateStr) => nightsByDate(nights).get(dateStr) || null;
+
+  // 集章卡:昨天往回數 count 晚(含昨天),最右一格是昨晚。
+  //
+  // 今晚不佔格子。那筆要明天早上醒來才填得完(躺床時數、品質、昏沉都得睡完才
+  // 知道),擺一格在那裡永遠是空的,「沒記錄」這個訊號就沒意義了。
+  function sleepStamps(nights, todayStr, count) {
+    const n = count || STAMP_NIGHTS;
+    const byDate = nightsByDate(nights);
+    const out = [];
+    for (let i = n; i >= 1; i--) {
+      const date = addDays(todayStr, -i);
+      const rec = byDate.get(date) || null;
+      out.push({
+        date: date,
+        state: !rec ? "none" : rec.medication && rec.medication.taken ? "taken" : "skipped",
+        night: rec,
+      });
+    }
+    return out;
+  }
+
+  // 卡片底部那一行。沒記錄回 null,頁面顯示「還沒記」。
+  const lastNight = (nights, todayStr) => nightOn(nights, addDays(todayStr, -1));
+
+  // 睡眠紀錄的驗證。壞資料不能入庫:必填缺一不可,格式不對就報錯。
+  // 回傳 problems 陣列(空 = 沒問題),由 build 決定要不要 exit 1。
+  //
+  // 「有沒有漏記」刻意不在這裡檢查。漏記是要被看見的事實,不是要被擋下的錯誤
+  // ——漏兩晚就讓 build 掛掉,只會逼人去編假資料填洞。缺的那晚在集章卡上就是
+  // 一個空格,自己會說話。
+  function validateNights(entries, todayStr) {
+    const problems = [];
+    const seen = new Set();
+    const isInt = (v) => typeof v === "number" && isFinite(v) && Math.floor(v) === v;
+    (entries || []).forEach((e) => {
+      const file = (e && e.file) || "(unknown file)";
+      const n = e && e.data;
+      const add = (reason) => problems.push({ file: file, reason: reason });
+      if (!n || typeof n !== "object" || Array.isArray(n)) { add("內容不是一個物件"); return; }
+
+      const named = /^(\d{4}-\d{2}-\d{2})\.json$/.exec(String(file).replace(/^.*[\\/]/, ""));
+      if (!named || !isDateStr(named[1])) add("檔名不是合法的 YYYY-MM-DD.json");
+
+      if (!isDateStr(n.date)) {
+        add("date 缺漏或不是合法的 YYYY-MM-DD");
+      } else {
+        if (named && named[1] !== n.date) add("檔名日期與 date(" + n.date + ")不一致");
+        if (todayStr && n.date > todayStr) add("date(" + n.date + ")晚於今天");
+        if (seen.has(n.date)) add("date(" + n.date + ")重複");
+        seen.add(n.date);
+      }
+
+      // 那一晚吃了沒是必答題。省略等於允許「我不確定」混進資料裡。
+      const med = n.medication;
+      if (!med || typeof med !== "object" || typeof med.taken !== "boolean") {
+        add("medication.taken 缺漏或不是 true/false");
+      }
+      if (parseClock(n.bedtime) == null) add("bedtime 缺漏或不是 HH:MM");
+      if (parseClock(n.wake_time) == null) add("wake_time 缺漏或不是 HH:MM");
+      if (!isInt(n.quality) || n.quality < 1 || n.quality > 5) add("quality 必須是 1–5 的整數");
+      if (typeof n.morning_grogginess !== "boolean") add("morning_grogginess 缺漏或不是 true/false");
+      if (n.night_wakes != null && (!isInt(n.night_wakes) || n.night_wakes < 0)) {
+        add("night_wakes 必須是 ≥ 0 的整數");
+      }
+      if (n.note != null && typeof n.note !== "string") add("note 必須是字串或 null");
+    });
+    return problems;
+  }
+
   w.MonkeyMetrics = {
     WEEKLY_GOAL: WEEKLY_GOAL,
     REWARD_START_WEEK: REWARD_START_WEEK,
@@ -682,6 +819,14 @@
     coupons: coupons,
     personalRecords: personalRecords,
     avgPace: avgPace,
+    STAMP_NIGHTS: STAMP_NIGHTS,
+    parseClock: parseClock,
+    timeInBed: timeInBed,
+    formatHours: formatHours,
+    nightOn: nightOn,
+    sleepStamps: sleepStamps,
+    lastNight: lastNight,
+    validateNights: validateNights,
   };
 })(typeof window !== "undefined" ? window : this);
 </script>
@@ -1010,6 +1155,75 @@
   const openDayModal = (date) => { if (dayModal) { dayModal.innerHTML = dayModalHTML(date); dayModal.classList.add("on"); document.body.style.overflow = "hidden"; } };
   const closeDayModal = () => { if (dayModal) { dayModal.classList.remove("on"); document.body.style.overflow = ""; } };
   if (dayModal) dayModal.addEventListener("click", (e) => { if (e.target === dayModal || (e.target.closest && e.target.closest("[data-dc-close]"))) closeDayModal(); });
+
+  // ---- 睡眠集章卡 -----------------------------------------------------------
+  // 一晚一格,最右是昨晚。今晚不畫格子:那筆要明天早上才填得完。
+  const SLEEP = window.SLEEP_DATA || { nights: [] };
+  const WKDAY = ["日", "一", "二", "三", "四", "五", "六"];
+  const mdOf = (date) => Number(date.slice(5, 7)) + "/" + Number(date.slice(8, 10));
+
+  function sleepModalHTML(date) {
+    const n = M.nightOn(SLEEP.nights, date);
+    const d = new Date(date + "T00:00:00");
+    let h = '<div class="dc"><button class="close" data-dc-close aria-label="Close">✕</button>';
+    h += '<div class="dcDate">' + (d.getMonth() + 1) + " / " + d.getDate() + "</div>";
+    h += '<div class="dcWk">' + d.getFullYear() + " · 星期" + WKDAY[d.getDay()] + " 晚上</div>";
+    if (!n) {
+      h += '<div class="dcSec"><div class="dcSecT">沒有記錄</div>' +
+        '<div class="dcNoteMain">這晚沒有記錄。可以補記。</div></div>';
+      return h + "</div>";
+    }
+    const took = !!(n.medication && n.medication.taken);
+    h += '<div class="dcSec"><div class="dcSecT">' + (took ? "💊 有吃" : "沒吃") + "</div>";
+    h += '<div class="dcMeta">' +
+      "<div><b>" + "★".repeat(n.quality) + "☆".repeat(5 - n.quality) + "</b><span>QUALITY</span></div>" +
+      "<div><b>" + M.formatHours(M.timeInBed(n)) + "</b><span>躺床</span></div>" +
+      "<div><b>" + n.bedtime + "–" + n.wake_time + "</b><span>就寢–起床</span></div>" +
+      "<div><b>" + (n.morning_grogginess ? "昏沉" : "清爽") + "</b><span>早上</span></div>" +
+      (n.night_wakes != null ? "<div><b>" + n.night_wakes + "</b><span>夜醒次數</span></div>" : "") +
+      "</div></div>";
+    if (n.note) h += '<div class="dcSec"><div class="dcSecT">NOTE</div><div class="dcNoteMain">' + escHtml(n.note) + "</div></div>";
+    return h + "</div>";
+  }
+
+  function renderSleep() {
+    const nights = SLEEP.nights || [];
+    if (!nights.length) return;                 // 一筆都沒有就整個 section 不出現
+    const stamps = M.sleepStamps(nights, TODAY);
+    const last = M.lastNight(nights, TODAY);
+    const label = { taken: "已吃", skipped: "沒吃", none: "還沒記" };
+    const lastState = last ? (last.medication && last.medication.taken ? "taken" : "skipped") : "none";
+
+    el("sleep").innerHTML =
+      '<div class="stamps">' +
+      stamps.map((s, i) =>
+        '<div class="stamp ' + s.state + (i === stamps.length - 1 ? " last" : "") + '"' +
+        ' data-night="' + s.date + '" data-tip="' + mdOf(s.date) + "(" + WKDAY[new Date(s.date + "T00:00:00").getDay()] + ") " +
+        label[s.state] + '">' + (s.state === "taken" ? "💊" : "") + "</div>"
+      ).join("") +
+      "</div>" +
+      '<div class="stampFoot"><span class="lbl">昨晚</span>' +
+      '<span class="v ' + (lastState === "taken" ? "lime" : "") + '">' + label[lastState] + "</span>" +
+      (last ? '<span class="lbl">· ' + "★".repeat(last.quality) + "☆".repeat(5 - last.quality) +
+        " · 躺床 " + M.formatHours(M.timeInBed(last)) + "</span>" : "") +
+      "</div>" +
+      '<div class="stampLegend">' +
+      '<span><i class="taken"></i>吃了</span>' +
+      '<span><i class="skipped"></i>沒吃</span>' +
+      '<span><i class="none"></i>沒記錄</span>' +
+      "</div>";
+
+    el("sleepSec").style.display = "";
+    el("sleep").style.display = "";
+    el("sleep").addEventListener("click", (e) => {
+      const cell = e.target.closest && e.target.closest("[data-night]");
+      if (!cell || !dayModal) return;
+      dayModal.innerHTML = sleepModalHTML(cell.getAttribute("data-night"));
+      dayModal.classList.add("on");
+      document.body.style.overflow = "hidden";
+    });
+  }
+  renderSleep();
 
   // 頭像放大檢視:點頭像開,點背景/✕/Esc 關
   const box = el("lightbox");

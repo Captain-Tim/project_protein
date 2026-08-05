@@ -15,11 +15,16 @@ Node 18+)。不要引入框架、圖表函式庫,也不要把腳本改寫成 Pyt
   `build_dashboard.js` 會 exit 1 擋下來並讓部署失敗——**build 失敗是去修資料,不是繞過檢查**。
 - **推導得出的值不要存**(例如配速 = 時間 ÷ 距離),存了就會有跟來源數字互相矛盾的一天。
 - **HTML 裡所有 `/*…_START*/`…`/*…_END*/` 標記區塊只能由 build 腳本改寫**,禁止手動編輯其間內容
-  (`WORKOUT_DATA`、`REWARDS_DATA`,以及 `wallet-monkey.html` 的 `THEME` 與 `METRICS`)。
+  (`WORKOUT_DATA`、`REWARDS_DATA`、`SLEEP_DATA`,以及 `wallet-monkey.html` 的 `THEME` 與 `METRICS`)。
 - **炸雞券只存兩件推導不出來的事**:「哪張被用掉」(`redemptions.json`)和「手動發了哪些特別券」
   (`grants.json`)。**達標券本身由達標週推導,不存**,存了就會跟訓練資料互相矛盾。
   紀錄對不上(幽靈券、重複使用、早於取得日、grant 缺欄位或冒充 `quest:` id)一律 exit 1,
   **去修資料,不要繞過**。發特別券是繞過達標規則的例外,**一定要先問過使用者**。
+- **睡眠紀錄一晚一檔,六個必填缺一不可**(`date`、`medication.taken`、`bedtime`、`wake_time`、
+  `quality`、`morning_grogginess`)。`date` 指**就寢那一天**,不是起床那天。沒吃藥要寫
+  `{"taken": false}`,不能省略——「沒吃」跟「沒記」在集章卡上長得不一樣。
+  **減藥計畫不進資料層**(它隨狀況變動,存了就會跟實際脫節),所以不做「有沒有照計畫吃」的判定。
+  漏記某幾晚**不是錯誤**、不擋 build:那是集章卡上的空格,是要被看見的事實。
 - **改動 metrics 邏輯後必須跑** `node scripts/test_monkey_metrics.js`。
 - **新增頁面就要同步改 `.github/workflows/pages.yml`**:`paths` 觸發清單加一筆、`_site` 複製步驟加一行。
   Pages 上只有 `_site` 裡的東西,漏抄就是線上 404,本地開卻完全正常——這種 bug 只有部署後才看得到。
@@ -40,6 +45,7 @@ node scripts/list_coupons.js Monkey       # 列出炸雞券(唯讀,不改檔)
 | `data/Captain/`、`data/Monkey/` | 訓練紀錄,每次一個 JSON |
 | `data/Monkey/rewards/redemptions.json` | 炸雞券的使用紀錄(哪張被用掉)。放子資料夾才不會被當成訓練紀錄掃進去 |
 | `data/Monkey/rewards/grants.json` | 手動核發的特別券。達標券是推導的、不存;特別券是人的決定,推導不出來所以要存 |
+| `data/Monkey/sleep/` | 睡眠與助眠藥紀錄,一晚一個 JSON,檔名即日期。放子資料夾才不會被當成訓練紀錄掃進去 |
 | `dashboard-captain.html`、`dashboard-monkey.html` | 兩人各自的頁面,完全獨立、互不影響 |
 | `wallet-monkey.html` | Monkey 的炸雞券票券夾。主題與 metrics 由 build 從 dashboard 複製,不自己寫一份 |
 | `scripts/build_dashboard.js <人名>` | 兩人共用一支(刻意不拆,否則規則會偷偷分岔) |
@@ -53,11 +59,15 @@ node scripts/list_coupons.js Monkey       # 列出炸雞券(唯讀,不改檔)
   寫檔前的人工確認關卡。要記錄一次訓練就照它做。
 - `.claude/skills/use-coupon/` — **用掉炸雞券的唯一權威**:挑券規則、ledger 欄位、
   寫檔前的人工確認關卡。
+- `.claude/skills/log-sleep/` — **記錄睡眠的唯一權威**:欄位、口語對照表(品質 1–5)、
+  日期歸屬(記就寢那天)、補記流程、寫檔前的人工確認關卡。
 - `docs/verification.md` — headless Chrome 探針、手機版驗證(`--window-size` 在 Windows 會騙人)。
 - `docs/superpowers/specs/2026-07-11-monkey-cardio-dashboard-design.md` — Monkey 頁的視覺與指標定義
   (「一次 run」= 一天、weekly goal、streak、PR 榜的算法)。
 - `docs/superpowers/specs/2026-07-31-monkey-fried-chicken-award.md` — 炸雞券的發券規則、ledger 格式、
   驗證條件、票券夾版面。要動獎勵系統就照它。
+- `docs/superpowers/specs/2026-08-05-monkey-sleep-log-design.md` — 睡眠與用藥紀錄的欄位、驗證規則、
+  集章卡與彈窗版面,以及刻意不做的那些(趨勢圖、計畫遵守度)。要動睡眠系統就照它。
 
 ## 與使用者互動
 
