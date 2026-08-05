@@ -481,3 +481,183 @@ test("炸雞券:使用紀錄指向不存在的券 -> 進 problems", () => {
   assert.equal(c.problems[0].reason, "no such coupon");
   assert.equal(c.coupons[0].status, "available");
 });
+
+// ---- 睡眠與用藥 -------------------------------------------------------------
+// 一晚一檔的事實紀錄。集章卡最右一格是「昨晚」,今晚不佔格子。
+
+const night = (date, over) =>
+  Object.assign(
+    {
+      date,
+      medication: { taken: true },
+      bedtime: "23:10",
+      wake_time: "07:00",
+      quality: 3,
+      morning_grogginess: false,
+    },
+    over
+  );
+const entry = (file, data) => ({ file, data });
+
+test("躺床時數:跨午夜要加 24 小時", () => {
+  assert.equal(M.timeInBed(night("2026-08-04")), 7 + 50 / 60);
+});
+
+test("躺床時數:同日內的區間不加 24 小時", () => {
+  assert.equal(M.timeInBed(night("2026-08-04", { bedtime: "01:00", wake_time: "09:30" })), 8.5);
+});
+
+test("躺床時數:wake_time 等於 bedtime 視為整整 24 小時,不是 0", () => {
+  assert.equal(M.timeInBed(night("2026-08-04", { bedtime: "23:00", wake_time: "23:00" })), 24);
+});
+
+test("躺床時數:時間格式壞掉回 null,不亂算一個數字出來", () => {
+  assert.equal(M.timeInBed(night("2026-08-04", { bedtime: "25:00" })), null);
+  assert.equal(M.timeInBed(night("2026-08-04", { wake_time: "7:00" })), null);
+});
+
+test("formatHours 補零到分鐘", () => {
+  assert.equal(M.formatHours(7 + 50 / 60), "7h50");
+  assert.equal(M.formatHours(6 + 5 / 60), "6h05");
+  assert.equal(M.formatHours(null), "—");
+});
+
+test("集章卡:從第一筆紀錄畫到昨晚,今晚不佔格子", () => {
+  const st = M.sleepStamps([night("2026-08-04"), night("2026-08-05")], "2026-08-05");
+  assert.deepEqual(st.map((s) => s.date), ["2026-08-04"]);
+});
+
+test("集章卡:開始記錄之前的日子不畫格子", () => {
+  const st = M.sleepStamps([night("2026-08-04")], "2026-08-05");
+  assert.equal(st.length, 1);
+  assert.equal(st[0].date, "2026-08-04");
+});
+
+test("集章卡:只有今晚一筆,連一格都不畫", () => {
+  assert.deepEqual(M.sleepStamps([night("2026-08-05")], "2026-08-05"), []);
+});
+
+test("集章卡:一筆資料都沒有回空陣列,不會爆掉", () => {
+  assert.deepEqual(M.sleepStamps([], "2026-08-05"), []);
+});
+
+test("集章卡:資料超過上限時只畫最近 STAMP_NIGHTS 格", () => {
+  const ns = [];
+  for (let i = 1; i <= 30; i++) ns.push(night(M.addDays("2026-08-05", -i)));
+  const st = M.sleepStamps(ns, "2026-08-05");
+  assert.equal(st.length, M.STAMP_NIGHTS);
+  assert.equal(st[st.length - 1].date, "2026-08-04");
+  assert.equal(st[0].date, M.addDays("2026-08-05", -M.STAMP_NIGHTS));
+});
+
+test("集章卡:範圍內的漏記仍然是空格,那是真的漏記", () => {
+  const st = M.sleepStamps([night("2026-08-01"), night("2026-08-04")], "2026-08-05");
+  assert.deepEqual(st.map((s) => s.state), ["taken", "none", "none", "taken"]);
+});
+
+test("集章卡:三種狀態各自對上", () => {
+  const st = M.sleepStamps(
+    [night("2026-08-01"), night("2026-08-04", { medication: { taken: false } })],
+    "2026-08-05"
+  );
+  const byDate = Object.fromEntries(st.map((s) => [s.date, s.state]));
+  assert.equal(byDate["2026-08-01"], "taken");
+  assert.equal(byDate["2026-08-04"], "skipped");
+  assert.equal(byDate["2026-08-02"], "none");
+});
+
+test("lastNight 取的是昨晚,不是今晚", () => {
+  const ns = [night("2026-08-04", { quality: 2 }), night("2026-08-05", { quality: 5 })];
+  assert.equal(M.lastNight(ns, "2026-08-05").quality, 2);
+});
+
+test("lastNight:昨晚沒記錄回 null", () => {
+  assert.equal(M.lastNight([night("2026-08-03")], "2026-08-05"), null);
+});
+
+test("驗證:完整的一筆沒有問題", () => {
+  assert.deepEqual(M.validateNights([entry("2026-08-04.json", night("2026-08-04"))], "2026-08-05"), []);
+});
+
+test("驗證:必填欄位缺一不可", () => {
+  const required = ["bedtime", "wake_time", "quality", "morning_grogginess", "medication"];
+  required.forEach((field) => {
+    const n = night("2026-08-04");
+    delete n[field];
+    const problems = M.validateNights([entry("2026-08-04.json", n)], "2026-08-05");
+    assert.equal(problems.length, 1, field + " 缺漏時應該只報一個問題");
+  });
+});
+
+test("驗證:必填欄位是 null 一樣擋下來", () => {
+  const problems = M.validateNights([entry("2026-08-04.json", night("2026-08-04", { quality: null }))], "2026-08-05");
+  assert.equal(problems.length, 1);
+});
+
+test("驗證:medication.taken 必須是 true/false,不收 0/1 或字串", () => {
+  [{ taken: 1 }, { taken: "yes" }, {}].forEach((med) => {
+    const problems = M.validateNights([entry("2026-08-04.json", night("2026-08-04", { medication: med }))], "2026-08-05");
+    assert.equal(problems.length, 1);
+  });
+});
+
+test("驗證:medication.taken 為 false 是完全合法的紀錄", () => {
+  const n = night("2026-08-04", { medication: { taken: false } });
+  assert.deepEqual(M.validateNights([entry("2026-08-04.json", n)], "2026-08-05"), []);
+});
+
+test("驗證:quality 只收 1–5 的整數", () => {
+  [0, 6, 3.5, "3"].forEach((q) => {
+    const problems = M.validateNights([entry("2026-08-04.json", night("2026-08-04", { quality: q }))], "2026-08-05");
+    assert.equal(problems.length, 1, "quality=" + q + " 應該被擋下");
+  });
+});
+
+test("驗證:時間格式必須是 HH:MM", () => {
+  ["7:00", "23:5", "2300", ""].forEach((t) => {
+    const problems = M.validateNights([entry("2026-08-04.json", night("2026-08-04", { bedtime: t }))], "2026-08-05");
+    assert.equal(problems.length, 1, "bedtime=" + t + " 應該被擋下");
+  });
+});
+
+test("驗證:檔名日期與檔內 date 不一致 -> 報錯", () => {
+  const problems = M.validateNights([entry("2026-08-03.json", night("2026-08-04"))], "2026-08-05");
+  assert.equal(problems.length, 1);
+  assert.match(problems[0].reason, /檔名日期/);
+});
+
+test("驗證:date 晚於今天 -> 報錯", () => {
+  const problems = M.validateNights([entry("2026-08-06.json", night("2026-08-06"))], "2026-08-05");
+  assert.equal(problems.length, 1);
+  assert.match(problems[0].reason, /晚於今天/);
+});
+
+test("驗證:不存在的日期(2026-02-30)擋下來", () => {
+  const problems = M.validateNights([entry("2026-02-30.json", night("2026-02-30"))], "2026-08-05");
+  assert.ok(problems.length >= 1);
+});
+
+test("驗證:同一個日期出現兩次 -> 報錯", () => {
+  const problems = M.validateNights(
+    [entry("2026-08-04.json", night("2026-08-04")), entry("2026-08-04.json", night("2026-08-04"))],
+    "2026-08-05"
+  );
+  assert.equal(problems.length, 1);
+  assert.match(problems[0].reason, /重複/);
+});
+
+test("驗證:night_wakes 選填,但給了就要是 ≥ 0 的整數", () => {
+  assert.deepEqual(M.validateNights([entry("2026-08-04.json", night("2026-08-04", { night_wakes: 0 }))], "2026-08-05"), []);
+  assert.equal(M.validateNights([entry("2026-08-04.json", night("2026-08-04", { night_wakes: -1 }))], "2026-08-05").length, 1);
+  assert.equal(M.validateNights([entry("2026-08-04.json", night("2026-08-04", { night_wakes: 1.5 }))], "2026-08-05").length, 1);
+});
+
+test("驗證:漏記某幾晚不是錯誤,不進 problems", () => {
+  const ns = [entry("2026-08-01.json", night("2026-08-01")), entry("2026-08-04.json", night("2026-08-04"))];
+  assert.deepEqual(M.validateNights(ns, "2026-08-05"), []);
+});
+
+test("驗證:一次回報所有壞掉的欄位,不是只報第一個", () => {
+  const n = night("2026-08-04", { quality: 9, bedtime: "nope", morning_grogginess: "yes" });
+  assert.equal(M.validateNights([entry("2026-08-04.json", n)], "2026-08-05").length, 3);
+});

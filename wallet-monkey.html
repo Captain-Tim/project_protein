@@ -18,6 +18,7 @@
     --accent: #c9f24d; --accent-dim: #7fae35;
     --person: #ff3b3b;
     --streak: #ffb648; --streak-bg: #1a1408; --streak-border: #4a3a12;
+    --star: #ffc93c; --star-off: #4a4d55;               /* 睡眠品質星等:實星黃、空星壓暗 */
     --pos: #34d399; --neg: #f87171;                     /* 漲跌:▲ 進步=綠、▼ 退步=紅 */
     --hm0: #17191c; --hm1: #2f4419; --hm2: #5f8a26; --hm3: #c9f24d;
   }/*THEME_END*/
@@ -501,6 +502,121 @@
     return out;
   }
 
+  // ---- 睡眠與用藥 -----------------------------------------------------------
+  // 一晚一檔的事實紀錄:那晚吃沒吃、躺床區間、主觀品質。
+  // 減藥計畫「不存」(它隨睡眠狀況變動,存了就會腐化),所以這裡沒有任何
+  // 「今晚該不該吃」的判定——集章卡只講發生過的事,不講計畫。
+  const STAMP_NIGHTS = 14;
+
+  const isDateStr = (s) =>
+    typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s) && toStr(toDate(s)) === s;
+
+  // "HH:MM" -> 當日分鐘數。格式不合回 null,由呼叫端決定怎麼處理。
+  function parseClock(s) {
+    const m = typeof s === "string" && s.match(/^([01]\d|2[0-3]):([0-5]\d)$/);
+    return m ? Number(m[1]) * 60 + Number(m[2]) : null;
+  }
+
+  // 躺床時數。wake <= bed 視為跨過午夜。
+  // 這是睡眠長度的近似而已:入睡花了多久沒有記錄,所以它一定略高於真正睡著的
+  // 時數——頁面上不要叫它「睡眠時數」。
+  function timeInBed(night) {
+    const bed = parseClock(night && night.bedtime);
+    const wake = parseClock(night && night.wake_time);
+    if (bed == null || wake == null) return null;
+    return ((wake <= bed ? wake + 1440 : wake) - bed) / 60;
+  }
+
+  function formatHours(h) {
+    if (typeof h !== "number" || !isFinite(h) || h < 0) return "—";
+    const total = Math.round(h * 60);
+    return Math.floor(total / 60) + "h" + String(total % 60).padStart(2, "0");
+  }
+
+  const nightsByDate = (nights) => {
+    const m = new Map();
+    (nights || []).forEach((n) => { if (n && isDateStr(n.date)) m.set(n.date, n); });
+    return m;
+  };
+
+  const nightOn = (nights, dateStr) => nightsByDate(nights).get(dateStr) || null;
+
+  // 集章卡:從「開始記錄那晚」畫到昨晚,最多 count 格。
+  //
+  // 今晚不佔格子。那筆要明天早上醒來才填得完(躺床時數、品質、昏沉都得睡完才
+  // 知道),擺一格在那裡永遠是空的,「沒記錄」這個訊號就沒意義了。
+  //
+  // 開始記錄之前的日子也不畫。那時候還沒有這套東西,畫出來會長得跟漏記一模一樣
+  // ——而範圍內的空格是真的漏記、是要被看見的訊號,不能被這種假空格稀釋。
+  function sleepStamps(nights, todayStr, count) {
+    const n = count || STAMP_NIGHTS;
+    const byDate = nightsByDate(nights);
+    if (!byDate.size) return [];
+    const earliest = [...byDate.keys()].sort()[0];
+    const yesterday = addDays(todayStr, -1);
+    let cursor = addDays(todayStr, -n);
+    if (cursor < earliest) cursor = earliest;
+    const out = [];
+    while (cursor <= yesterday) {
+      const rec = byDate.get(cursor) || null;
+      out.push({
+        date: cursor,
+        state: !rec ? "none" : rec.medication && rec.medication.taken ? "taken" : "skipped",
+        night: rec,
+      });
+      cursor = addDays(cursor, 1);
+    }
+    return out;
+  }
+
+  // 卡片底部那一行。沒記錄回 null,頁面顯示「還沒記」。
+  const lastNight = (nights, todayStr) => nightOn(nights, addDays(todayStr, -1));
+
+  // 睡眠紀錄的驗證。壞資料不能入庫:必填缺一不可,格式不對就報錯。
+  // 回傳 problems 陣列(空 = 沒問題),由 build 決定要不要 exit 1。
+  //
+  // 「有沒有漏記」刻意不在這裡檢查。漏記是要被看見的事實,不是要被擋下的錯誤
+  // ——漏兩晚就讓 build 掛掉,只會逼人去編假資料填洞。缺的那晚在集章卡上就是
+  // 一個空格,自己會說話。
+  function validateNights(entries, todayStr) {
+    const problems = [];
+    const seen = new Set();
+    const isInt = (v) => typeof v === "number" && isFinite(v) && Math.floor(v) === v;
+    (entries || []).forEach((e) => {
+      const file = (e && e.file) || "(unknown file)";
+      const n = e && e.data;
+      const add = (reason) => problems.push({ file: file, reason: reason });
+      if (!n || typeof n !== "object" || Array.isArray(n)) { add("內容不是一個物件"); return; }
+
+      const named = /^(\d{4}-\d{2}-\d{2})\.json$/.exec(String(file).replace(/^.*[\\/]/, ""));
+      if (!named || !isDateStr(named[1])) add("檔名不是合法的 YYYY-MM-DD.json");
+
+      if (!isDateStr(n.date)) {
+        add("date 缺漏或不是合法的 YYYY-MM-DD");
+      } else {
+        if (named && named[1] !== n.date) add("檔名日期與 date(" + n.date + ")不一致");
+        if (todayStr && n.date > todayStr) add("date(" + n.date + ")晚於今天");
+        if (seen.has(n.date)) add("date(" + n.date + ")重複");
+        seen.add(n.date);
+      }
+
+      // 那一晚吃了沒是必答題。省略等於允許「我不確定」混進資料裡。
+      const med = n.medication;
+      if (!med || typeof med !== "object" || typeof med.taken !== "boolean") {
+        add("medication.taken 缺漏或不是 true/false");
+      }
+      if (parseClock(n.bedtime) == null) add("bedtime 缺漏或不是 HH:MM");
+      if (parseClock(n.wake_time) == null) add("wake_time 缺漏或不是 HH:MM");
+      if (!isInt(n.quality) || n.quality < 1 || n.quality > 5) add("quality 必須是 1–5 的整數");
+      if (typeof n.morning_grogginess !== "boolean") add("morning_grogginess 缺漏或不是 true/false");
+      if (n.night_wakes != null && (!isInt(n.night_wakes) || n.night_wakes < 0)) {
+        add("night_wakes 必須是 ≥ 0 的整數");
+      }
+      if (n.note != null && typeof n.note !== "string") add("note 必須是字串或 null");
+    });
+    return problems;
+  }
+
   w.MonkeyMetrics = {
     WEEKLY_GOAL: WEEKLY_GOAL,
     REWARD_START_WEEK: REWARD_START_WEEK,
@@ -523,6 +639,14 @@
     coupons: coupons,
     personalRecords: personalRecords,
     avgPace: avgPace,
+    STAMP_NIGHTS: STAMP_NIGHTS,
+    parseClock: parseClock,
+    timeInBed: timeInBed,
+    formatHours: formatHours,
+    nightOn: nightOn,
+    sleepStamps: sleepStamps,
+    lastNight: lastNight,
+    validateNights: validateNights,
   };
 })(typeof window !== "undefined" ? window : this);
 /*METRICS_END*/</script>
