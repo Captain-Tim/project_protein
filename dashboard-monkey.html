@@ -241,12 +241,17 @@
      沒記錄刻意畫成空格而不是第三種顏色,缺口要看起來像缺口。 */
   .stamps { display: flex; flex-wrap: wrap; gap: 8px; }
   .stamp { width: 34px; height: 34px; border-radius: 10px; flex: 0 0 auto; cursor: pointer;
-    display: flex; align-items: center; justify-content: center; font-size: 15px; line-height: 1;
+    position: relative; display: flex; align-items: center; justify-content: center;
+    font-size: 15px; line-height: 1;
     border: 1px solid var(--border); background: #17191c; transition: transform .12s, border-color .12s; }
   .stamp:hover { transform: translateY(-2px); border-color: var(--accent-dim); }
   .stamp.taken { background: var(--streak-bg); border-color: var(--streak-border); }
-  .stamp.skipped::after { content: ""; width: 7px; height: 7px; border-radius: 50%;
-    border: 1.5px solid var(--muted); }
+  /* 沒吃 = 同一顆膠囊灰掉再打紅叉。跟「沒記錄」的空格一眼分得開:
+     一個是「有這回事,但沒吃」,一個是「不知道」。 */
+  .stamp.skipped .pill { opacity: .45; filter: grayscale(.75); }
+  .stamp.skipped::after { content: "✕"; position: absolute; right: 2px; bottom: 1px;
+    color: var(--neg); font-weight: 800; font-size: 12px; line-height: 1;
+    text-shadow: 0 0 3px #000, 0 0 3px #000; }
   .stamp.none { background: transparent; border-style: dashed; border-color: #2b2e34; }
   .stamp.last { box-shadow: 0 0 0 2px var(--accent-dim); }
   .stampFoot { margin-top: 12px; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
@@ -254,14 +259,16 @@
   .stampLegend { display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
     font-size: 9px; letter-spacing: .5px; color: var(--muted); margin-top: 10px; }
   .stampLegend span { display: flex; align-items: center; gap: 5px; }
-  .stampLegend i { width: 13px; height: 13px; border-radius: 4px; display: inline-block;
+  /* 圖例的方塊要跟格子長一樣,只是縮小。不然圖例說一套、卡上畫一套。 */
+  .stampLegend i { width: 21px; height: 21px; border-radius: 6px; position: relative;
+    display: inline-flex; align-items: center; justify-content: center; font-size: 10px; line-height: 1;
     border: 1px solid var(--border); background: #17191c; }
   .stampLegend i.taken { background: var(--streak-bg); border-color: var(--streak-border); }
+  .stampLegend i.skipped .pill { opacity: .45; filter: grayscale(.75); }
+  .stampLegend i.skipped::after { content: "✕"; position: absolute; right: 0; bottom: -1px;
+    color: var(--neg); font-weight: 800; font-size: 9px; line-height: 1;
+    text-shadow: 0 0 3px #000, 0 0 3px #000; }
   .stampLegend i.none { background: transparent; border-style: dashed; border-color: #2b2e34; }
-  /* 圖例要跟格子長一樣,不然「沒吃」在圖例是空方塊、在卡上是空心點,對不起來 */
-  .stampLegend i.skipped { display: inline-flex; align-items: center; justify-content: center; }
-  .stampLegend i.skipped::after { content: ""; width: 5px; height: 5px; border-radius: 50%;
-    border: 1.5px solid var(--muted); }
 
   @media (max-width: 640px) {
     .wrap { padding: 12px 12px 48px; }
@@ -729,22 +736,30 @@
 
   const nightOn = (nights, dateStr) => nightsByDate(nights).get(dateStr) || null;
 
-  // 集章卡:昨天往回數 count 晚(含昨天),最右一格是昨晚。
+  // 集章卡:從「開始記錄那晚」畫到昨晚,最多 count 格。
   //
   // 今晚不佔格子。那筆要明天早上醒來才填得完(躺床時數、品質、昏沉都得睡完才
   // 知道),擺一格在那裡永遠是空的,「沒記錄」這個訊號就沒意義了。
+  //
+  // 開始記錄之前的日子也不畫。那時候還沒有這套東西,畫出來會長得跟漏記一模一樣
+  // ——而範圍內的空格是真的漏記、是要被看見的訊號,不能被這種假空格稀釋。
   function sleepStamps(nights, todayStr, count) {
     const n = count || STAMP_NIGHTS;
     const byDate = nightsByDate(nights);
+    if (!byDate.size) return [];
+    const earliest = [...byDate.keys()].sort()[0];
+    const yesterday = addDays(todayStr, -1);
+    let cursor = addDays(todayStr, -n);
+    if (cursor < earliest) cursor = earliest;
     const out = [];
-    for (let i = n; i >= 1; i--) {
-      const date = addDays(todayStr, -i);
-      const rec = byDate.get(date) || null;
+    while (cursor <= yesterday) {
+      const rec = byDate.get(cursor) || null;
       out.push({
-        date: date,
+        date: cursor,
         state: !rec ? "none" : rec.medication && rec.medication.taken ? "taken" : "skipped",
         night: rec,
       });
+      cursor = addDays(cursor, 1);
     }
     return out;
   }
@@ -1110,11 +1125,11 @@
   function dayModalHTML(date) {
     const day = (D.sessions || []).filter((s) => s.date === date);
     const d = new Date(date + "T00:00:00");
-    const WK = ["日", "一", "二", "三", "四", "五", "六"];
+    const WK = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
     const types = [...new Set(day.map((s) => s.type))];
     let h = '<div class="dc"><button class="close" data-dc-close aria-label="Close">✕</button>';
     h += '<div class="dcDate">' + (d.getMonth() + 1) + " / " + d.getDate() + "</div>";
-    h += '<div class="dcWk">' + d.getFullYear() + " · 星期" + WK[d.getDay()] + "</div>";
+    h += '<div class="dcWk">' + d.getFullYear() + " · " + WK[d.getDay()] + "</div>";
     h += '<div class="dcTypes">' + types.map((t) => '<span class="dcType">' + escHtml(t) + "</span>").join("") + "</div>";
     const strength = day.flatMap((s) => s.strength || []);
     const cardio = day.flatMap((s) => s.cardio || []);
@@ -1159,7 +1174,7 @@
   // ---- 睡眠集章卡 -----------------------------------------------------------
   // 一晚一格,最右是昨晚。今晚不畫格子:那筆要明天早上才填得完。
   const SLEEP = window.SLEEP_DATA || { nights: [] };
-  const WKDAY = ["日", "一", "二", "三", "四", "五", "六"];
+  const WKDAY = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
   const mdOf = (date) => Number(date.slice(5, 7)) + "/" + Number(date.slice(8, 10));
 
   function sleepModalHTML(date) {
@@ -1167,20 +1182,20 @@
     const d = new Date(date + "T00:00:00");
     let h = '<div class="dc"><button class="close" data-dc-close aria-label="Close">✕</button>';
     h += '<div class="dcDate">' + (d.getMonth() + 1) + " / " + d.getDate() + "</div>";
-    h += '<div class="dcWk">' + d.getFullYear() + " · 星期" + WKDAY[d.getDay()] + " 晚上</div>";
+    h += '<div class="dcWk">' + d.getFullYear() + " · " + WKDAY[d.getDay()] + " NIGHT</div>";
     if (!n) {
-      h += '<div class="dcSec"><div class="dcSecT">沒有記錄</div>' +
-        '<div class="dcNoteMain">這晚沒有記錄。可以補記。</div></div>';
+      h += '<div class="dcSec"><div class="dcSecT">NO RECORD</div>' +
+        '<div class="dcNoteMain">Nothing logged for this night. It can still be filled in.</div></div>';
       return h + "</div>";
     }
     const took = !!(n.medication && n.medication.taken);
-    h += '<div class="dcSec"><div class="dcSecT">' + (took ? "💊 有吃" : "沒吃") + "</div>";
+    h += '<div class="dcSec"><div class="dcSecT">' + (took ? "💊 TAKEN" : "NOT TAKEN") + "</div>";
     h += '<div class="dcMeta">' +
       "<div><b>" + "★".repeat(n.quality) + "☆".repeat(5 - n.quality) + "</b><span>QUALITY</span></div>" +
-      "<div><b>" + M.formatHours(M.timeInBed(n)) + "</b><span>躺床</span></div>" +
-      "<div><b>" + n.bedtime + "–" + n.wake_time + "</b><span>就寢–起床</span></div>" +
-      "<div><b>" + (n.morning_grogginess ? "昏沉" : "清爽") + "</b><span>早上</span></div>" +
-      (n.night_wakes != null ? "<div><b>" + n.night_wakes + "</b><span>夜醒次數</span></div>" : "") +
+      "<div><b>" + M.formatHours(M.timeInBed(n)) + "</b><span>IN BED</span></div>" +
+      "<div><b>" + n.bedtime + "–" + n.wake_time + "</b><span>BED–WAKE</span></div>" +
+      "<div><b>" + (n.morning_grogginess ? "GROGGY" : "CLEAR") + "</b><span>MORNING</span></div>" +
+      (n.night_wakes != null ? "<div><b>" + n.night_wakes + "</b><span>NIGHT WAKES</span></div>" : "") +
       "</div></div>";
     if (n.note) h += '<div class="dcSec"><div class="dcSecT">NOTE</div><div class="dcNoteMain">' + escHtml(n.note) + "</div></div>";
     return h + "</div>";
@@ -1188,29 +1203,29 @@
 
   function renderSleep() {
     const nights = SLEEP.nights || [];
-    if (!nights.length) return;                 // 一筆都沒有就整個 section 不出現
     const stamps = M.sleepStamps(nights, TODAY);
+    if (!stamps.length) return;                 // 沒有已過去的紀錄就整個 section 不出現
     const last = M.lastNight(nights, TODAY);
-    const label = { taken: "已吃", skipped: "沒吃", none: "還沒記" };
+    const label = { taken: "TAKEN", skipped: "NOT TAKEN", none: "NOT LOGGED" };
     const lastState = last ? (last.medication && last.medication.taken ? "taken" : "skipped") : "none";
 
     el("sleep").innerHTML =
       '<div class="stamps">' +
       stamps.map((s, i) =>
         '<div class="stamp ' + s.state + (i === stamps.length - 1 ? " last" : "") + '"' +
-        ' data-night="' + s.date + '" data-tip="' + mdOf(s.date) + "(" + WKDAY[new Date(s.date + "T00:00:00").getDay()] + ") " +
-        label[s.state] + '">' + (s.state === "taken" ? "💊" : "") + "</div>"
+        ' data-night="' + s.date + '" data-tip="' + mdOf(s.date) + " (" + WKDAY[new Date(s.date + "T00:00:00").getDay()] + ") " +
+        label[s.state] + '">' + (s.state === "none" ? "" : '<span class="pill">💊</span>') + "</div>"
       ).join("") +
       "</div>" +
-      '<div class="stampFoot"><span class="lbl">昨晚</span>' +
+      '<div class="stampFoot"><span class="lbl">LAST NIGHT</span>' +
       '<span class="v ' + (lastState === "taken" ? "lime" : "") + '">' + label[lastState] + "</span>" +
       (last ? '<span class="lbl">· ' + "★".repeat(last.quality) + "☆".repeat(5 - last.quality) +
-        " · 躺床 " + M.formatHours(M.timeInBed(last)) + "</span>" : "") +
+        " · IN BED " + M.formatHours(M.timeInBed(last)) + "</span>" : "") +
       "</div>" +
       '<div class="stampLegend">' +
-      '<span><i class="taken"></i>吃了</span>' +
-      '<span><i class="skipped"></i>沒吃</span>' +
-      '<span><i class="none"></i>沒記錄</span>' +
+      '<span><i class="taken"><span class="pill">💊</span></i>TAKEN</span>' +
+      '<span><i class="skipped"><span class="pill">💊</span></i>NOT TAKEN</span>' +
+      '<span><i class="none"></i>NOT LOGGED</span>' +
       "</div>";
 
     el("sleepSec").style.display = "";

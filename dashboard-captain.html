@@ -820,11 +820,11 @@
   function dayModalHTML(date) {
     const day = sessions.filter((s) => s.date === date);
     const d = parseDate(date);
-    const WK = ["日", "一", "二", "三", "四", "五", "六"];
+    const WK = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
     const types = [...new Set(day.map((s) => s.type))];
     let h = '<div class="dc"><button class="close" data-dc-close aria-label="Close">✕</button>';
     h += '<div class="dcDate">' + (d.getMonth() + 1) + " / " + d.getDate() + "</div>";
-    h += '<div class="dcWk">' + d.getFullYear() + " · 星期" + WK[d.getDay()] + "</div>";
+    h += '<div class="dcWk">' + d.getFullYear() + " · " + WK[d.getDay()] + "</div>";
     h += '<div class="dcTypes">' + types.map((t) => '<span class="dcType">' + esc(t) + "</span>").join("") + "</div>";
     const strength = day.flatMap((s) => s.strength || []);
     const cardio = day.flatMap((s) => s.cardio || []);

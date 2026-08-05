@@ -522,40 +522,48 @@ test("formatHours 補零到分鐘", () => {
   assert.equal(M.formatHours(null), "—");
 });
 
-test("集章卡:最右一格是昨晚,今晚不佔格子", () => {
+test("集章卡:從第一筆紀錄畫到昨晚,今晚不佔格子", () => {
   const st = M.sleepStamps([night("2026-08-04"), night("2026-08-05")], "2026-08-05");
-  assert.equal(st.length, M.STAMP_NIGHTS);
-  assert.equal(st[st.length - 1].date, "2026-08-04");
-  assert.ok(!st.some((s) => s.date === "2026-08-05"));
+  assert.deepEqual(st.map((s) => s.date), ["2026-08-04"]);
 });
 
-test("集章卡:今晚已經有檔案,也不會多長出一格", () => {
-  const st = M.sleepStamps([night("2026-08-05")], "2026-08-05");
+test("集章卡:開始記錄之前的日子不畫格子", () => {
+  const st = M.sleepStamps([night("2026-08-04")], "2026-08-05");
+  assert.equal(st.length, 1);
+  assert.equal(st[0].date, "2026-08-04");
+});
+
+test("集章卡:只有今晚一筆,連一格都不畫", () => {
+  assert.deepEqual(M.sleepStamps([night("2026-08-05")], "2026-08-05"), []);
+});
+
+test("集章卡:一筆資料都沒有回空陣列,不會爆掉", () => {
+  assert.deepEqual(M.sleepStamps([], "2026-08-05"), []);
+});
+
+test("集章卡:資料超過上限時只畫最近 STAMP_NIGHTS 格", () => {
+  const ns = [];
+  for (let i = 1; i <= 30; i++) ns.push(night(M.addDays("2026-08-05", -i)));
+  const st = M.sleepStamps(ns, "2026-08-05");
   assert.equal(st.length, M.STAMP_NIGHTS);
-  assert.ok(!st.some((s) => s.date === "2026-08-05"));
+  assert.equal(st[st.length - 1].date, "2026-08-04");
+  assert.equal(st[0].date, M.addDays("2026-08-05", -M.STAMP_NIGHTS));
+});
+
+test("集章卡:範圍內的漏記仍然是空格,那是真的漏記", () => {
+  const st = M.sleepStamps([night("2026-08-01"), night("2026-08-04")], "2026-08-05");
+  assert.deepEqual(st.map((s) => s.state), ["taken", "none", "none", "taken"]);
 });
 
 test("集章卡:三種狀態各自對上", () => {
   const st = M.sleepStamps(
-    [night("2026-08-04", { medication: { taken: false } }), night("2026-08-03")],
+    [night("2026-08-01"), night("2026-08-04", { medication: { taken: false } })],
     "2026-08-05"
   );
   const byDate = Object.fromEntries(st.map((s) => [s.date, s.state]));
-  assert.equal(byDate["2026-08-03"], "taken");
+  assert.equal(byDate["2026-08-01"], "taken");
   assert.equal(byDate["2026-08-04"], "skipped");
   assert.equal(byDate["2026-08-02"], "none");
-});
-
-test("集章卡:資料不滿 14 晚,前面的格子是 none 而不是消失", () => {
-  const st = M.sleepStamps([night("2026-08-04")], "2026-08-05");
-  assert.equal(st.length, M.STAMP_NIGHTS);
-  assert.equal(st.filter((s) => s.state === "none").length, M.STAMP_NIGHTS - 1);
-});
-
-test("集章卡:一筆資料都沒有也是 14 個空格,不會爆掉", () => {
-  const st = M.sleepStamps([], "2026-08-05");
-  assert.equal(st.length, M.STAMP_NIGHTS);
-  assert.ok(st.every((s) => s.state === "none" && s.night === null));
 });
 
 test("lastNight 取的是昨晚,不是今晚", () => {

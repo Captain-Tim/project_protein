@@ -540,22 +540,30 @@
 
   const nightOn = (nights, dateStr) => nightsByDate(nights).get(dateStr) || null;
 
-  // 集章卡:昨天往回數 count 晚(含昨天),最右一格是昨晚。
+  // 集章卡:從「開始記錄那晚」畫到昨晚,最多 count 格。
   //
   // 今晚不佔格子。那筆要明天早上醒來才填得完(躺床時數、品質、昏沉都得睡完才
   // 知道),擺一格在那裡永遠是空的,「沒記錄」這個訊號就沒意義了。
+  //
+  // 開始記錄之前的日子也不畫。那時候還沒有這套東西,畫出來會長得跟漏記一模一樣
+  // ——而範圍內的空格是真的漏記、是要被看見的訊號,不能被這種假空格稀釋。
   function sleepStamps(nights, todayStr, count) {
     const n = count || STAMP_NIGHTS;
     const byDate = nightsByDate(nights);
+    if (!byDate.size) return [];
+    const earliest = [...byDate.keys()].sort()[0];
+    const yesterday = addDays(todayStr, -1);
+    let cursor = addDays(todayStr, -n);
+    if (cursor < earliest) cursor = earliest;
     const out = [];
-    for (let i = n; i >= 1; i--) {
-      const date = addDays(todayStr, -i);
-      const rec = byDate.get(date) || null;
+    while (cursor <= yesterday) {
+      const rec = byDate.get(cursor) || null;
       out.push({
-        date: date,
+        date: cursor,
         state: !rec ? "none" : rec.medication && rec.medication.taken ? "taken" : "skipped",
         night: rec,
       });
+      cursor = addDays(cursor, 1);
     }
     return out;
   }
