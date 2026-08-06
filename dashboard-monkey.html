@@ -254,7 +254,8 @@
     color: var(--neg); font-weight: 800; font-size: 12px; line-height: 1;
     text-shadow: 0 0 3px #000, 0 0 3px #000; }
   .stamp.none { background: transparent; border-style: dashed; border-color: #2b2e34; }
-  .stamp.last { box-shadow: 0 0 0 2px var(--accent-dim); }
+  /* 亮邊標的是「底下那行正在講哪一晚」,所以跟著滑鼠走,沒滑就回到昨晚 */
+  .stamp.sel { box-shadow: 0 0 0 2px var(--accent-dim); }
   /* 星等要蓋掉繼承來的顏色(.lbl 的灰、.dcMeta b 的萊姆綠),所以自己帶 color */
   .stars { color: var(--star); letter-spacing: 1.5px; }
   .stars .off { color: var(--star-off); }
@@ -263,19 +264,6 @@
   .dcMeta .stars { color: var(--star); font-size: inherit; }
   .stampFoot { margin-top: 12px; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
   .stampFoot .v { font-family: Consolas, ui-monospace, monospace; font-weight: 800; font-size: 15px; }
-  .stampLegend { display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
-    font-size: 9px; letter-spacing: .5px; color: var(--muted); margin-top: 10px; }
-  .stampLegend span { display: flex; align-items: center; gap: 5px; }
-  /* 圖例的方塊要跟格子長一樣,只是縮小。不然圖例說一套、卡上畫一套。 */
-  .stampLegend i { width: 21px; height: 21px; border-radius: 6px; position: relative;
-    display: inline-flex; align-items: center; justify-content: center; font-size: 10px; line-height: 1;
-    border: 1px solid var(--border); background: #17191c; }
-  .stampLegend i.taken { background: var(--streak-bg); border-color: var(--streak-border); }
-  .stampLegend i.skipped .pill { opacity: .45; filter: grayscale(.75); }
-  .stampLegend i.skipped::after { content: "✕"; position: absolute; right: 0; bottom: -1px;
-    color: var(--neg); font-weight: 800; font-size: 9px; line-height: 1;
-    text-shadow: 0 0 3px #000, 0 0 3px #000; }
-  .stampLegend i.none { background: transparent; border-style: dashed; border-color: #2b2e34; }
 
   @media (max-width: 640px) {
     .wrap { padding: 12px 12px 48px; }
@@ -342,8 +330,7 @@
 
   <div class="card" id="activity" style="margin-top:12px"></div>
 
-  <h2 class="sec" id="sleepSec" style="display:none">🛏 SLEEP</h2>
-  <div class="card" id="sleep" style="display:none"></div>
+  <div class="card" id="sleep" style="display:none;margin-top:12px"></div>
 
   <div id="dataErrors"></div>
 </div>
@@ -1214,31 +1201,51 @@
     const nights = SLEEP.nights || [];
     const stamps = M.sleepStamps(nights, TODAY);
     if (!stamps.length) return;                 // 沒有已過去的紀錄就整個 section 不出現
-    const last = M.lastNight(nights, TODAY);
     const label = { taken: "TAKEN", skipped: "NOT TAKEN", none: "NOT LOGGED" };
-    const lastState = last ? (last.medication && last.medication.taken ? "taken" : "skipped") : "none";
+    // 最右那格永遠是昨晚(sleepStamps 畫到昨天為止),也是底部那行的預設內容。
+    const lastDate = stamps[stamps.length - 1].date;
+
+    // 底部那一行:滑到哪一格就顯示哪一晚,沒滑任何一格時回到昨晚。
+    const footHTML = (date) => {
+      const n = M.nightOn(nights, date);
+      const state = n ? (n.medication && n.medication.taken ? "taken" : "skipped") : "none";
+      const head = date === lastDate
+        ? "LAST NIGHT"
+        : mdOf(date) + " (" + WKDAY[new Date(date + "T00:00:00").getDay()] + ")";
+      return '<span class="lbl">' + head + "</span>" +
+        '<span class="v ' + (state === "taken" ? "lime" : "") + '">' + label[state] + "</span>" +
+        (n ? '<span class="lbl">· ' + starsHTML(n.quality) +
+          " · IN BED " + M.formatHours(M.timeInBed(n)) + "</span>" : "");
+    };
 
     el("sleep").innerHTML =
+      // 標題放在卡片裡、字級與 ACTIVITY 同一套,兩張卡才長得像同一個系統
+      '<b style="font-size:13px;display:block;margin-bottom:12px">SLEEP</b>' +
       '<div class="stamps">' +
       stamps.map((s, i) =>
-        '<div class="stamp ' + s.state + (i === stamps.length - 1 ? " last" : "") + '"' +
-        ' data-night="' + s.date + '" data-tip="' + mdOf(s.date) + " (" + WKDAY[new Date(s.date + "T00:00:00").getDay()] + ") " +
-        label[s.state] + '">' + (s.state === "none" ? "" : '<span class="pill">💊</span>') + "</div>"
+        '<div class="stamp ' + s.state + (i === stamps.length - 1 ? " sel" : "") + '"' +
+        ' data-night="' + s.date + '">' + (s.state === "none" ? "" : '<span class="pill">💊</span>') + "</div>"
       ).join("") +
       "</div>" +
-      '<div class="stampFoot"><span class="lbl">LAST NIGHT</span>' +
-      '<span class="v ' + (lastState === "taken" ? "lime" : "") + '">' + label[lastState] + "</span>" +
-      (last ? '<span class="lbl">· ' + starsHTML(last.quality) +
-        " · IN BED " + M.formatHours(M.timeInBed(last)) + "</span>" : "") +
-      "</div>" +
-      '<div class="stampLegend">' +
-      '<span><i class="taken"><span class="pill">💊</span></i>TAKEN</span>' +
-      '<span><i class="skipped"><span class="pill">💊</span></i>NOT TAKEN</span>' +
-      '<span><i class="none"></i>NOT LOGGED</span>' +
-      "</div>";
+      '<div class="stampFoot" id="sleepFoot">' + footHTML(lastDate) + "</div>";
 
-    el("sleepSec").style.display = "";
     el("sleep").style.display = "";
+
+    // 滑過格子換底部那行,亮邊一起移過去,並停在最後滑過的那格——移開就跳回昨晚的話,
+    // 想回頭看剛剛那晚就得再滑一次。預設是昨晚,手機沒有 hover 就一直是昨晚。
+    // 格子不掛 data-tip:日期與狀態底下那行已經在講了,游標旁再講一次是同一句話說兩遍。
+    const grid = el("sleep").querySelector(".stamps");
+    const foot = el("sleepFoot");
+    const cells = [...grid.querySelectorAll("[data-night]")];
+    const select = (date) => {
+      cells.forEach((c) => c.classList.toggle("sel", c.getAttribute("data-night") === date));
+      foot.innerHTML = footHTML(date);
+    };
+    grid.addEventListener("mouseover", (e) => {
+      const cell = e.target.closest && e.target.closest("[data-night]");
+      if (cell) select(cell.getAttribute("data-night"));
+    });
+
     el("sleep").addEventListener("click", (e) => {
       const cell = e.target.closest && e.target.closest("[data-night]");
       if (!cell || !dayModal) return;
