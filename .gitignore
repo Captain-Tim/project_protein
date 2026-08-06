@@ -18,8 +18,8 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# 驗證用暫存頁(CLAUDE.md §8 的 headless 探針)
-_t.html
+# 驗證用暫存頁(CLAUDE.md §8 的 headless 探針)、版面選擇頁等一次性的頁面
+_*.html
 *.tmp
 
 # superpowers brainstorm 工具的暫存檔(視覺化伺服器狀態,非專案內容)

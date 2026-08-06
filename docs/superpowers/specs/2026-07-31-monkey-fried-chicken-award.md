@@ -14,7 +14,7 @@ Monkey 每達成一次 weekly quest,核發一張**炸雞券**。券累積在一�
 
 | 檔案 | 角色 |
 |---|---|
-| `dashboard-monkey.html` | 只放**入口卡**:可用張數 + 最近一張的取得日 + 進入連結 |
+| `dashboard-monkey.html` | 只放**入口**:併在 WEEKLY QUEST 卡片底部,可用張數 + 下一張還差多少 + 進入連結 |
 | `wallet-monkey.html` | 票券夾本體:`AVAILABLE` / `USED` 兩個 tab,完整清單 |
 
 券會一直累積,清單放 dashboard 上會把每天要看的東西(PR 榜、配速、熱力圖)推到很下面——
@@ -133,12 +133,17 @@ ledger,與「今天是幾號」無關。
 
 ## 6. 頁面呈現
 
-### 入口卡(dashboard-monkey.html)
+### 入口(dashboard-monkey.html)
 
-接在 WEEKLY QUEST 下面——券是 quest 的產物,因果相連,手機第一屏內看得到。整張卡是連往票券夾的連結。
+不另外開卡,放在 WEEKLY QUEST 卡片底部、三個環下面一條分隔線之後——券是 quest 的產物,
+講的是同一週的同一件事,拆成獨立的卡只是把一句話切成三段。左右兩塊:
 
-- 可用張數的大數字 + `LATEST <取得日> · <n> USED`
-- 一張券都沒有時改顯示 `Complete a weekly quest to earn your first coupon`
+- **左:下一張券還差多少**。`🍗 NEXT COUPON` + 差距(`3 MORE RUNS + 150 MIN`)+ 擺動的小雞。
+  本週已達標時整塊換成 `🍗 COUPON EARNED` + 取得日 + 發光的雞腿
+- **右:票券夾入口**,是連往 `wallet-monkey.html` 的連結。`🍗 FRIED CHICKEN WALLET` +
+  `VIEW WALLET ›` + 可用張數的大數字。一張券都沒有時多一句
+  `Complete a weekly quest to earn your first coupon`
+- 桌機左右對齊卡片兩側,手機折成上下兩塊、共用同一條左邊界
 
 ### 票券夾(wallet-monkey.html)
 

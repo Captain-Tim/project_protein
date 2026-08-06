@@ -114,7 +114,8 @@
   .streak.zero .n { color: var(--muted); }
   .streak.zero .flame { filter: grayscale(1); opacity: .45; }
 
-  h2.sec { font-size: 10px; letter-spacing: 1.1px; color: var(--muted); font-weight: 600; margin: 18px 2px 8px; }
+  /* 卡片外的區塊標題,字級與卡片裡的標題(ACTIVITY、SLEEP)同一套 */
+  h2.sec { font-size: 13px; color: var(--ink); font-weight: 700; margin: 18px 2px 12px; }
 
   .ring { width: 92px; height: 92px; border-radius: 50%; flex: 0 0 auto;
     display: flex; align-items: center; justify-content: center; }
@@ -128,13 +129,16 @@
   /* QUEST 環是前兩項的綜合,右邊沒有非重複的話可講,所以環在上、小標在下、置中 */
   .qprog { flex-direction: column; justify-content: center; gap: 8px; text-align: center; }
 
-  /* 票券夾入口卡:只給張數與最近一張,券的清單在 wallet-monkey.html */
-  #wallet { display: block; text-decoration: none; color: inherit;
-    transition: border-color .15s, box-shadow .15s; }
-  #wallet:hover { border-color: var(--accent-dim); box-shadow: 0 0 16px rgba(201, 242, 77, .15); }
+  /* quest 卡底部那一條:左邊是快到手的券,右邊是已經有的券。
+     兩者都在講同一週的同一件事,拆成三張卡只是把一句話切成三段。 */
+  .qfoot { border-top: 1px solid var(--border); margin-top: 14px; padding-top: 12px;
+    display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+  /* 票券夾入口:只給張數,券的清單在 wallet-monkey.html */
+  #wallet { display: block; text-decoration: none; color: inherit; text-align: right; }
+  #wallet .wrow { display: flex; justify-content: flex-end; align-items: baseline; gap: 10px; }
   #wallet .go { font-size: 11px; font-weight: 700; letter-spacing: .8px; color: var(--accent); }
-  /* 下一張券還差多少。跟入口卡並排:左邊是已經有的,右邊是快到手的 */
-  #nextCoupon { display: flex; flex-direction: column; justify-content: center; }
+  #wallet:hover .go { text-decoration: underline; }
+  /* 下一張券還差多少。quest 卡講 runs/minutes,這裡把它翻成獎勵的語言 */
   #nextCoupon .line { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
   #nextCoupon .v { font-size: 15px; font-weight: 800; }
   /* 小雞在字尾左右擺,填掉右邊的空白。純旋轉不位移,所以卡片高度一點都不變 */
@@ -144,7 +148,6 @@
   }
   #nextCoupon .chick { font-size: 17px; line-height: 1; display: inline-block;
     animation: chickWaddle .79s ease-in-out infinite; }
-  #nextCoupon.done { border-color: var(--accent); box-shadow: 0 0 18px rgba(201, 242, 77, .22); }
   #nextCoupon.done .v { color: var(--accent); }
   /* 達標之後:雞腿發光,兩側的星星交錯閃 */
   @keyframes twinkle {
@@ -278,6 +281,10 @@
     .qwrap { flex-direction: row !important; flex-wrap: wrap; gap: 10px; align-items: flex-start; }
     .qcol { flex-direction: column; gap: 8px; text-align: center; }
     .qsep { display: none; }
+    /* 底部那條在手機折成上下兩塊,票券夾就不該再靠右——兩塊要對齊同一條左邊界 */
+    .qfoot { flex-direction: column; align-items: stretch; gap: 12px; }
+    #wallet { text-align: left; }
+    #wallet .wrow { justify-content: flex-start; }
     .ring { width: 84px; height: 84px; }
     .ring > div { width: 64px; height: 64px; }
 
@@ -313,11 +320,6 @@
   </header>
 
   <div class="card" id="quest" style="margin-top:12px"></div>
-
-  <div class="row" style="margin-top:12px">
-    <div class="card" id="nextCoupon" style="flex:1"></div>
-    <a class="card" id="wallet" href="wallet-monkey.html" style="flex:1.25"></a>
-  </div>
 
   <h2 class="sec">🏆 PERSONAL RECORDS</h2>
   <div class="row" id="prBoard"></div>
@@ -881,9 +883,43 @@
     return "background:conic-gradient(var(--accent) 0, var(--accent-dim) " + mid +
       "%, var(--accent) " + p + "%, var(--border) " + p + "% 100%)";
   };
+  // 券的兩塊要畫進 quest 卡底部,所以先算好再組整張卡。
+  // 達標券由 coupons() 推導;REWARDS_DATA 提供「哪張被用掉」與「手動發了哪些特別券」。
+  const RW = window.REWARDS_DATA || {};
+  const wallet = M.coupons(runs, RW.redemptions || [], RW.grants || []);
+  const latest = wallet.coupons[0];
+  const thisWeekCoupon = wallet.coupons.find((c) => c.week_start === q.weekStart);
+  const gaps = [];
+  if (q.runs < G.runs) gaps.push(plural(G.runs - q.runs, "MORE RUN"));
+  if (q.minutes < G.minutes) gaps.push(round1(G.minutes - q.minutes) + " MIN");
+
+  const nextCouponHTML =
+    '<div id="nextCoupon"' + (thisWeekCoupon ? ' class="done"' : "") + ">" +
+    (thisWeekCoupon
+      ? '<div class="lbl">🍗 COUPON EARNED</div>' +
+        '<div class="line"><div class="v num">' + thisWeekCoupon.earned_on + "</div>" +
+        '<span class="joy"><span class="s">✨</span><span class="d">🍗</span><span class="s">✨</span></span></div>'
+      : '<div class="lbl">🍗 NEXT COUPON</div>' +
+        '<div class="line"><div class="v">' + (gaps.length ? gaps.join(" + ") : "—") + "</div>" +
+        '<span class="chick">🐔</span></div>') +
+    "</div>";
+
+  // 只給張數,清單與 USED 歷史在 wallet-monkey.html——券會一直累積,不能佔著 dashboard
+  const walletHTML =
+    '<a id="wallet" href="wallet-monkey.html">' +
+      '<div class="wrow">' +
+        '<div class="lbl">🍗 FRIED CHICKEN WALLET</div><div class="go">VIEW WALLET ›</div></div>' +
+      '<div class="num lime" style="font-size:26px;margin-top:2px">' + wallet.available +
+        ' <span class="lbl" style="font-size:11px">AVAILABLE</span></div>' +
+      // 一張券都沒有時才給一句提示,否則只剩一個孤零零的 0
+      (latest ? "" : '<div class="lbl">Complete a weekly quest to earn your first coupon</div>') +
+    "</a>";
+
   el("quest").innerHTML =
     '<div style="display:flex;justify-content:space-between;align-items:baseline">' +
-      '<div class="lbl">WEEKLY QUEST · ' + q.weekStart + " → " + q.weekEnd + "</div>" +
+      '<div style="display:flex;align-items:baseline;gap:8px">' +
+        '<b style="font-size:13px">WEEKLY QUEST</b>' +
+        '<span class="lbl">' + q.weekStart + " → " + q.weekEnd + "</span></div>" +
       '<div class="lbl">' + q.daysLeft + " DAY" + (q.daysLeft === 1 ? "" : "S") + " LEFT</div>" +
     "</div>" +
     '<div class="row qwrap" style="margin-top:12px">' +
@@ -918,39 +954,8 @@
           '<div class="lbl" style="font-size:9px">QUEST</div></div></div>' +
         '<div class="lbl">QUEST PROGRESS</div>' +
       "</div>" +
-    "</div>";
-
-  // 票券夾入口。達標券由 coupons() 推導;REWARDS_DATA 提供「哪張被用掉」與「手動發了哪些特別券」。
-  // 這裡只給張數,清單與 USED 歷史在 wallet-monkey.html——券會一直累積,不能佔著 dashboard。
-  const RW = window.REWARDS_DATA || {};
-  const wallet = M.coupons(runs, RW.redemptions || [], RW.grants || []);
-  const latest = wallet.coupons[0];
-  el("wallet").innerHTML =
-    '<div style="display:flex;justify-content:space-between;align-items:baseline">' +
-      '<div class="lbl">🍗 FRIED CHICKEN WALLET</div>' +
-      '<div class="go">VIEW WALLET ›</div>' +
     "</div>" +
-    '<div style="display:flex;align-items:baseline;gap:14px;margin-top:2px;flex-wrap:wrap">' +
-      '<div class="num lime" style="font-size:26px">' + wallet.available +
-        ' <span class="lbl" style="font-size:11px">AVAILABLE</span></div>' +
-      // 一張券都沒有時才給一句提示,否則入口卡只剩一個孤零零的 0
-      (latest ? "" : '<div class="lbl">Complete a weekly quest to earn your first coupon</div>') +
-    "</div>";
-
-  // 下一張券還差多少。quest 卡講的是 runs/minutes,這裡把它翻成獎勵的語言——
-  // Monkey 每天看的是這一屏,券的存在感不能只留在票券夾裡。
-  const thisWeekCoupon = wallet.coupons.find((c) => c.week_start === q.weekStart);
-  const gaps = [];
-  if (q.runs < G.runs) gaps.push(plural(G.runs - q.runs, "MORE RUN"));
-  if (q.minutes < G.minutes) gaps.push(round1(G.minutes - q.minutes) + " MIN");
-  el("nextCoupon").className = "card" + (thisWeekCoupon ? " done" : "");
-  el("nextCoupon").innerHTML = thisWeekCoupon
-    ? '<div class="lbl">🍗 COUPON EARNED</div>' +
-      '<div class="line"><div class="v num">' + thisWeekCoupon.earned_on + "</div>" +
-      '<span class="joy"><span class="s">✨</span><span class="d">🍗</span><span class="s">✨</span></span></div>'
-    : '<div class="lbl">🍗 NEXT COUPON</div>' +
-      '<div class="line"><div class="v">' + (gaps.length ? gaps.join(" + ") : "—") + "</div>" +
-      '<span class="chick">🐔</span></div>';
+    '<div class="qfoot">' + nextCouponHTML + walletHTML + "</div>";
 
   // PR 榜
   const pr = M.personalRecords(runs);
@@ -1205,15 +1210,15 @@
     // 最右那格永遠是昨晚(sleepStamps 畫到昨天為止),也是底部那行的預設內容。
     const lastDate = stamps[stamps.length - 1].date;
 
-    // 底部那一行:滑到哪一格就顯示哪一晚,沒滑任何一格時回到昨晚。
+    // 底部那一行:滑到哪一格就講哪一晚。日期是主字——吃沒吃格子的圖示已經講了,
+    // 但「這是哪一天」除了點開彈窗之外沒有別的地方看得到,所以醒目的那個位置給日期。
     const footHTML = (date) => {
       const n = M.nightOn(nights, date);
       const state = n ? (n.medication && n.medication.taken ? "taken" : "skipped") : "none";
-      const head = date === lastDate
-        ? "LAST NIGHT"
-        : mdOf(date) + " (" + WKDAY[new Date(date + "T00:00:00").getDay()] + ")";
-      return '<span class="lbl">' + head + "</span>" +
-        '<span class="v ' + (state === "taken" ? "lime" : "") + '">' + label[state] + "</span>" +
+      const d = new Date(date + "T00:00:00");
+      return '<span class="v">' + mdOf(date) + " (" + WKDAY[d.getDay()] + ")</span>" +
+        (date === lastDate ? '<span class="lbl">LAST NIGHT ·</span>' : "") +
+        '<span class="lbl">' + label[state] + "</span>" +
         (n ? '<span class="lbl">· ' + starsHTML(n.quality) +
           " · IN BED " + M.formatHours(M.timeInBed(n)) + "</span>" : "");
     };
