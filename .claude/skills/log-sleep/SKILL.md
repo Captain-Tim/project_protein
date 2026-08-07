@@ -145,3 +145,22 @@ commit message 用繁體中文,格式比照現有紀錄:
 ```
 chore(sleep): 記錄 2026-08-05 的睡眠
 ```
+
+## 送出:推分支保存,但**不要自己 merge**
+
+跟 `.claude/skills/log-workout/` 同一套規則,兩邊要一致。部署只發生在 merge 進 `master` 的那一刻,
+所以這兩件事要分開看:
+
+1. **開分支 → commit → push 分支** —— 做完就做,不用問。只在本地 commit 救不回來。
+2. **開 PR、merge** —— **一定要等使用者說**。這一步等於部署,時機是使用者的決定,不是你的。
+
+push 完回報寫了什麼、build 與測試結果,然後停下來。
+
+使用者說要 merge 之後:
+
+1. `mcp__github__create_pull_request`(owner `Captain-Tim`、repo `project_protein`、
+   head 自己的分支、base `master`)開 PR。
+2. 等 PR 上的 `validate` 綠燈,**沒過就回去修資料,不要繞過**。
+3. `mcp__github__merge_pull_request`(`merge_method: squash`)merge。
+4. merge 成功後告訴使用者 GitHub Actions 正在部署,約 30-60 秒後
+   https://captain-tim.github.io/project_protein/ 就是最新的。

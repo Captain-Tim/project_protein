@@ -22,6 +22,9 @@ yarn-error.log*
 _*.html
 *.tmp
 
+# make_site.js 的產物,每次都能重生,不進版控
+_site/
+
 # superpowers brainstorm 工具的暫存檔(視覺化伺服器狀態,非專案內容)
 .superpowers/
 
