@@ -26,8 +26,12 @@ Node 18+)。不要引入框架、圖表函式庫,也不要把腳本改寫成 Pyt
   **減藥計畫不進資料層**(它隨狀況變動,存了就會跟實際脫節),所以不做「有沒有照計畫吃」的判定。
   漏記某幾晚**不是錯誤**、不擋 build:那是集章卡上的空格,是要被看見的事實。
 - **改動 metrics 邏輯後必須跑** `node scripts/test_monkey_metrics.js`。
-- **新增頁面就要同步改 `.github/workflows/pages.yml`**:`paths` 觸發清單加一筆、`_site` 複製步驟加一行。
-  Pages 上只有 `_site` 裡的東西,漏抄就是線上 404,本地開卻完全正常——這種 bug 只有部署後才看得到。
+- **新增頁面要改兩個地方**:`scripts/make_site.js` 的 `SITE` 清單加一行、
+  `.github/workflows/pages.yml` 的 `paths` 觸發清單加一筆。Pages 上只有 `_site` 裡的東西,
+  漏抄就是線上 404,本地開卻完全正常。`check_site_links.js` 會在 PR 上擋下來。
+- **所有變更走 PR,不直接推 `master`。** master = 已上線,merge 是部署動作。
+  流程:開分支 → commit → push 分支 → **等使用者說**才開 PR、squash merge。
+  PR 上 `validate` 沒過就不 merge——**去修資料/程式,不是繞過檢查**。
 
 ## 指令
 
@@ -36,7 +40,12 @@ node scripts/build_dashboard.js Captain   # data/Captain/ -> dashboard-captain.h
 node scripts/build_dashboard.js Monkey    # data/Monkey/  -> dashboard-monkey.html + wallet-monkey.html
 node scripts/test_monkey_metrics.js       # 指標邏輯測試
 node scripts/list_coupons.js Monkey       # 列出炸雞券(唯讀,不改檔)
+node scripts/make_site.js                 # 產生 _site/(部署與 PR 檢查共用同一份清單)
+node scripts/check_site_links.js          # 檢查 _site 有沒有漏抄頁面/圖片
 ```
+
+PR 上的 `validate` 就是把上面這幾支跑一遍,外加 `git diff --exit-code`
+確認頁面真的是 build 出來的。想知道 PR 會不會過,本地照這個順序跑一次就知道。
 
 ## 檔案地圖
 
@@ -51,6 +60,9 @@ node scripts/list_coupons.js Monkey       # 列出炸雞券(唯讀,不改檔)
 | `scripts/build_dashboard.js <人名>` | 兩人共用一支(刻意不拆,否則規則會偷偷分岔) |
 | `scripts/test_monkey_metrics.js` | 抽出頁面裡的 metrics 區塊在 Node 跑 |
 | `scripts/list_coupons.js <人名>` | 列出炸雞券,唯讀。同樣抽 metrics 區塊來跑,不重寫發券規則 |
+| `scripts/make_site.js` | 產生 `_site/`。要上線的檔案清單只有這一份,部署與 PR 檢查都讀它 |
+| `scripts/check_site_links.js` | 檢查根目錄的頁面有沒有漏進清單、頁面裡的本地連結在 `_site` 找不找得到 |
+| `.github/workflows/pages.yml` | `validate`(PR 與 push 都跑)→ `build` → `deploy`。PR 只驗證不部署 |
 | `profile/` | 頭像 |
 
 ## 延伸文件(需要時再讀)

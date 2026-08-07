@@ -1,6 +1,9 @@
 name: Deploy dashboard to GitHub Pages
 
 on:
+  # PR 一律跑 validate(不篩 paths):它是 merge 前的閘門,沒跑就等於沒擋。
+  pull_request:
+    branches: [master]
   push:
     branches: [master]
     paths:
@@ -10,7 +13,7 @@ on:
       - 'wallet-monkey.html'
       - 'profile/**'
       - 'icons/**'
-      - 'scripts/build_dashboard.js'
+      - 'scripts/**'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
 
@@ -19,33 +22,47 @@ permissions:
   pages: write
   id-token: write
 
-concurrency:
-  group: pages
-  cancel-in-progress: false
-
 jobs:
-  build:
+  # 只檢查、不部署。PR 與 push 都會跑,壞東西擋在進 master 之前。
+  validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      # 資料不完整(缺 distance_km / duration_min)會 exit 1,讓部署直接失敗——壞資料不准上線。
+      # 資料不完整(缺 distance_km / duration_min、睡眠缺必填、幽靈券)會 exit 1。
+      - name: 資料驗證 + 重建頁面
+        run: |
+          node scripts/build_dashboard.js Captain
+          node scripts/build_dashboard.js Monkey
+      # 重建後有 diff = 改了 data/ 忘了重建,或有人手動編了標記區塊。
+      # 那會讓頁面和 data/ 講不同的話,而且只有線上看得出來。
+      - name: 頁面必須與 data/ 同步
+        run: git diff --exit-code
+      - name: 指標邏輯測試
+        run: node scripts/test_monkey_metrics.js
+      # 漏抄的頁面/圖片本地開完全正常,只有部署後才會發現是 404。
+      - name: _site 完整性
+        run: |
+          node scripts/make_site.js
+          node scripts/check_site_links.js
+
+  build:
+    needs: validate
+    # PR 只驗證不部署;上線只發生在進 master 的那一刻。
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
       - run: node scripts/build_dashboard.js Captain
       - run: node scripts/build_dashboard.js Monkey
-      # Pages 上只有 _site 裡的東西。Captain 頁同時當首頁(index.html),
-      # 也保留原檔名(已分享出去的 dashboard-captain.html 連結不會壞)。
-      # 頁面之間有連結,漏抄任何一個就是線上 404——新增頁面時這裡一定要跟著加。
-      - run: |
-          mkdir -p _site
-          cp dashboard-captain.html _site/index.html
-          cp dashboard-captain.html _site/dashboard-captain.html
-          cp dashboard-monkey.html _site/
-          cp wallet-monkey.html _site/
-          cp -r profile _site/
-          # 加到主畫面用的圖示。漏抄的話主畫面圖示會變空白。
-          cp -r icons _site/
+      # Pages 上只有 _site 裡的東西。複製清單在 scripts/make_site.js,
+      # check_site_links.js 讀的是同一份,新增頁面只要改那裡一行。
+      - run: node scripts/make_site.js
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
@@ -53,6 +70,9 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    concurrency:
+      group: pages
+      cancel-in-progress: false
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

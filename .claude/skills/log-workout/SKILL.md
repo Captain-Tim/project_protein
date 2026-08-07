@@ -196,8 +196,9 @@ push 完回報寫了什麼、build 與測試結果,然後停下來。
 
 1. `mcp__github__create_pull_request`(owner `Captain-Tim`、repo `project_protein`、
    head 自己的分支、base `master`)開 PR。
-2. `mcp__github__merge_pull_request`(`merge_method: squash`)merge——這個環境有 merge 權限。
-3. merge 成功後告訴使用者 GitHub Actions 正在部署,約 30-60 秒後
+2. 等 PR 上的 `validate` 綠燈,**沒過就回去修資料,不要繞過**。
+3. `mcp__github__merge_pull_request`(`merge_method: squash`)merge——這個環境有 merge 權限。
+4. merge 成功後告訴使用者 GitHub Actions 正在部署,約 30-60 秒後
    https://captain-tim.github.io/project_protein/ 就是最新的。
 
 merge 若被擋(權限、衝突、CI)就回頭請使用者處理,並說明卡在哪。
