@@ -34,8 +34,9 @@
   .lbl { font-size: 10px; letter-spacing: 1.1px; color: var(--muted); font-weight: 600; }
   .num { font-family: Consolas, ui-monospace, monospace; font-weight: 700; }
   .lime { color: var(--accent); }
-  /* 趨勢差值:箭頭已代表「進步/退步」(▲=配速更快),故 ▲ 綠 / ▼ 紅 */
-  .delta { font-size: 11px; margin-top: 8px; }
+  /* 趨勢差值:箭頭已代表「進步/退步」(▲=配速更快),故 ▲ 綠 / ▼ 紅。
+     掛在它描述的那個主數值底下,自己佔一行,所以要 block——inline 吃不到 margin-top */
+  .delta { display: block; font-size: 10px; margin-top: 5px; }
   .delta.up { color: var(--pos); }
   .delta.down { color: var(--neg); }
   .delta.flat { color: var(--muted); }
@@ -243,11 +244,10 @@
   .lwStats > div { flex: 1 1 0; min-width: 0; }
   .lwStats .v { font-family: Consolas, ui-monospace, monospace; font-weight: 800;
     font-size: 20px; color: var(--accent); line-height: 1.15; }
-  .lwDelta { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 9px; }
-  .lwDelta .delta { font-size: 10px; margin-top: 0; }
-  /* 選配欄位維持靠左排,與彈窗的 .dcMeta 同一套。只有主數值均分,層次才不會被拉平 */
-  .lwExtra { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 11px;
-    padding-top: 10px; border-top: 1px solid var(--border); }
+  /* 選配欄位維持靠左排,與彈窗的 .dcMeta 同一套。只有主數值均分,層次才不會被拉平。
+     這一段不畫分隔線:卡片扁平化之後它上下已經各有一條,中間再一條就是三條等距橫線
+     擠在一屏,讀起來像三個並列區塊,其實只是一張卡。改用加大的留白分段。 */
+  .lwExtra { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
   .lwExtra > div { display: flex; align-items: baseline; gap: 4px; }
   .lwExtra b { font-family: Consolas, ui-monospace, monospace; color: var(--ink); font-weight: 800; font-size: 13px; }
   .lwExtra span { color: var(--muted); font-size: 10px; letter-spacing: .5px; }
@@ -367,7 +367,7 @@
     .lwName { font-size: 19px; }
     .lwStats { gap: 22px; }
     .lwStats .v { font-size: 24px; }
-    .lwDelta .delta { font-size: 11px; }
+    .delta { font-size: 11px; }
     /* 兩張卡在手機各自獨立、不再等高,長條圖回到固定高度。
        min-height 要一起歸零,否則桌機那條 88px 會把 74px 頂上去 */
     .bars { flex: none; min-height: 0; height: 74px; gap: 5px; --bw: 16px; }
@@ -1106,28 +1106,32 @@
           .map((x) => '<span class="lwPR">' + x[1] + " NEW PR</span>").join("")
       : "";
 
-    const stat = (v, u) => '<div><div class="v">' + v + '</div><div class="lbl">' + u + "</div></div>";
+    // 第三個參數是掛在這個數值底下的漲跌幅,沒有就不掛
+    const stat = (v, u, d) =>
+      '<div><div class="v">' + v + '</div><div class="lbl">' + u + "</div>" + (d || "") + "</div>";
     let body;
     if (lw.kind === "cardio") {
-      body = '<div class="lwStats">' +
-        stat(lw.km, "KM") + stat(round1(lw.min), "MIN") + stat(fmtPace(lw.min, lw.km), "MIN / KM") +
-        "</div>";
       // 跟上一個有 cardio 的日子比。純重訓日沒有距離配速可比,prevCardioDay 會跳過。
       const p = M.prevCardioDay(D.sessions, lw.date);
+      let kmBit = "", paceBit = "";
       if (p && p.km > 0) {
         const dk = Math.round((lw.km - p.km) * 100) / 100;
         const dsec = Math.round((p.min / p.km - lw.min / lw.km) * 60);
         // 門檻是為了擋浮點殘渣,不是為了美化
-        const kmBit = Math.abs(dk) < 0.01
+        kmBit = Math.abs(dk) < 0.01
           ? '<span class="delta flat">same distance</span>'
           : '<span class="delta ' + (dk > 0 ? "up" : "down") + '">' +
             (dk > 0 ? "▲ +" + dk : "▼ " + dk) + " km</span>";
-        const paceBit = Math.abs(dsec) < 1
+        // 不寫 faster / slower:▲▼ 與紅綠已經在講方向,而它就掛在配速底下,指涉不會歪
+        paceBit = Math.abs(dsec) < 1
           ? '<span class="delta flat">same pace</span>'
           : '<span class="delta ' + (dsec > 0 ? "up" : "down") + '">' +
-            (dsec > 0 ? "▲ " + dsec + " sec faster" : "▼ " + -dsec + " sec slower") + "</span>";
-        body += '<div class="lwDelta">' + kmBit + paceBit + "</div>";
+            (dsec > 0 ? "▲ " + dsec : "▼ " + -dsec) + " sec</span>";
       }
+      body = '<div class="lwStats">' +
+        stat(lw.km, "KM", kmBit) + stat(round1(lw.min), "MIN") +
+        stat(fmtPace(lw.min, lw.km), "MIN / KM", paceBit) +
+        "</div>";
       const extras =
         (lw.hr != null ? "<div><b>" + lw.hr + "</b><span>BPM</span></div>" : "") +
         // 坡度 0 是有效的實測值,所以看欄位在不在,不要看值真不真

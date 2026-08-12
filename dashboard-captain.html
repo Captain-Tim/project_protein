@@ -34,8 +34,9 @@
   .lbl { font-size: 10px; letter-spacing: 1.1px; color: var(--muted); font-weight: 600; }
   .num { font-family: Consolas, ui-monospace, monospace; font-weight: 700; }
   .accent { color: var(--tab-c, var(--accent)); }
-  /* 趨勢差值:箭頭已代表「進步/退步」(配速 ▲=更快、重量 ▲=更重),故 ▲ 綠 / ▼ 紅 */
-  .delta { font-size: 11px; margin-top: 8px; }
+  /* 趨勢差值:箭頭已代表「進步/退步」(配速 ▲=更快、重量 ▲=更重),故 ▲ 綠 / ▼ 紅。
+     掛在它描述的那個主數值底下,自己佔一行,所以要 block——inline 吃不到 margin-top */
+  .delta { display: block; font-size: 10px; margin-top: 5px; }
   .delta.up { color: var(--pos); }
   .delta.down { color: var(--neg); }
   .delta.flat { color: var(--muted); }
@@ -248,15 +249,14 @@
   .lwStats > div { flex: 1 1 0; min-width: 0; }
   .lwStats .v { font-family: Consolas, ui-monospace, monospace; font-weight: 800;
     font-size: 20px; color: var(--tab-c, var(--accent)); line-height: 1.15; }
-  .lwDelta { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 9px; }
-  .lwDelta .delta { font-size: 10px; margin-top: 0; }
-  .lwExtra { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 11px;
-    padding-top: 10px; border-top: 1px solid var(--border); }
+  /* 下段不畫分隔線:卡片扁平化之後它上下已經各有一條,中間再一條就是三條等距橫線
+     擠在一屏,讀起來像三個並列區塊,其實只是一張卡。改用加大的留白分段。 */
+  .lwExtra { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
   .lwExtra > div { display: flex; align-items: baseline; gap: 4px; }
   .lwExtra b { font-family: Consolas, ui-monospace, monospace; color: var(--ink); font-weight: 800; font-size: 13px; }
   .lwExtra span { color: var(--muted); font-size: 10px; letter-spacing: .5px; }
-  /* 組數明細沿用彈窗的 .dcSet 藥丸,不另外做一套 */
-  .lwSetRow { margin-top: 11px; padding-top: 10px; border-top: 1px solid var(--border); }
+  /* 組數明細沿用彈窗的 .dcSet 藥丸,不另外做一套。與 .lwExtra 同理,不畫分隔線 */
+  .lwSetRow { margin-top: 18px; }
   .lwPR { display: inline-flex; align-items: center; gap: 3px; font-size: 9px; font-weight: 800;
     letter-spacing: .4px; color: #0a0a0a; background: var(--tab-c, var(--accent)); border-radius: 99px;
     padding: 2px 7px; margin-left: 6px; vertical-align: 2px; }
@@ -326,7 +326,7 @@
     .lwName { font-size: 19px; }
     .lwStats { gap: 22px; }
     .lwStats .v { font-size: 24px; }
-    .lwDelta .delta { font-size: 11px; }
+    .delta { font-size: 11px; }
     .bars { height: 74px; gap: 5px; --bw: 16px; }
     .barx { gap: 5px; }
   }
@@ -807,7 +807,9 @@
 
   // LAST WORKOUT:選中動作的最近一次。cardio 與 strength 的主數值不同,外殼共用。
   const WKDAY = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
-  const lwStat = (v, u) => '<div><div class="v">' + v + '</div><div class="lbl">' + u + "</div></div>";
+  // 第三個參數是掛在這個數值底下的漲跌幅,沒有就不掛
+  const lwStat = (v, u, d) =>
+    '<div><div class="v">' + v + '</div><div class="lbl">' + u + "</div>" + (d || "") + "</div>";
   // 門檻是為了擋浮點殘渣,不是為了美化
   function lwDelta(v, eps, up, down, flat) {
     if (v == null) return "";
@@ -824,17 +826,18 @@
     let body;
 
     if (isCardio) {
-      body = '<div class="lwStats">' +
-        lwStat(last.km, "KM") + lwStat(round2(last.min), "MIN") + lwStat(fmtPace(last.min, last.km), "MIN / KM") +
-        "</div>";
+      let kmBit = "", paceBit = "";
       if (prev && prev.km > 0 && last.km > 0) {
         const dk = round2(last.km - prev.km);
         const dsec = Math.round((prev.min / prev.km - last.min / last.km) * 60);
-        body += '<div class="lwDelta">' +
-          lwDelta(dk, 0.01, (v) => "▲ +" + v + " km", (v) => "▼ -" + v + " km", "same distance") +
-          lwDelta(dsec, 1, (v) => "▲ " + v + " sec faster", (v) => "▼ " + v + " sec slower", "same pace") +
-          "</div>";
+        kmBit = lwDelta(dk, 0.01, (v) => "▲ +" + v + " km", (v) => "▼ -" + v + " km", "same distance");
+        // 不寫 faster / slower:▲▼ 與紅綠已經在講方向,而它就掛在配速底下,指涉不會歪
+        paceBit = lwDelta(dsec, 1, (v) => "▲ " + v + " sec", (v) => "▼ " + v + " sec", "same pace");
       }
+      body = '<div class="lwStats">' +
+        lwStat(last.km, "KM", kmBit) + lwStat(round2(last.min), "MIN") +
+        lwStat(fmtPace(last.min, last.km), "MIN / KM", paceBit) +
+        "</div>";
       const extras =
         (last.hr != null ? "<div><b>" + last.hr + "</b><span>BPM</span></div>" : "") +
         // 坡度 0 是有效的實測值,所以看欄位在不在,不要看值真不真
@@ -844,17 +847,17 @@
     } else {
       // 單位跟著資料走:Bench Press 是 lb,其他多半是 kg,標籤不能寫死
       const U = (last.unit || "").toUpperCase();
-      body = '<div class="lwStats">' +
-        lwStat(last.maxWeight, "MAX " + U) + lwStat(last.setCount, "SETS") + lwStat(last.volume, "VOLUME " + U) +
-        "</div>";
+      let wBit = "", volBit = "";
       if (prev) {
-        body += '<div class="lwDelta">' +
-          lwDelta(round2(last.maxWeight - prev.maxWeight), 0.01,
-            (v) => "▲ +" + v + " " + last.unit, (v) => "▼ -" + v + " " + last.unit, "same weight") +
-          lwDelta(last.volume - prev.volume, 1,
-            (v) => "▲ +" + v + " vol", (v) => "▼ -" + v + " vol", "same volume") +
-          "</div>";
+        wBit = lwDelta(round2(last.maxWeight - prev.maxWeight), 0.01,
+          (v) => "▲ +" + v + " " + last.unit, (v) => "▼ -" + v + " " + last.unit, "same weight");
+        volBit = lwDelta(last.volume - prev.volume, 1,
+          (v) => "▲ +" + v + " vol", (v) => "▼ -" + v + " vol", "same volume");
       }
+      body = '<div class="lwStats">' +
+        lwStat(last.maxWeight, "MAX " + U, wBit) + lwStat(last.setCount, "SETS") +
+        lwStat(last.volume, "VOLUME " + U, volBit) +
+        "</div>";
       // 組數明細:重訓真正想看的就是「上次推幾公斤幾下」
       body += '<div class="lwSetRow"><div class="dcSets">' +
         (last.sets || []).map((st) => '<span class="dcSet">' + st.weight + last.unit + " × " + st.reps + "</span>").join("") +
