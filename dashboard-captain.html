@@ -830,8 +830,9 @@
       if (prev && prev.km > 0 && last.km > 0) {
         const dk = round2(last.km - prev.km);
         const dsec = Math.round((prev.min / prev.km - last.min / last.km) * 60);
-        kmBit = lwDelta(dk, 0.01, (v) => "▲ +" + v + " km", (v) => "▼ -" + v + " km", "same distance");
-        // 不寫 faster / slower:▲▼ 與紅綠已經在講方向,而它就掛在配速底下,指涉不會歪
+        kmBit = lwDelta(dk, 0.01, (v) => "▲ " + v + " km", (v) => "▼ " + v + " km", "same distance");
+        // 不寫 faster / slower,也不寫正負號:▲▼ 與紅綠已經在講方向,
+        // 而它就掛在配速底下,指涉不會歪
         paceBit = lwDelta(dsec, 1, (v) => "▲ " + v + " sec", (v) => "▼ " + v + " sec", "same pace");
       }
       body = '<div class="lwStats">' +
@@ -850,9 +851,9 @@
       let wBit = "", volBit = "";
       if (prev) {
         wBit = lwDelta(round2(last.maxWeight - prev.maxWeight), 0.01,
-          (v) => "▲ +" + v + " " + last.unit, (v) => "▼ -" + v + " " + last.unit, "same weight");
+          (v) => "▲ " + v + " " + last.unit, (v) => "▼ " + v + " " + last.unit, "same weight");
         volBit = lwDelta(last.volume - prev.volume, 1,
-          (v) => "▲ +" + v + " vol", (v) => "▼ -" + v + " vol", "same volume");
+          (v) => "▲ " + v + " vol", (v) => "▼ " + v + " vol", "same volume");
       }
       body = '<div class="lwStats">' +
         lwStat(last.maxWeight, "MAX " + U, wBit) + lwStat(last.setCount, "SETS") +

@@ -1121,8 +1121,9 @@
         kmBit = Math.abs(dk) < 0.01
           ? '<span class="delta flat">same distance</span>'
           : '<span class="delta ' + (dk > 0 ? "up" : "down") + '">' +
-            (dk > 0 ? "▲ +" + dk : "▼ " + dk) + " km</span>";
-        // 不寫 faster / slower:▲▼ 與紅綠已經在講方向,而它就掛在配速底下,指涉不會歪
+            (dk > 0 ? "▲ " : "▼ ") + Math.abs(dk) + " km</span>";
+        // 不寫 faster / slower,也不寫正負號:▲▼ 與紅綠已經在講方向,
+        // 而它就掛在配速底下,指涉不會歪
         paceBit = Math.abs(dsec) < 1
           ? '<span class="delta flat">same pace</span>'
           : '<span class="delta ' + (dsec > 0 ? "up" : "down") + '">' +
