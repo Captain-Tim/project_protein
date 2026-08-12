@@ -13,7 +13,7 @@
 | 頁首：頭像、累積數字、🔥 week streak | `header.hero` | `monkey-cardio-dashboard.md`「頁首 Header」 |
 | WEEKLY QUEST，底部含炸雞券入口 | `#quest` | `monkey-cardio-dashboard.md`「WEEKLY QUEST（本週任務）」、`monkey-fried-chicken-award.md` |
 | 🏆 PERSONAL RECORDS，三格 | `#prBoard` | `monkey-cardio-dashboard.md`「🏆 PERSONAL RECORDS（PR 榜，三格）」 |
-| WEEKLY DISTANCE 與 LAST WORKOUT 並排 | `#weeklyDist` `#lastWorkout` | `monkey-cardio-dashboard.md`「WEEKLY DISTANCE（柱狀圖）」、`monkey-last-workout.md` |
+| WEEKLY DISTANCE 與 LAST WORKOUT 並排 | `#weeklyDist` `#lastWorkout` | `monkey-cardio-dashboard.md`「WEEKLY DISTANCE（柱狀圖）」、`last-workout.md` |
 | ACTIVITY 熱力圖 | `#activity` | `monkey-cardio-dashboard.md`「ACTIVITY（GitHub 式熱力圖）」 |
 | SLEEP 集章卡 | `#sleep` | `monkey-sleep-log.md` |
 

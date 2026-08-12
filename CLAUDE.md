@@ -82,8 +82,9 @@ PR 上的 `validate` 就是把上面這幾支跑一遍，外加 `git diff --exit
   驗證條件、票券夾版面。要動獎勵系統就照它。
 - `docs/superpowers/specs/monkey-sleep-log.md` — 睡眠與用藥紀錄的欄位、驗證規則、
   集章卡與彈窗版面，以及刻意不做的那些（趨勢圖、計畫遵守度）。要動睡眠系統就照它。
-- `docs/superpowers/specs/monkey-last-workout.md` — LAST WORKOUT 卡的單位定義、距今天數的
-  三段配色、破紀錄標籤的掛法，以及移除 AVG PACE 的取捨。
+- `docs/superpowers/specs/last-workout.md` — **兩頁共用**：LAST WORKOUT 卡的三段配色、▲▼ 門檻、
+  對齊與互動寫在「共通規則」，兩頁各自的範圍差異（Monkey 是最近一個訓練日，Captain 是選中動作的
+  最近一次）寫在自己那一節。要動任一頁的這張卡就照它。
 
 **spec 是活文件，不是開發日誌。** 檔名不帶日期就是這個意思：功能改了就回頭改對應的 spec，
 讓它一直反映現況。建立日期在 git history 裡，不用寫進檔名。
