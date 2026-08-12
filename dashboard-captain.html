@@ -119,6 +119,31 @@
 
   h2.sec { font-size: 10px; letter-spacing: 1.1px; color: var(--muted); font-weight: 600; margin: 18px 2px 8px; }
 
+  /* ON THE PROGRAM:今天表定要做什麼。併入 Weekly Quest 那張卡,不另開一張——
+     課表內容撐不滿全寬,單獨一張卡在桌機會留一大塊白。
+     這張卡是 (課表, 今天日期) 的單純函數:不讀訓練紀錄、不判完成,所以永遠不會
+     跟紀錄互相矛盾。「本週湊了幾種」由旁邊的 Quest 圓環回答。 */
+  .pgHead { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  /* 部位名用等寬字:本頁所有大號數值都是 Consolas(.pr .v、.lwStats .v、.dcDate),
+     20px 也刻意不超過 h1 的 19px 太多,一張輔助卡的字比頁面標題大會很怪 */
+  .pgPart { font-family: Consolas, ui-monospace, monospace; font-size: 20px; font-weight: 800;
+    letter-spacing: .4px; line-height: 1.3; color: var(--pc, var(--ink)); }
+  .pgPart.rest { color: var(--muted); }
+  /* 膠囊列每天都有,休息日是空的但保留高度,左欄才不會塌陷 */
+  .pgChips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; min-height: 37px;
+    padding-bottom: 8px; align-items: center; }
+  /* 強度(HEAVY/LIGHT)與動作用同一套樣式,不加底色。區分只靠排序:強度永遠排第一。
+     HEAVY/LIGHT 是短的全大寫詞,跟動作名稱在視覺上已經足夠不同 */
+  .pgChips > div { flex: 0 0 auto; white-space: nowrap; font-size: 11px; font-weight: 700;
+    letter-spacing: .4px; padding: 5px 11px; border-radius: 99px;
+    border: 1px solid var(--pc, var(--border)); color: var(--pc, var(--muted)); }
+  .pgNote { margin-top: 2px; font-size: 11px; color: var(--muted); line-height: 1.65; }
+  /* 左課表右圓環。卡片不上部位色邊框也不加光暈:光暈在本頁的既有語意是
+     「破紀錄/最新」(.pr.new、.bars i.on.cur),課表天天都在,天天發光會稀釋那個訊號 */
+  .pgBody { display: flex; margin-top: 11px; }
+  .pgL { flex: 1 1 0; min-width: 0; padding-right: 16px; }
+  .pgR { flex: 1.35 1 0; min-width: 0; padding-left: 16px; border-left: 1px solid var(--border); }
+
   /* Weekly Quest:三部位圓環,二元 0%/100% */
   .ring { width: 88px; height: 88px; border-radius: 50%; flex: 0 0 auto;
     display: flex; align-items: center; justify-content: center; }
@@ -248,6 +273,10 @@
     .streak { margin-left: 0; width: 100%; justify-content: center; margin-top: 10px; }
     .peer { margin-left: auto; }
     .row { flex-direction: column; }
+    /* 課表與圓環改上下排,分隔線從左邊換到上面 */
+    .pgBody { flex-direction: column; }
+    .pgL { padding-right: 0; }
+    .pgR { padding-left: 0; padding-top: 12px; border-left: 0; border-top: 1px solid var(--border); }
     .qwrap { flex-direction: row !important; flex-wrap: wrap; }
     .ring { width: 76px; height: 76px; }
     .ring > div { width: 58px; height: 58px; }
@@ -312,6 +341,7 @@
 <script>
 /* 資料由 scripts/build_dashboard.js 注入此標記區塊,請勿手改 START/END 之間 */
 /*WORKOUT_DATA_START*/window.WORKOUT_DATA={"sessions":[{"date":"2026-01-26","type":"Cardio","strength":[],"cardio":[{"exercise":"Zone 2","duration_min":60,"note":"心率 150 bpm，偏高，已超出 Zone 2 區間 (距離為推估值:速度不可考,以 7 km/h × 時間計算)","distance_km":7}],"note":null},{"date":"2026-01-28","type":"Cardio","strength":[],"cardio":[{"exercise":"Zone 2","duration_min":60,"note":"心率降至 140 bpm，較上次改善，配速 5.5–6 km/h","distance_km":5.8}],"note":null},{"date":"2026-01-29","type":"Leg/Shoulder Day","strength":[{"exercise":"Sumo Squat","unit":"kg","sets":[{"weight":40,"reps":8},{"weight":50,"reps":8},{"weight":50,"reps":8},{"weight":50,"reps":8},{"weight":50,"reps":8}],"note":"熱身組"}],"cardio":[],"note":null},{"date":"2026-01-30","type":"Cardio","strength":[],"cardio":[{"exercise":"Zone 2","duration_min":35,"note":"時間壓縮，配速拉高至 6.6 km/h，心率 160–170 bpm，已偏移至 Zone 3–4","distance_km":3.9}],"note":null},{"date":"2026-02-02","type":"Cardio","strength":[],"cardio":[{"exercise":"Zone 2","duration_min":45,"note":"配速 6 km/h，心率 130–150 bpm","distance_km":4.5}],"note":null},{"date":"2026-02-05","type":"Cardio","strength":[],"cardio":[{"exercise":"Zone 2","duration_min":60,"note":"配速 6 km/h，心率 130–140 bpm，本週累計 105 min","distance_km":6}],"note":null},{"date":"2026-02-06","type":"Chest/Back Day","strength":[{"exercise":"Bench Press","unit":"lb","sets":[{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8}],"note":"最後一組出現震盪，神經控制達臨界點"},{"exercise":"Lat Pulldown","unit":"kg","sets":[{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8}],"note":"後段組數續航力不足"},{"exercise":"Seated Row","unit":"kg","sets":[{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8}],"note":"技術突破，後三角感受度強烈"}],"cardio":[],"note":null},{"date":"2026-02-09","type":"Cardio","strength":[],"cardio":[{"exercise":"Zone 2","duration_min":40,"note":"配速 6 km/h，心率降至 ~130 bpm，有氧效率明顯提升","distance_km":4}],"note":null},{"date":"2026-02-12","type":"Leg/Shoulder Day","strength":[{"exercise":"Sumo Squat","unit":"kg","sets":[{"weight":40,"reps":8},{"weight":50,"reps":8},{"weight":50,"reps":8},{"weight":50,"reps":8},{"weight":50,"reps":8}],"note":"熱身組；時間壓縮，穩定訓練重量"}],"cardio":[],"note":null},{"date":"2026-02-14","type":"Chest/Back Day","strength":[{"exercise":"Bench Press","unit":"lb","sets":[{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":40,"reps":8},{"weight":40,"reps":8},{"weight":40,"reps":8}],"note":"降重，穩定組；40 磅吃力，穩定肌群達臨界點"},{"exercise":"Lat Pulldown","unit":"kg","sets":[{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8}],"note":"後段組數背闊肌孤立仍需加強"},{"exercise":"Seated Row","unit":"kg","sets":[{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8}],"note":"背部感受度普通，核心發力有找到"},{"exercise":"Triceps Pushdown","unit":"kg","sets":[{"weight":12.5,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8}],"note":"後段充血感強烈"}],"cardio":[],"note":null},{"date":"2026-02-19","type":"Cardio","strength":[],"cardio":[{"exercise":"HIIT","duration_min":30,"note":"12 km/h × 1 min / 5 km/h × 2 min，10 循環，最高心率 188 bpm","distance_km":3.7},{"exercise":"Zone 2","duration_min":30,"note":"接續 HIIT 執行，肝醣耗盡狀態下強迫燃脂 (距離為推估值:速度不可考,以 7 km/h × 時間計算)","distance_km":3.5}],"note":null},{"date":"2026-02-20","type":"Chest/Back Day","strength":[{"exercise":"Bench Press","unit":"lb","sets":[{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8}],"note":"向內傾斜握法，胸大肌孤立良好"},{"exercise":"Lat Pulldown","unit":"kg","sets":[{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8}],"note":"手肘朝前軌跡，闊背肌充血"},{"exercise":"Seated Row","unit":"kg","sets":[{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8}],"note":"寬握，菱形肌與中斜方肌精準命中"},{"exercise":"Triceps Pushdown","unit":"kg","sets":[{"weight":12.5,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8}],"note":"紮營站姿，底部向兩側撕裂"}],"cardio":[],"note":null},{"date":"2026-02-21","type":"Leg/Shoulder Day","strength":[{"exercise":"Split Squat","unit":"lb","sets":[{"weight":15,"reps":8},{"weight":15,"reps":8},{"weight":15,"reps":8},{"weight":15,"reps":8},{"weight":15,"reps":8}],"note":"上身直立，後腳純支架，前腳股四頭肌孤立"}],"cardio":[],"note":null},{"date":"2026-02-27","type":"Chest/Back Day","strength":[{"exercise":"Bench Press","unit":"lb","sets":[{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8}],"note":"胸肌發力比例大幅提升"},{"exercise":"Lat Pulldown","unit":"kg","sets":[{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8}],"note":"離心放慢，大圓肌與闊背肌精準刺激"},{"exercise":"Seated Row","unit":"kg","sets":[{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8}],"note":"末端組數闊背肌微幅不適，注意肩胛骨鎖定"},{"exercise":"Triceps Pushdown","unit":"kg","sets":[{"weight":10,"reps":8},{"weight":10,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8}],"note":"降重組；掌根推砸，慢速離心"}],"cardio":[],"note":null},{"date":"2026-03-06","type":"Chest/Back Day","strength":[{"exercise":"Bench Press","unit":"lb","sets":[{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":40,"reps":8},{"weight":40,"reps":8},{"weight":40,"reps":8}],"note":"穩定組；首次突破 40 磅門檻，末端需監控肩胛骨"},{"exercise":"Lat Pulldown","unit":"kg","sets":[{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8}],"note":"手肘垂直砸向口袋，頂端主動煞車"},{"exercise":"Triceps Pushdown","unit":"kg","sets":[{"weight":12.5,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8}],"note":"手肘釘死肋骨，三頭高負載"}],"cardio":[],"note":null},{"date":"2026-03-09","type":"Leg/Shoulder Day","strength":[{"exercise":"Sumo Squat","unit":"kg","sets":[{"weight":50,"reps":8},{"weight":50,"reps":8},{"weight":50,"reps":8},{"weight":50,"reps":8},{"weight":60,"reps":7}],"note":"首次觸及 60 kg，僅完成 7 下，腹內壓需鎖死"},{"exercise":"Face Pull","unit":"kg","sets":[{"weight":1.7,"reps":10},{"weight":1.7,"reps":10},{"weight":1.7,"reps":10},{"weight":1.7,"reps":10},{"weight":1.7,"reps":10}],"note":"首次加入，肩胛骨中段感受度佳，零斜方肌代償"}],"cardio":[],"note":null},{"date":"2026-03-18","type":"Cardio","strength":[],"cardio":[{"exercise":"Zone 2","duration_min":35,"note":"停機兩週後重啟，配速 8 km/h，降階為有氧暖機","distance_km":4.7}],"note":null},{"date":"2026-03-21","type":"Chest/Back Day","strength":[{"exercise":"Bench Press","unit":"lb","sets":[{"weight":40,"reps":8},{"weight":40,"reps":8},{"weight":40,"reps":8},{"weight":40,"reps":8},{"weight":35,"reps":8}],"note":"出現動作不穩，穩定肌群超載；最後一組降重"},{"exercise":"Seated Row","unit":"kg","sets":[{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8}],"note":"後段菱形肌感受度消失，出現代償"},{"exercise":"Triceps Pushdown","unit":"kg","sets":[{"weight":12.5,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8}],"note":"底部有關節卡頓感，暫不加重"}],"cardio":[],"note":null},{"date":"2026-03-23","type":"Cardio","strength":[],"cardio":[{"exercise":"Zone 2","duration_min":45,"note":"坡度 4，配速 6.0 km/h，心率 130–140 bpm","distance_km":4.5}],"note":null},{"date":"2026-03-24","type":"Cardio","strength":[],"cardio":[{"exercise":"Zone 2","duration_min":45,"note":"配速 6.6 km/h，心率 140–150 bpm，停機後過渡恢復週","distance_km":4.9}],"note":null},{"date":"2026-04-03","type":"Leg/Shoulder Day","strength":[{"exercise":"Face Pull","unit":"kg","sets":[{"weight":1.7,"reps":15},{"weight":1.7,"reps":15},{"weight":1.7,"reps":15},{"weight":1.7,"reps":15},{"weight":1.7,"reps":15}]}],"cardio":[],"note":null},{"date":"2026-04-11","type":"Chest/Back Day","strength":[{"exercise":"Bench Press","unit":"lb","sets":[{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8}]},{"exercise":"Lat Pulldown","unit":"kg","sets":[{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8}]},{"exercise":"Triceps Pushdown","unit":"kg","sets":[{"weight":12.5,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8},{"weight":12.5,"reps":8}]}],"cardio":[],"note":"啞鈴臥推：後段三頭先力竭，下週觀察是姿勢問題或訓練空窗。滑輪下拉：末兩組末兩下力竭。三頭下壓：末兩組末兩下力竭。坐姿划船：今日跳過（器材被占用＋疲勞）。"},{"date":"2026-04-23","type":"Cardio","strength":[],"cardio":[{"exercise":"Zone 2","duration_min":38,"note":"6 km/h, ~140 bpm","distance_km":3.8}],"note":null},{"date":"2026-04-25","type":"Cardio","strength":[],"cardio":[{"exercise":"Zone 2","duration_min":60,"note":"跑步 7 km/h","distance_km":7}],"note":null},{"date":"2026-04-25","type":"Chest/Back Day","strength":[{"exercise":"Lat Pulldown","unit":"kg","sets":[{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8}]},{"exercise":"Bench Press","unit":"lb","sets":[{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8}]},{"exercise":"Seated Row","unit":"kg","sets":[{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8}]},{"exercise":"Triceps Pushdown","unit":"kg","sets":[{"weight":12.75,"reps":8},{"weight":12.75,"reps":8},{"weight":12.75,"reps":8},{"weight":12.75,"reps":8},{"weight":12.75,"reps":8}]}],"cardio":[],"note":"啞鈴臥推：手臂先痠，姿勢有點歪掉，需留意小臂垂直地面。\n坐姿寬握划船：感受度蠻好的。\n三頭下壓：第3組嘗試13.75kg，但姿勢會跑掉。"},{"date":"2026-04-27","type":"Leg/Shoulder Day","strength":[{"exercise":"Lateral Raise","unit":"kg","sets":[{"weight":1.25,"reps":15},{"weight":1.25,"reps":15},{"weight":1.25,"reps":15},{"weight":1.25,"reps":15},{"weight":1.25,"reps":15}]}],"cardio":[],"note":null},{"date":"2026-04-28","type":"Cardio","strength":[],"cardio":[{"exercise":"Zone 2","duration_min":45,"distance_km":4.5}],"note":"時速約 6 km/h，心率約 130 bpm，坡度 1.5"},{"date":"2026-05-08","type":"Chest/Back Day","strength":[{"exercise":"Bench Press","unit":"lb","sets":[{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8}]},{"exercise":"Lat Pulldown","unit":"kg","sets":[{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8}]},{"exercise":"Triceps Pushdown","unit":"kg","sets":[{"weight":11.25,"reps":8},{"weight":11.25,"reps":8},{"weight":11.25,"reps":8},{"weight":11.25,"reps":8},{"weight":11.25,"reps":8}]}],"cardio":[],"note":null},{"date":"2026-05-14","type":"Cardio","strength":[],"cardio":[{"exercise":"Zone 2","duration_min":35,"distance_km":4.1}],"note":"配速 7 km/hr。今天體感比較累，可能跟最近比較少跑、睡眠比較少有關。"},{"date":"2026-05-17","type":"Chest/Back Day","strength":[{"exercise":"Bench Press","unit":"lb","sets":[{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8}]},{"exercise":"Lat Pulldown","unit":"kg","sets":[{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8}]},{"exercise":"Seated Row","unit":"kg","sets":[{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8}]},{"exercise":"Triceps Pushdown","unit":"kg","sets":[{"weight":11.5,"reps":8},{"weight":11.5,"reps":8},{"weight":11.5,"reps":8},{"weight":11.5,"reps":8},{"weight":11.5,"reps":8}]}],"cardio":[],"note":"啞鈴臥推:採用快推慢放,變得很吃力,下週繼續努力\n坐姿划船:感受不錯,下週應該可以加重量\n三頭下拉:力竭"},{"date":"2026-05-24","type":"Chest/Back Day","strength":[{"exercise":"Lat Pulldown","unit":"kg","sets":[{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8}],"note":"第四組開始有點沒力"},{"exercise":"Seated Row","unit":"kg","sets":[{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8},{"weight":24,"reps":8}],"note":"嘗試 27kg × 1 組 × 8 下後改回 24kg；今天刻意坐比較直接近 90 度,避免上週腰痠,但感覺有點代償到上斜方,明天觀察痠痛部位"},{"exercise":"Triceps Pushdown","unit":"kg","sets":[{"weight":12.75,"reps":8},{"weight":12.75,"reps":8},{"weight":12.75,"reps":8},{"weight":12.75,"reps":8},{"weight":12.75,"reps":8}],"note":"第四組開始無力做不完全程,硬撐下來"}],"cardio":[],"note":"今天沒有胸推,因為客滿了。明顯感受到最近訓練量不足,成績開始退步。\n隔天觀察痠痛部位，正常合理。不過這次多了後三角肌的痠痛，也算是坐姿划船正常出力部位"},{"date":"2026-05-26","type":"Leg/Shoulder Day","strength":[{"exercise":"Sumo Squat","unit":"kg","sets":[{"weight":40,"reps":8},{"weight":40,"reps":8},{"weight":40,"reps":8},{"weight":40,"reps":8}]},{"exercise":"Lateral Raise","unit":"kg","sets":[{"weight":1.88,"reps":15},{"weight":1.88,"reps":15},{"weight":1.88,"reps":15},{"weight":1.88,"reps":15}]}],"cardio":[],"note":"熱身組：\nSumo Squat 20 kg × 8\nCable Lateral Raise 1.25 kg × 15"},{"date":"2026-06-03","type":"Chest/Back Day","strength":[{"exercise":"Bench Press","unit":"lb","sets":[{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8}]},{"exercise":"Lat Pulldown","unit":"kg","sets":[{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8}]},{"exercise":"Triceps Pushdown","unit":"kg","sets":[{"weight":12.75,"reps":8},{"weight":12.75,"reps":8},{"weight":12.75,"reps":8},{"weight":12.75,"reps":8},{"weight":12.75,"reps":8}]}],"cardio":[],"note":null},{"date":"2026-06-13","type":"Cardio","strength":[],"cardio":[{"exercise":"Running","duration_min":50,"note":"5 公里, 配速約 6.5 km/h, 心率約 160-170","distance_km":5.4}],"note":null},{"date":"2026-06-19","type":"Leg/Shoulder Day","strength":[{"exercise":"Lateral Raise","unit":"kg","sets":[{"weight":1.88,"reps":15},{"weight":1.88,"reps":15},{"weight":1.88,"reps":15},{"weight":1.88,"reps":15},{"weight":1.88,"reps":15}]},{"exercise":"Hack Squat","unit":"lb","sets":[{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8}]}],"cardio":[],"note":null},{"date":"2026-06-27","type":"Cardio","strength":[],"cardio":[{"exercise":"Zone 2","duration_min":45,"note":"7 km/h","distance_km":5.3}],"note":null},{"date":"2026-07-11","type":"Cardio","strength":[],"cardio":[{"exercise":"Running","duration_min":45,"distance_km":4.5}],"note":null},{"date":"2026-07-12","type":"Cardio","strength":[],"cardio":[{"exercise":"Running","duration_min":30,"distance_km":3.5,"avg_hr_bpm":150}],"note":null},{"date":"2026-07-18","type":"Cardio","strength":[],"cardio":[{"exercise":"Running","duration_min":45,"distance_km":5.22}],"note":null},{"date":"2026-07-18","type":"Chest/Back Day","strength":[{"exercise":"Bench Press","unit":"lb","sets":[{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":35,"reps":8},{"weight":30,"reps":8},{"weight":30,"reps":8}]},{"exercise":"Lat Pulldown","unit":"kg","sets":[{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8}]},{"exercise":"Seated Row","unit":"kg","sets":[{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8},{"weight":20,"reps":8}]}],"cardio":[],"note":null},{"date":"2026-07-28","type":"Cardio","strength":[],"cardio":[{"exercise":"Zone 2","duration_min":46.6,"distance_km":5,"avg_hr_bpm":135}],"note":null},{"date":"2026-07-31","type":"Cardio","strength":[],"cardio":[{"exercise":"Running","duration_min":30,"distance_km":3.2,"incline_level":0,"calories_kcal":248}],"note":null},{"date":"2026-08-01","type":"Cardio","strength":[],"cardio":[{"exercise":"Zone 2","duration_min":50.4,"distance_km":5.27,"incline_level":3.5,"avg_hr_bpm":130,"calories_kcal":350}],"note":null},{"date":"2026-08-07","type":"Leg/Shoulder Day","strength":[{"exercise":"Sumo Squat","unit":"kg","sets":[{"weight":30,"reps":8},{"weight":30,"reps":8},{"weight":30,"reps":8},{"weight":30,"reps":8},{"weight":30,"reps":8}]},{"exercise":"Lateral Raise","unit":"kg","sets":[{"weight":1.88,"reps":15},{"weight":1.88,"reps":15},{"weight":1.88,"reps":15},{"weight":1.88,"reps":15},{"weight":1.88,"reps":15}]}],"cardio":[],"note":null},{"date":"2026-08-12","type":"Cardio","strength":[],"cardio":[{"exercise":"Zone 2","duration_min":50,"distance_km":5.02,"incline_level":2,"avg_hr_bpm":120,"calories_kcal":284}],"note":null}]};/*WORKOUT_DATA_END*/
+/*PROGRAM_DATA_START*/window.PROGRAM_DATA=null;/*PROGRAM_DATA_END*/
 </script>
 <script>
 "use strict";
@@ -340,6 +370,18 @@
   };
   const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const DAY = 86400000;
+
+  // 課表(表定要做什麼)。沒有課表檔時 build 注入 null,整個區塊就不顯示。
+  const PROGRAM = window.PROGRAM_DATA || null;
+  // 兩個陣列都用 getDay() 當索引,所以從星期日起算——這跟 weekStart() 的「週一起算」
+  // 是兩回事,前者是 JS 的索引、後者是「一週從哪天開始」。
+  const DOW_KEY = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+  const DOW_LABEL = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+  // 部位色沿用 TRAINING LOG tab 的顏色語言。這個 map 在這裡而不在課表 JSON 裡:
+  // 顏色是呈現不是計畫。
+  const PROGRAM_PART_COLOR = {
+    "Leg/Shoulder": "var(--c-leg)", "Chest/Back": "var(--c-chest)", "Cardio": "var(--c-cardio)",
+  };
 
   const el = (t, a, txt) => { const e = document.createElementNS(SVGNS, t); for (const k in a) e.setAttribute(k, a[k]); if (txt != null) e.textContent = txt; return e; };
   const svg = (w, h) => el("svg", { viewBox: `0 0 ${w} ${h}`, width: w, height: h });
@@ -532,6 +574,25 @@
     while (isCompletePartWeek(agg.get(cursor))) { n++; cursor = addDays(cursor, -7); }
     return n;
   }
+  // ---- 課表:今天表定要做什麼 ----
+  // A/B 照日曆交替,不跟著實際訓練走。某週整週沒練,下一週還是照序輪到 B,
+  // 不會停在原地等補完。這是「不比對訓練紀錄」的必然結果,也是刻意的:
+  // 課表是表定,不是進度。
+  function cycleFor(dateStr) {
+    const n = Math.round((parseDate(weekStart(dateStr)) - parseDate(PROGRAM.anchor.week_start)) / (7 * DAY));
+    // ((n % 2) + 2) % 2 而不是 n % 2:錨點之前的日期 n 是負數,JS 的 % 會給負餘數
+    const sameParity = ((n % 2) + 2) % 2 === 0;
+    if (sameParity) return PROGRAM.anchor.cycle;
+    return PROGRAM.anchor.cycle === "A" ? "B" : "A";
+  }
+  // 回傳當天的課表項目,null 代表完全休息。找不到 cycle 或 key 也回 null——
+  // build 已經擋掉缺 key 的情況,這裡只是不讓頁面在異常資料上炸掉。
+  function programFor(dateStr) {
+    const week = PROGRAM.cycles[cycleFor(dateStr)];
+    if (!week) return null;
+    return week[DOW_KEY[parseDate(dateStr).getDay()]] || null;
+  }
+
   function currentPartQuest(todayStr) {
     const ws = weekStart(todayStr);
     const a = weekPartAgg().get(ws) || { "Leg/Shoulder Day": false, "Chest/Back Day": false, "Cardio": false };
@@ -632,16 +693,53 @@
         '<div class="lbl">' + PART_LABEL[part].toUpperCase() + "</div>" +
       "</div>";
     };
-    $("quest").innerHTML =
-      '<div style="display:flex;justify-content:space-between;align-items:baseline">' +
-        '<div class="lbl">WEEKLY QUEST · ' + q.weekStart + " → " + q.weekEnd + "</div>" +
-        '<div class="lbl">' + q.daysLeft + " DAY" + (q.daysLeft === 1 ? "" : "S") + " LEFT</div>" +
-      "</div>" +
-      '<div class="row qwrap" style="margin-top:12px">' + WEEKLY_PARTS.map(ring).join("") + "</div>" +
+    const rings = '<div class="row qwrap" style="margin-top:12px">' + WEEKLY_PARTS.map(ring).join("") + "</div>";
+    const daysLeft = q.daysLeft + " DAY" + (q.daysLeft === 1 ? "" : "S") + " LEFT";
+    const progress =
       '<div style="margin-top:14px">' +
         '<div class="lbl">QUEST PROGRESS · ' + q.doneCount + "/3 PARTS</div>" +
         '<div class="xp" style="margin-top:7px"><i style="width:' + (q.questPct * 100).toFixed(1) + '%"></i></div>' +
       "</div>";
+
+    // 沒有課表就完全維持原樣:標頭留著本週日期範圍,圓環單獨一排。
+    // 課表是加上去的一塊,不是這張卡的前提。
+    if (!PROGRAM) {
+      $("quest").innerHTML =
+        '<div style="display:flex;justify-content:space-between;align-items:baseline">' +
+          '<div class="lbl">WEEKLY QUEST · ' + q.weekStart + " → " + q.weekEnd + "</div>" +
+          '<div class="lbl">' + daysLeft + "</div>" +
+        "</div>" + rings + progress;
+      return;
+    }
+
+    // 併入後左邊讓給 ON THE PROGRAM,QUEST 的本週日期範圍捨棄只留 DAYS LEFT:
+    // 週的起訖日對「本週還剩幾天湊滿三種」沒有決策價值,DAYS LEFT 已經完整回答了。
+    const d = parseDate(TODAY);
+    const p = programFor(TODAY);
+    const isRest = !p;
+    const color = isRest ? null : PROGRAM_PART_COLOR[p.part];
+    const chips = [];
+    if (!isRest) {
+      // 強度排第一,跟動作用同一套膠囊樣式,區分只靠排序
+      if (p.variant) chips.push(p.variant);
+      (p.exercises || []).forEach((e) => chips.push(e));
+    }
+
+    $("quest").innerHTML =
+      '<div class="pgHead">' +
+        '<div class="lbl">ON THE PROGRAM · ' + md(d) + " " + DOW_LABEL[d.getDay()] + "</div>" +
+        '<div class="lbl">WEEKLY QUEST · ' + daysLeft + "</div>" +
+      "</div>" +
+      '<div class="pgBody"' + (color ? ' style="--pc:' + color + '"' : "") + ">" +
+        '<div class="pgL">' +
+          '<div class="pgPart' + (isRest ? " rest" : "") + '">' +
+            (isRest ? "Rest Day" : esc(p.part.replace("/", " / "))) +
+          "</div>" +
+          '<div class="pgChips">' + chips.map((c) => "<div>" + esc(c) + "</div>").join("") + "</div>" +
+          (!isRest && p.note ? '<div class="pgNote">' + esc(p.note) + "</div>" : "") +
+        "</div>" +
+        '<div class="pgR">' + rings + "</div>" +
+      "</div>" + progress;
   }
 
   function renderTabs() {
