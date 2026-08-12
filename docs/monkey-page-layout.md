@@ -13,7 +13,7 @@
 | 頁首：頭像、累積數字、🔥 week streak | `header.hero` | `monkey-cardio-dashboard.md`「頁首 Header」 |
 | WEEKLY QUEST，底部含炸雞券入口 | `#quest` | `monkey-cardio-dashboard.md`「WEEKLY QUEST（本週任務）」、`monkey-fried-chicken-award.md` |
 | 🏆 PERSONAL RECORDS，三格 | `#prBoard` | `monkey-cardio-dashboard.md`「🏆 PERSONAL RECORDS（PR 榜，三格）」 |
-| WEEKLY DISTANCE 與 AVG PACE 並排 | `#weeklyDist` `#avgPace` | `monkey-cardio-dashboard.md`「WEEKLY DISTANCE（柱狀圖）」與「AVG PACE（獨立一格大數字）」 |
+| WEEKLY DISTANCE 與 LAST WORKOUT 並排 | `#weeklyDist` `#lastWorkout` | `monkey-cardio-dashboard.md`「WEEKLY DISTANCE（柱狀圖）」、`monkey-last-workout.md` |
 | ACTIVITY 熱力圖 | `#activity` | `monkey-cardio-dashboard.md`「ACTIVITY（GitHub 式熱力圖）」 |
 | SLEEP 集章卡 | `#sleep` | `monkey-sleep-log.md` |
 
@@ -26,7 +26,7 @@
 Monkey 主要在手機看，手機是主場，桌機是附帶。
 
 - 所有桌機的左右並排一律改上下堆疊
-- `#avgPace` 以 `order: -1` 排到 `#weeklyDist` 之前
+- `#lastWorkout` 以 `order: -1` 排到 `#weeklyDist` 之前
 - 其餘順序與桌機相同
 
 各區塊在手機上的內部調整（環縮小、PR 三格縮字級、熱力圖橫向捲動等）寫在各自的 spec，不列在這裡。

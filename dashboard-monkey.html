@@ -186,7 +186,10 @@
     font-size: 9px; font-weight: 800; padding: 2px 7px; border-radius: 999px; letter-spacing: .5px; }
 
   /* 柱狀圖:柱體不填滿整格(留白,避免糊成色塊),空白週留淡軌道當位置參考 */
-  .bars { display: flex; align-items: flex-end; gap: 8px; height: 88px; --bw: 22px;
+  /* 同一排的 LAST WORKOUT 內容較多,會把這張卡一起撐高。長條圖跟著長高填滿,
+     否則底部空一截。88px 是下限,卡片不夠高時不會把長條壓扁。 */
+  #weeklyDist { display: flex; flex-direction: column; }
+  .bars { display: flex; align-items: flex-end; gap: 8px; flex: 1; min-height: 88px; --bw: 22px;
     border-bottom: 1px solid var(--border); }
   .bars .slot { position: relative; flex: 1 1 0; min-width: 0; height: 100%;
     display: flex; align-items: flex-end; justify-content: center; }
@@ -198,7 +201,39 @@
   .bars i.on.cur { box-shadow: 0 0 9px rgba(201, 242, 77, .4); }
   .barx { display: flex; gap: 8px; font-size: 9px; color: var(--muted); margin-top: 6px; }
   .barx span { flex: 1 1 0; min-width: 0; text-align: center; }
-  .paceBig { font-size: 40px; margin: 8px 0 2px; }
+
+  /* 最近一次訓練:整張卡可點,開的是熱力圖那個當日詳情彈窗。
+     桌機只有約 300px 寬(比彈窗還窄),所以字級以窄欄為基準,手機再放大回去。 */
+  .lw { display: block; text-decoration: none; color: inherit; cursor: pointer;
+    transition: border-color .12s, transform .12s; }
+  .lw:hover { border-color: var(--accent-dim); transform: translateY(-1px); }
+  .lwHead { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  /* 距今天數的三段號誌。綠用 --pos 不用主色:萊姆綠在這頁到處都是,當燈號會失去對比 */
+  .lwAgo.fresh { color: var(--pos); }
+  .lwAgo.warn { color: var(--streak); }
+  .lwAgo.stale { color: var(--neg); }
+  .lwName { font-size: 16px; font-weight: 800; letter-spacing: .3px; margin-top: 8px; line-height: 1.35; }
+  .lwDate { font-family: Consolas, ui-monospace, monospace; font-size: 11px; color: var(--muted); margin-top: 1px; }
+  /* 三個主數值均分撐滿。這張卡比彈窗寬,沿用 .dcMeta 的靠左 gap 會在右側空一塊 */
+  .lwStats { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 12px; }
+  .lwStats > div { flex: 1 1 0; min-width: 0; }
+  .lwStats .v { font-family: Consolas, ui-monospace, monospace; font-weight: 800;
+    font-size: 20px; color: var(--accent); line-height: 1.15; }
+  .lwDelta { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 9px; }
+  .lwDelta .delta { font-size: 10px; margin-top: 0; }
+  /* 選配欄位維持靠左排,與彈窗的 .dcMeta 同一套。只有主數值均分,層次才不會被拉平 */
+  .lwExtra { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 11px;
+    padding-top: 10px; border-top: 1px solid var(--border); }
+  .lwExtra > div { display: flex; align-items: baseline; gap: 4px; }
+  .lwExtra b { font-family: Consolas, ui-monospace, monospace; color: var(--ink); font-weight: 800; font-size: 13px; }
+  .lwExtra span { color: var(--muted); font-size: 10px; letter-spacing: .5px; }
+  /* 破紀錄標籤跟在項目名後面,窄欄放不下就換行,不縮字也不截斷 */
+  .lwPR { display: inline-flex; align-items: center; gap: 3px; font-size: 9px; font-weight: 800;
+    letter-spacing: .4px; color: #0d0e10; background: var(--accent); border-radius: 99px;
+    padding: 2px 7px; margin-left: 6px; vertical-align: 2px; }
+  .lwFoot { display: flex; justify-content: flex-end; margin-top: 10px; }
+  .lwGo { font-size: 10px; font-weight: 700; letter-spacing: .8px; color: var(--accent); }
+  .lw:hover .lwGo { text-decoration: underline; }
 
   /* 熱力圖:一年 53 欄放不進手機,自己在容器內橫向捲動,捲軸配合頁面改成細螢光綠 */
   .hmScroll { overflow-x: auto; padding-bottom: 10px; flex: 1 1 auto; min-width: 0;
@@ -296,10 +331,17 @@
     .pr .tag { right: 4px; }
     .pr .lbl { letter-spacing: .3px; }
 
-    /* 手機順序:AVG PACE 排在 WEEKLY DISTANCE 之前 */
-    #avgPace { order: -1; }
-    .paceBig { font-size: 38px; }
-    .bars { height: 74px; gap: 5px; --bw: 16px; }
+    /* 手機順序:LAST WORKOUT 排在 WEEKLY DISTANCE 之前。最近一次比八週趨勢即時,
+       一屏看得到的東西少,即時的排前面 */
+    #lastWorkout { order: -1; }
+    /* 手機是全寬,不再是窄欄,字級放大回來 */
+    .lwName { font-size: 19px; }
+    .lwStats { gap: 22px; }
+    .lwStats .v { font-size: 24px; }
+    .lwDelta .delta { font-size: 11px; }
+    /* 兩張卡在手機各自獨立、不再等高,長條圖回到固定高度。
+       min-height 要一起歸零,否則桌機那條 88px 會把 74px 頂上去 */
+    .bars { flex: none; min-height: 0; height: 74px; gap: 5px; --bw: 16px; }
     .barx { gap: 5px; }
   }
 </style>
@@ -325,9 +367,8 @@
   <div class="row" id="prBoard"></div>
 
   <div class="row" style="margin-top:12px">
-    <div class="card" id="weeklyDist" style="flex:2.2"></div>
-    <div class="card" id="avgPace"
-      style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center"></div>
+    <div class="card" id="weeklyDist" style="flex:2.3"></div>
+    <div class="card lw" id="lastWorkout" style="flex:0.9"></div>
   </div>
 
   <div class="card" id="activity" style="margin-top:12px"></div>
@@ -614,23 +655,52 @@
     };
   }
 
-  // 最近 5 次的加權平均配速(Σmin / Σkm)。用累積平均的話後期會鈍化,跑再快也推不動數字。
-  // deltaSec 與「前 5 次」比較,正值 = 變快。
-  function avgPace(dayRuns) {
-    const wavg = (arr) => {
-      const km = arr.reduce((a, r) => a + r.km, 0);
-      const min = arr.reduce((a, r) => a + r.min, 0);
-      return km > 0 ? min / km : null;
-    };
-    const last5 = dayRuns.slice(-5);
-    const prev5 = dayRuns.slice(-10, -5);
-    const pace = last5.length ? wavg(last5) : null;
-    const prev = prev5.length === 5 ? wavg(prev5) : null;
+  // 最近一個「訓練日」的彙總。buildDayRuns 只掃 cardio,純重訓日不在它的輸出裡,
+  // 所以這裡自己掃 sessions——不然只做重訓的那天會被跳過,卡片報的是更早的日子。
+  // 同一天多筆一律合併,與 streak / quest / PR 榜的「一天算一次」同一套語彙。
+  function lastWorkout(sessions) {
+    const dates = [...new Set((sessions || []).map((s) => s && s.date).filter(Boolean))].sort();
+    if (!dates.length) return null;
+    const date = dates[dates.length - 1];
+    const day = (sessions || []).filter((s) => s && s.date === date);
+    const cardio = day.reduce((a, s) => a.concat(s.cardio || []), []);
+    const strength = day.reduce((a, s) => a.concat(s.strength || []), []);
+    // 只有一筆 cardio 時才有單一的心率/坡度/卡路里可講。兩筆以上心率不能相加、
+    // 坡度不能平均,硬湊出來的數字沒有意義,寧可整欄不顯示。
+    const only = cardio.length === 1 ? cardio[0] : {};
     return {
-      pace: pace,
-      deltaSec: pace != null && prev != null ? (prev - pace) * 60 : null,
-      sampleSize: last5.length,
+      date: date,
+      kind: cardio.length ? "cardio" : "strength",
+      names: [...new Set(cardio.length ? cardio.map((c) => c.exercise) : day.map((s) => s.type))],
+      km: Math.round(cardio.reduce((a, c) => a + (c.distance_km || 0), 0) * 100) / 100,
+      min: Math.round(cardio.reduce((a, c) => a + (c.duration_min || 0), 0) * 10) / 10,
+      // 坡度 0 是有效的實測值,所以看欄位在不在,不要看值真不真
+      hr: only.avg_hr_bpm,
+      incline: only.incline_level,
+      kcal: only.calories_kcal,
+      exCount: strength.length,
+      setCount: strength.reduce((a, e) => a + (e.sets || []).length, 0),
+      exNames: strength.map((e) => e.exercise),
     };
+  }
+
+  // beforeDate 之前最近一個「有 cardio」的訓練日,給 ▲▼ 當比較基準。
+  // 純重訓日跳過:那些日子沒有距離與配速可比。
+  function prevCardioDay(sessions, beforeDate) {
+    const byDate = new Map();
+    (sessions || []).forEach((s) => {
+      if (!s || !s.date || s.date >= beforeDate) return;
+      (s.cardio || []).forEach((c) => {
+        const cur = byDate.get(s.date) || { date: s.date, km: 0, min: 0 };
+        cur.km += c.distance_km || 0;
+        cur.min += c.duration_min || 0;
+        byDate.set(s.date, cur);
+      });
+    });
+    const dates = [...byDate.keys()].sort();
+    if (!dates.length) return null;
+    const d = byDate.get(dates[dates.length - 1]);
+    return { date: d.date, km: Math.round(d.km * 100) / 100, min: Math.round(d.min * 10) / 10 };
   }
 
   function weeklyDistance(dayRuns, todayStr, n) {
@@ -829,7 +899,8 @@
     streak: streak,
     coupons: coupons,
     personalRecords: personalRecords,
-    avgPace: avgPace,
+    lastWorkout: lastWorkout,
+    prevCardioDay: prevCardioDay,
     STAMP_NIGHTS: STAMP_NIGHTS,
     parseClock: parseClock,
     timeInBed: timeInBed,
@@ -976,23 +1047,81 @@
     prCard(pr.isNew.longestTime, "⏱️", pr.longestTime ? pr.longestTime.min + " min" : "—",
       "LONGEST TIME", pr.longestTime ? pr.longestTime.date : "—");
 
-  // AVG PACE(最近 5 次加權平均)
-  const ap = M.avgPace(runs);
-  const deltaLine =
-    ap.deltaSec == null
-      ? ""
-      : Math.abs(ap.deltaSec) < 1
-        ? '<div class="delta flat">same as previous 5</div>'
-        : '<div class="delta ' + (ap.deltaSec > 0 ? "up" : "down") + '">' +
-          (ap.deltaSec > 0
-            ? "▲ " + Math.round(ap.deltaSec) + " sec faster"
-            : "▼ " + Math.round(-ap.deltaSec) + " sec slower") +
-          " than previous 5</div>";
-  el("avgPace").innerHTML =
-    '<div class="lbl">AVG PACE · LAST ' + ap.sampleSize + " RUN" + (ap.sampleSize === 1 ? "" : "S") + "</div>" +
-    '<div class="num lime paceBig">' + M.formatPace(ap.pace) + "</div>" +
-    '<div class="lbl" style="letter-spacing:.5px">MIN / KM</div>' +
-    deltaLine;
+  // LAST WORKOUT(最近一個訓練日)
+  const lw = M.lastWorkout(D.sessions);
+  const WKDAY_SHORT = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+  function renderLastWorkout() {
+    // 一筆紀錄都沒有就整張卡不出現,WEEKLY DISTANCE 自動撐滿那一排。
+    // 與 SLEEP 區塊同一個處理:空卡片講一句「還沒有紀錄」對使用者沒有幫助。
+    if (!lw) { el("lastWorkout").style.display = "none"; return; }
+
+    const days = Math.round(
+      (new Date(TODAY + "T00:00:00") - new Date(lw.date + "T00:00:00")) / 86400000);
+    const agoText = days === 0 ? "TODAY" : days === 1 ? "YESTERDAY" : days + " DAYS AGO";
+    const agoState = days > 14 ? "stale" : days > 7 ? "warn" : "fresh";
+    const d = new Date(lw.date + "T00:00:00");
+
+    // 破紀錄標籤只在最近這天就是最後一個 cardio 日時才掛。isNew 是拿 PR 日期跟
+    // buildDayRuns 最後一筆比的,最近一次若是純重訓日,兩者指的不是同一天——
+    // 直接掛上去會把更早那天的 PR 貼到今天。
+    const prDay = runs.length ? runs[runs.length - 1].date : null;
+    const prTags = lw.date === prDay
+      ? [[pr.isNew.fastestPace, "⚡"], [pr.isNew.longestRun, "🥇"], [pr.isNew.longestTime, "⏱️"]]
+          .filter((x) => x[0])
+          .map((x) => '<span class="lwPR">' + x[1] + " NEW PR</span>").join("")
+      : "";
+
+    const stat = (v, u) => '<div><div class="v">' + v + '</div><div class="lbl">' + u + "</div></div>";
+    let body;
+    if (lw.kind === "cardio") {
+      body = '<div class="lwStats">' +
+        stat(lw.km, "KM") + stat(round1(lw.min), "MIN") + stat(fmtPace(lw.min, lw.km), "MIN / KM") +
+        "</div>";
+      // 跟上一個有 cardio 的日子比。純重訓日沒有距離配速可比,prevCardioDay 會跳過。
+      const p = M.prevCardioDay(D.sessions, lw.date);
+      if (p && p.km > 0) {
+        const dk = Math.round((lw.km - p.km) * 100) / 100;
+        const dsec = Math.round((p.min / p.km - lw.min / lw.km) * 60);
+        // 門檻是為了擋浮點殘渣,不是為了美化
+        const kmBit = Math.abs(dk) < 0.01
+          ? '<span class="delta flat">same distance</span>'
+          : '<span class="delta ' + (dk > 0 ? "up" : "down") + '">' +
+            (dk > 0 ? "▲ +" + dk : "▼ " + dk) + " km</span>";
+        const paceBit = Math.abs(dsec) < 1
+          ? '<span class="delta flat">same pace</span>'
+          : '<span class="delta ' + (dsec > 0 ? "up" : "down") + '">' +
+            (dsec > 0 ? "▲ " + dsec + " sec faster" : "▼ " + -dsec + " sec slower") + "</span>";
+        body += '<div class="lwDelta">' + kmBit + paceBit + "</div>";
+      }
+      const extras =
+        (lw.hr != null ? "<div><b>" + lw.hr + "</b><span>BPM</span></div>" : "") +
+        // 坡度 0 是有效的實測值,所以看欄位在不在,不要看值真不真
+        (lw.incline != null ? "<div><b>" + lw.incline + "</b><span>INCLINE</span></div>" : "") +
+        (lw.kcal != null ? "<div><b>" + lw.kcal + "</b><span>KCAL</span></div>" : "");
+      if (extras) body += '<div class="lwExtra">' + extras + "</div>";
+    } else {
+      body = '<div class="lwStats">' +
+        stat(lw.exCount, plural(lw.exCount, "EXERCISE")) + stat(lw.setCount, plural(lw.setCount, "SET")) +
+        "</div>";
+      if (lw.exNames.length) {
+        body += '<div class="lwExtra"><div><span style="font-size:11px">' +
+          lw.exNames.map(escHtml).join(" · ") + "</span></div></div>";
+      }
+    }
+
+    el("lastWorkout").innerHTML =
+      '<div class="lwHead"><b style="font-size:13px">LAST WORKOUT</b>' +
+        '<span class="lbl lwAgo ' + agoState + '">' + agoText + "</span></div>" +
+      '<div class="lwName">' + lw.names.map(escHtml).join(" · ") + prTags + "</div>" +
+      '<div class="lwDate">' + (d.getMonth() + 1) + "/" + d.getDate() +
+        " (" + WKDAY_SHORT[d.getDay()] + ")</div>" +
+      body +
+      '<div class="lwFoot"><span class="lwGo">VIEW DETAIL ›</span></div>';
+
+    // openDayModal 是後面才宣告的 const,在這裡直接呼叫會踩到 TDZ。
+    // 包在 callback 裡,點下去才求值,那時早就宣告完了——熱力圖的綁定也是這樣。
+    el("lastWorkout").addEventListener("click", () => openDayModal(lw.date));
+  }
 
   // WEEKLY DISTANCE(最近 8 週)
   const wd = M.weeklyDistance(runs, TODAY, 8);
@@ -1169,6 +1298,10 @@
   const openDayModal = (date) => { if (dayModal) { dayModal.innerHTML = dayModalHTML(date); dayModal.classList.add("on"); document.body.style.overflow = "hidden"; } };
   const closeDayModal = () => { if (dayModal) { dayModal.classList.remove("on"); document.body.style.overflow = ""; } };
   if (dayModal) dayModal.addEventListener("click", (e) => { if (e.target === dayModal || (e.target.closest && e.target.closest("[data-dc-close]"))) closeDayModal(); });
+
+  // LAST WORKOUT 的渲染在這裡才呼叫:它要用上面的 escHtml 與 fmtPace,
+  // escHtml 是 const,在宣告之前呼叫會踩到 TDZ。
+  renderLastWorkout();
 
   // ---- 睡眠集章卡 -----------------------------------------------------------
   // 一晚一格,最右是昨晚。今晚不畫格子:那筆要明天早上才填得完。

@@ -176,29 +176,110 @@ test("personalRecords:沒有 >= 2 km 的紀錄時 fastestPace 為 null", () => {
   assert.equal(M.personalRecords(runs).fastestPace, null);
 });
 
-test("avgPace:最近 5 次的加權平均(Σmin / Σkm),不是配速直接平均", () => {
-  const { runs } = M.buildDayRuns([
-    S("2026-07-01", [run(60, 10)]),
-    S("2026-07-02", [run(60, 10)]),
-    S("2026-07-03", [run(60, 10)]),
-    S("2026-07-04", [run(60, 10)]),
-    S("2026-07-05", [run(12, 1)]),   // 12:00/km 的短跑
-  ]);
-  const a = M.avgPace(runs);
-  // 加權:(60*4+12) / (10*4+1) = 252/41 = 6.146…  -> 6:09
-  assert.equal(M.formatPace(a.pace), "6:09");
-  assert.equal(a.sampleSize, 5);
-  assert.equal(a.deltaSec, null); // 不足 10 次,沒有比較基準
+// ---- lastWorkout / prevCardioDay -------------------------------------------
+// buildDayRuns 只掃 cardio,純重訓日不在它的輸出裡,所以這兩支自己掃 sessions。
+
+// 純重訓日:S() 建的是 cardio 專用的,重訓要另一個 helper
+const SS = (date, type, exercises) => ({ date, type, strength: exercises, cardio: [], note: null });
+const ex = (exercise, sets) => ({ exercise, unit: "kg", sets });
+const set = (weight, reps) => ({ weight, reps });
+
+test("lastWorkout:沒有任何 session 回傳 null", () => {
+  assert.equal(M.lastWorkout([]), null);
 });
 
-test("avgPace:deltaSec 正值代表比前 5 次快", () => {
-  const mk = (i, min, km) => S("2026-06-" + String(i).padStart(2, "0"), [run(min, km)]);
-  const older = [1, 2, 3, 4, 5].map((i) => mk(i, 60, 9));    // 6:40/km
-  const newer = [6, 7, 8, 9, 10].map((i) => mk(i, 60, 10));  // 6:00/km
-  const { runs } = M.buildDayRuns([...older, ...newer]);
-  const a = M.avgPace(runs);
-  assert.equal(M.formatPace(a.pace), "6:00");
-  assert.equal(Math.round(a.deltaSec), 40); // 快了 40 秒
+test("lastWorkout:取日期最大的那天,不是陣列最後一個", () => {
+  const lw = M.lastWorkout([S("2026-08-05", [run(40, 6)]), S("2026-08-01", [run(30, 5)])]);
+  assert.equal(lw.date, "2026-08-05");
+});
+
+test("lastWorkout:單筆 cardio 帶齊選配欄位", () => {
+  const lw = M.lastWorkout([
+    S("2026-08-01", [{
+      exercise: "Zone 2", duration_min: 51.8, distance_km: 5.15,
+      incline_level: 3, avg_hr_bpm: 140, calories_kcal: 330,
+    }]),
+  ]);
+  assert.equal(lw.kind, "cardio");
+  assert.deepEqual(lw.names, ["Zone 2"]);
+  assert.equal(lw.km, 5.15);
+  assert.equal(lw.min, 51.8);
+  assert.equal(lw.hr, 140);
+  assert.equal(lw.incline, 3);
+  assert.equal(lw.kcal, 330);
+});
+
+test("lastWorkout:同日兩筆 cardio 距離時間相加,選配欄位不硬湊", () => {
+  const lw = M.lastWorkout([
+    S("2026-08-01", [
+      { exercise: "Zone 2", duration_min: 30, distance_km: 3, avg_hr_bpm: 140 },
+      { exercise: "Running", duration_min: 20, distance_km: 2, avg_hr_bpm: 150 },
+    ]),
+  ]);
+  assert.equal(lw.km, 5);
+  assert.equal(lw.min, 50);
+  assert.deepEqual(lw.names, ["Zone 2", "Running"]);
+  // 兩筆心率不能相加也不能亂平均,寧可不顯示
+  assert.equal(lw.hr, undefined);
+});
+
+test("lastWorkout:incline_level 0 是有效實測值,不是「沒有」", () => {
+  const lw = M.lastWorkout([
+    S("2026-08-01", [{ exercise: "Running", duration_min: 30, distance_km: 5, incline_level: 0 }]),
+  ]);
+  assert.equal(lw.incline, 0);
+});
+
+test("lastWorkout:當天同時有 cardio 與 strength 時算 cardio", () => {
+  const lw = M.lastWorkout([{
+    date: "2026-08-01", type: "Mixed",
+    strength: [ex("Squat", [set(30, 8)])],
+    cardio: [run(30, 5)], note: null,
+  }]);
+  assert.equal(lw.kind, "cardio");
+  assert.equal(lw.km, 5);
+});
+
+test("lastWorkout:純重訓日用 type 當名稱,報動作數與組數", () => {
+  const lw = M.lastWorkout([
+    S("2026-08-01", [run(30, 5)]),
+    SS("2026-08-03", "Leg/Shoulder Day", [
+      ex("Sumo Squat", [set(30, 8), set(30, 8)]),
+      ex("Lateral Raise", [set(1.88, 15)]),
+    ]),
+  ]);
+  assert.equal(lw.kind, "strength");
+  assert.equal(lw.date, "2026-08-03");
+  assert.deepEqual(lw.names, ["Leg/Shoulder Day"]);
+  assert.equal(lw.exCount, 2);
+  assert.equal(lw.setCount, 3);
+  assert.deepEqual(lw.exNames, ["Sumo Squat", "Lateral Raise"]);
+  assert.equal(lw.km, 0);
+});
+
+test("prevCardioDay:跳過純重訓日,找更早那個有 cardio 的日子", () => {
+  const sessions = [
+    S("2026-08-01", [run(30, 5)]),
+    SS("2026-08-03", "Leg Day", [ex("Squat", [set(30, 8)])]),
+    S("2026-08-05", [run(40, 6)]),
+  ];
+  const prev = M.prevCardioDay(sessions, "2026-08-05");
+  assert.equal(prev.date, "2026-08-01");
+  assert.equal(prev.km, 5);
+  assert.equal(prev.min, 30);
+});
+
+test("prevCardioDay:同日多筆 cardio 也要合併", () => {
+  const prev = M.prevCardioDay([
+    S("2026-08-01", [run(30, 3), run(20, 2)]),
+    S("2026-08-05", [run(40, 6)]),
+  ], "2026-08-05");
+  assert.equal(prev.km, 5);
+  assert.equal(prev.min, 50);
+});
+
+test("prevCardioDay:沒有更早的 cardio 日時回傳 null", () => {
+  assert.equal(M.prevCardioDay([S("2026-08-01", [run(30, 5)])], "2026-08-01"), null);
 });
 
 test("weeklyDistance:回傳固定 8 週,沒跑的週為 0,最後一週是本週", () => {
