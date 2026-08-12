@@ -7,6 +7,7 @@
       "exercise": "Running",
       "duration_min": 51.3,
       "distance_km": 5.04,
+      "incline_level": 2,
       "avg_hr_bpm": 145,
       "calories_kcal": 292
     }
