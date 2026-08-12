@@ -4,7 +4,7 @@
 
 **這是版面順序的唯一出處。** 各 spec 只寫自己那一塊的內容與規則，不重述整頁順序。新增或移除區塊時改這裡，不用回頭巡每一份 spec。
 
-`dashboard-captain.html` 不在此文件範圍，兩頁刻意獨立、互不影響。
+`dashboard-captain.html` 不在此文件範圍，見 `captain-page-layout.md`。兩頁刻意獨立、互不影響。
 
 ## 桌機
 

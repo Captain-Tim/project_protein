@@ -76,8 +76,8 @@ PR 上的 `validate` 就是把上面這幾支跑一遍，外加 `git diff --exit
   日期歸屬（記就寢那天）、補記流程、寫檔前的人工確認關卡。
 - `docs/verification.md` — headless Chrome 探針、手機版驗證（目標機型的 viewport 寬度是**唯一出處**，
   `--window-size` 在 Windows 會騙人）。
-- `docs/monkey-page-layout.md` — **Monkey 頁區塊順序的唯一出處**，以及每一塊的規則寫在哪份 spec。
-  新增或移除區塊時改這裡，各 spec 不重述整頁順序。
+- `docs/captain-page-layout.md`、`docs/monkey-page-layout.md` — **兩頁區塊順序的唯一出處**（一頁一份），
+  以及每一塊的規則寫在哪份 spec。新增或移除區塊時改這裡，各 spec 不重述整頁順序。
 - `docs/superpowers/specs/monkey-cardio-dashboard.md` — Monkey 頁的視覺與指標定義
   （「一次 run」= 一天、weekly goal、streak、PR 榜的算法）。
 - `docs/superpowers/specs/monkey-fried-chicken-award.md` — 炸雞券的發券規則、ledger 格式、
