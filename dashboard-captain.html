@@ -126,10 +126,11 @@
   .pgHead { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
   /* 部位名用等寬字:本頁所有大號數值都是 Consolas(.pr .v、.lwStats .v、.dcDate),
      20px 也刻意不超過 h1 的 19px 太多,一張輔助卡的字比頁面標題大會很怪。
-     顏色用這張卡既有的 --accent,不跟著部位換:同一張卡裡的圓環與進度條都是 --accent。
+     顏色吃卡片層級的 --tab-c(renderQuest 設成 --hm3),整張卡一套色。
      部位色是 TRAINING LOG 那一段的語言,跨過來會讓一張卡出現兩套配色系統 */
   .pgPart { font-family: Consolas, ui-monospace, monospace; font-size: 20px; font-weight: 800;
-    letter-spacing: .4px; line-height: 1.3; color: var(--accent); }
+    letter-spacing: .4px; line-height: 1.3; color: var(--tab-c, var(--accent)); }
+  .pgDate { margin-bottom: 3px; }
   .pgPart.rest { color: var(--muted); }
   /* 膠囊列每天都有,休息日是空的但保留高度,左欄才不會塌陷 */
   .pgChips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; min-height: 37px;
@@ -138,7 +139,7 @@
      HEAVY/LIGHT 是短的全大寫詞,跟動作名稱在視覺上已經足夠不同 */
   .pgChips > div { flex: 0 0 auto; white-space: nowrap; font-size: 11px; font-weight: 700;
     letter-spacing: .4px; padding: 5px 11px; border-radius: 99px;
-    border: 1px solid var(--accent); color: var(--accent); }
+    border: 1px solid var(--tab-c, var(--border)); color: var(--tab-c, var(--muted)); }
   .pgNote { margin-top: 2px; font-size: 11px; color: var(--muted); line-height: 1.65; }
   /* 左課表右圓環。卡片不上彩色邊框也不加光暈:光暈在本頁的既有語意是
      「破紀錄/最新」(.pr.new、.bars i.on.cur),課表天天都在,天天發光會稀釋那個訊號 */
@@ -146,10 +147,12 @@
   .pgL { flex: 1 1 0; min-width: 0; padding-right: 16px; }
   .pgR { flex: 1.35 1 0; min-width: 0; padding-left: 16px; border-left: 1px solid var(--border); }
 
-  /* Weekly Quest:三部位圓環,二元 0%/100% */
+  /* Weekly Quest:三部位圓環,二元 0%/100%。
+     圓環與進度條的顏色都吃 --tab-c / --tab-glow / --xp-dim,由 renderQuest 設在卡片上,
+     這樣課表與 Quest 是同一套色——.ring 與 .xp 只有這張卡在用,不會波及別處 */
   .ring { width: 88px; height: 88px; border-radius: 50%; flex: 0 0 auto;
     display: flex; align-items: center; justify-content: center; }
-  .ring.done { box-shadow: 0 0 18px rgba(227, 183, 63, .45); }
+  .ring.done { box-shadow: 0 0 18px var(--tab-glow, rgba(227, 183, 63, .45)); }
   .ring > div { width: 68px; height: 68px; border-radius: 50%; background: var(--card);
     display: flex; flex-direction: column; align-items: center; justify-content: center; }
   .ring .v { font-size: 18px; font-weight: 800; font-family: Consolas, monospace; }
@@ -157,7 +160,8 @@
   .qcol { display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1 1 0; min-width: 90px; text-align: center; }
   .xp { height: 9px; border-radius: 999px; background: #1e2126; overflow: hidden; }
   .xp > i { display: block; height: 100%; border-radius: 999px;
-    background: linear-gradient(90deg, var(--accent-dim), var(--accent)); box-shadow: 0 0 10px rgba(227, 183, 63, .6); }
+    background: linear-gradient(90deg, var(--xp-dim, var(--accent-dim)), var(--tab-c, var(--accent)));
+    box-shadow: 0 0 10px var(--tab-glow, rgba(227, 183, 63, .6)); }
 
   /* 兩層 tab(部位 → 動作)與熱力圖年份 tab 共用同一套按鈕樣式 */
   .tabRow { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -680,12 +684,19 @@
   }
 
   function renderQuest() {
+    // 整張卡走本頁的藍(--hm3,跟熱力圖同一支),不用全站金色。設在卡片層級,
+    // 課表的部位名與膠囊、Quest 的圓環與進度條就全部跟著同一個值走。
+    // activity 卡本來就是這個做法($("activity").style.setProperty("--tab-c", ...))。
+    $("quest").style.setProperty("--tab-c", "var(--hm3)");
+    $("quest").style.setProperty("--tab-glow", "rgba(92, 208, 255, .34)");
+    $("quest").style.setProperty("--xp-dim", "var(--hm1)");
+
     const q = currentPartQuest(TODAY);
     const ring = (part) => {
       const done = q.parts[part];
       const pct = done ? 100 : 0;
       return '<div class="qcol">' +
-        '<div class="ring' + (done ? " done" : "") + '" style="background:conic-gradient(var(--accent) 0 ' + pct + '%, var(--border) ' + pct + '% 100%)">' +
+        '<div class="ring' + (done ? " done" : "") + '" style="background:conic-gradient(var(--tab-c, var(--accent)) 0 ' + pct + '%, var(--border) ' + pct + '% 100%)">' +
           '<div><div class="v' + (done ? " accent" : "") + '">' + (done ? "✓" : "—") + "</div></div></div>" +
         '<div class="lbl">' + PART_LABEL[part].toUpperCase() + "</div>" +
       "</div>";
@@ -698,19 +709,23 @@
         '<div class="xp" style="margin-top:7px"><i style="width:' + (q.questPct * 100).toFixed(1) + '%"></i></div>' +
       "</div>";
 
-    // 沒有課表就完全維持原樣:標頭留著本週日期範圍,圓環單獨一排。
+    // 沒有課表時只有 Quest 一件事,title 就只掛 WEEKLY QUEST,本週日期範圍留著。
     // 課表是加上去的一塊,不是這張卡的前提。
     if (!PROGRAM) {
       $("quest").innerHTML =
-        '<div style="display:flex;justify-content:space-between;align-items:baseline">' +
-          '<div class="lbl">WEEKLY QUEST · ' + q.weekStart + " → " + q.weekEnd + "</div>" +
+        '<div class="pgHead">' +
+          '<div style="display:flex;align-items:baseline;gap:8px">' +
+            '<b style="font-size:13px">WEEKLY QUEST</b>' +
+            '<span class="lbl">' + q.weekStart + " → " + q.weekEnd + "</span>" +
+          "</div>" +
           '<div class="lbl">' + daysLeft + "</div>" +
         "</div>" + rings + progress;
       return;
     }
 
-    // 併入後左邊只放日期,QUEST 的本週日期範圍捨棄只留 DAYS LEFT:
+    // 有課表時卡片裝兩件事,title 一次講完。QUEST 的本週日期範圍捨棄只留 DAYS LEFT:
     // 週的起訖日對「本週還剩幾天湊滿三種」沒有決策價值,DAYS LEFT 已經完整回答了。
+    // 今天的日期改放左欄課表的上方,離它描述的內容最近。
     const d = parseDate(TODAY);
     const p = programFor(TODAY);
     const isRest = !p;
@@ -723,11 +738,12 @@
 
     $("quest").innerHTML =
       '<div class="pgHead">' +
-        '<div class="lbl">' + md(d) + " " + DOW_LABEL[d.getDay()] + "</div>" +
-        '<div class="lbl">WEEKLY QUEST · ' + daysLeft + "</div>" +
+        '<b style="font-size:13px">DAILY TASK &amp; WEEKLY QUEST</b>' +
+        '<div class="lbl">' + daysLeft + "</div>" +
       "</div>" +
       '<div class="pgBody">' +
         '<div class="pgL">' +
+          '<div class="lbl pgDate">' + md(d) + " " + DOW_LABEL[d.getDay()] + "</div>" +
           '<div class="pgPart' + (isRest ? " rest" : "") + '">' +
             (isRest ? "Rest Day" : esc(p.part.replace("/", " / "))) +
           "</div>" +

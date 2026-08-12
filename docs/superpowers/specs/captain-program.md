@@ -72,7 +72,7 @@ Captain 頁顯示「今天表定要做什麼」。課表是兩週一循環（A�
 - **`variant` 存而不推導。** 它剛好等於「該週該部位的第一次」，但那是巧合不是定義。
   哪天想讓第二次當主要訓練日，推導版會擅自改掉這個意圖。
   這跟「配速 = 時間 ÷ 距離」不同，後者是數學恆等式，存了必然矛盾
-- **不存顏色。** 顏色是呈現不是計畫。整塊統一用 `--accent`，沒有部位到顏色的對照表
+- **不存顏色。** 顏色是呈現不是計畫。整張卡一套色（見「配色」），沒有部位到顏色的對照表
 
 ## A／B 循環的算法
 
@@ -121,10 +121,11 @@ cycleFor(date):
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│ 8/13 THU                           WEEKLY QUEST · 5 DAYS LEFT │
+│ DAILY TASK & WEEKLY QUEST                        5 DAYS LEFT  │
 │                                                              │
-│  Leg / Shoulder                │     ◯        ◯        ◉     │
-│  ⟨LIGHT⟩ ⟨Sumo Squat⟩ ⟨Leg Curl⟩│  LEG/SHO  CHEST/BK  CARDIO │
+│  8/13 THU                      │     ◯        ◯        ◉     │
+│  Leg / Shoulder                │  LEG/SHO  CHEST/BK  CARDIO  │
+│  ⟨LIGHT⟩ ⟨Sumo Squat⟩ ⟨Leg Curl⟩│                            │
 │                                                              │
 │ QUEST PROGRESS · 1/3 PARTS                                   │
 │ ▓▓▓▓▓▓▓░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ │
@@ -133,25 +134,44 @@ cycleFor(date):
 ⟨⟩ 線框膠囊。強度與動作長得完全一樣，只靠排序區分：強度永遠排第一
 ```
 
-- 頂部一行：左邊 `<M/D DDD>`，右邊 `WEEKLY QUEST · <N> DAYS LEFT`，都是 `.lbl`。
-  左邊不加標題文字：部位名就在它下面一行，再標一次「課表」是贅述
+- **卡片 title：`DAILY TASK & WEEKLY QUEST`**，`<b>` 13px，跟頁面其他卡（`ACTIVITY`、
+  `WEEKLY DISTANCE`、`LAST WORKOUT`）同一個層級。一張卡裝兩件事，title 一次講完，
+  不在兩欄各標一次
+- 頂部右邊 `<N> DAYS LEFT`，`.lbl`
+- 今天的日期 `<M/D DDD>` 放左欄課表的最上方而不是卡片標頭，離它描述的內容最近
 - 主體兩欄：左欄課表，右欄 QUEST 的三個圓環，中間 `border-left` 分隔
 - 底部 QUEST 進度條橫跨整張卡
 - 手機（`max-width: 640px`）兩欄改直排，分隔線從 `border-left` 換成 `border-top`
+- 沒有課表檔時 title 退成 `WEEKLY QUEST`，並在旁邊補回本週日期範圍（見「沒有課表檔的時候」）
 
 ### 課表區的規格
 
 | 元素 | 規格 |
 |---|---|
-| 部位名 | Consolas 800、20px、`letter-spacing: .4px`、原樣大小寫（`Leg / Shoulder`）、色 = `--accent` |
-| 膠囊 | 線框，`--accent` 邊框與文字、700、11px。強度與動作同一套樣式，沒有差別 |
+| 部位名 | Consolas 800、20px、`letter-spacing: .4px`、原樣大小寫（`Leg / Shoulder`） |
+| 膠囊 | 線框、700、11px。強度與動作同一套樣式，沒有差別 |
 | 膠囊列 | `flex-wrap: wrap`，`min-height` 保留一列高度 |
 | 卡片邊框 | 維持 `--border` 灰色 |
 | 光暈 | 無 |
 
-- **一律用 `--accent`，不跟著部位換色。** 同一張卡裡的 Quest 圓環與進度條都是 `--accent`，
-  課表跟著它才是一致的。部位色（`--c-leg` 等）是 TRAINING LOG 那一段的語言，
-  跨到這張卡上會讓同一張卡出現兩套配色系統
+### 配色
+
+**整張卡走本頁的藍 `--hm3`（`#5cd0ff`，跟熱力圖同一支），不用全站金色 `--accent`。**
+
+`renderQuest()` 把 `--tab-c` / `--tab-glow` / `--xp-dim` 設在卡片上，課表的部位名與膠囊、
+Quest 的圓環與進度條就全部跟著同一個值走。這是頁面既有的做法，`activity` 卡本來就是
+`$("activity").style.setProperty("--tab-c", "var(--hm3)")`。
+
+| 元素 | 來源 |
+|---|---|
+| 部位名、膠囊邊框與文字、圓環 ✓ | `--tab-c` = `--hm3` |
+| 圓環完成光暈、進度條光暈 | `--tab-glow` = `rgba(92, 208, 255, .34)` |
+| 進度條漸層起點 | `--xp-dim` = `--hm1`（`#1f5a78`） |
+
+`.ring` 與 `.xp` 只有這張卡在用，所以改它們的顏色來源不會波及其他卡。
+
+**不跟著部位換色。** 部位色（`--c-leg` 等）是 TRAINING LOG 那一段的語言，跨到這張卡上會讓
+同一張卡出現兩套配色系統。
 - **強度膠囊沒有底色，跟動作膠囊完全一樣**，只有一個 CSS class。區分只靠排序：
   強度永遠排在膠囊列第一個。`HEAVY`／`LIGHT` 本身是短的全大寫詞，跟動作名稱在視覺上
   已經足夠不同，不需要再加底色
@@ -161,12 +181,16 @@ cycleFor(date):
 
 ### 休息日
 
-`null` 的那天顯示 `Rest Day`，用 `--muted` 而不是 `--accent`，沒有膠囊。
+`null` 的那天顯示 `Rest Day`，用 `--muted` 而不是 `--tab-c`，沒有膠囊。
 
 ### 沒有課表檔的時候
 
-`data/Captain/program/` 不存在或沒有 `current.json` 時，頁面不顯示課表區，
-QUEST 卡回到單欄、只有三個圓環與進度條的原樣。這張卡是加上去的一塊，不是 QUEST 的前提。
+`data/Captain/program/` 不存在或沒有 `current.json` 時，頁面不顯示課表區，卡片回到單欄、
+只有三個圓環與進度條。title 退成 `WEEKLY QUEST`，旁邊補回本週日期範圍（`8/10 → 8/16`）——
+沒有課表時卡片只剩一件事，title 就只講那件事。配色仍然是藍的，那是卡片的顏色，
+跟有沒有課表無關。
+
+這張卡是加上去的一塊，不是 QUEST 的前提。
 
 ## 手機驗證
 
