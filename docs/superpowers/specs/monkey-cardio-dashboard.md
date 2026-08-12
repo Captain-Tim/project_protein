@@ -115,9 +115,8 @@ Monkey 目前只做 **cardio（以跑步為主）**，紀錄含距離與時間�
 
 Monkey 主要在手機看，手機是主場，桌機是附帶。
 
-- 所有桌機的左右並排一律改上下堆疊，順序：
-  **頁首 → 🔥 streak → WEEKLY QUEST（含底部的炸雞券）→ PR 榜 → AVG PACE → WEEKLY DISTANCE →
-  ACTIVITY 熱力圖 → SLEEP**（每天要看的在上，回顧型的在下）
+- 所有桌機的左右並排一律改上下堆疊。完整的區塊順序見 `docs/monkey-page-layout.md`，
+  原則是每天要看的在上、回顧型的在下
 - streak 徽章在手機上改成獨立一列、置中，不擠在頁首右側
 - WEEKLY QUEST 的兩個環並排縮成 84px，讓一屏內還能看到 PR 榜
 - PR 三格維持橫排但縮小字級

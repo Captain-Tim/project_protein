@@ -74,12 +74,17 @@ PR 上的 `validate` 就是把上面這幾支跑一遍，外加 `git diff --exit
 - `.claude/skills/log-sleep/` — **記錄睡眠的唯一權威**：欄位、口語對照表（品質 1–5）、
   日期歸屬（記就寢那天）、補記流程、寫檔前的人工確認關卡。
 - `docs/verification.md` — headless Chrome 探針、手機版驗證（`--window-size` 在 Windows 會騙人）。
-- `docs/superpowers/specs/2026-07-11-monkey-cardio-dashboard-design.md` — Monkey 頁的視覺與指標定義
+- `docs/monkey-page-layout.md` — **Monkey 頁區塊順序的唯一出處**，以及每一塊的規則寫在哪份 spec。
+  新增或移除區塊時改這裡，各 spec 不重述整頁順序。
+- `docs/superpowers/specs/monkey-cardio-dashboard.md` — Monkey 頁的視覺與指標定義
   （「一次 run」= 一天、weekly goal、streak、PR 榜的算法）。
-- `docs/superpowers/specs/2026-07-31-monkey-fried-chicken-award.md` — 炸雞券的發券規則、ledger 格式、
+- `docs/superpowers/specs/monkey-fried-chicken-award.md` — 炸雞券的發券規則、ledger 格式、
   驗證條件、票券夾版面。要動獎勵系統就照它。
-- `docs/superpowers/specs/2026-08-05-monkey-sleep-log-design.md` — 睡眠與用藥紀錄的欄位、驗證規則、
+- `docs/superpowers/specs/monkey-sleep-log.md` — 睡眠與用藥紀錄的欄位、驗證規則、
   集章卡與彈窗版面，以及刻意不做的那些（趨勢圖、計畫遵守度）。要動睡眠系統就照它。
+
+**spec 是活文件，不是開發日誌。** 檔名不帶日期就是這個意思：功能改了就回頭改對應的 spec，
+讓它一直反映現況。建立日期在 git history 裡，不用寫進檔名。
 
 ## 與使用者互動
 
