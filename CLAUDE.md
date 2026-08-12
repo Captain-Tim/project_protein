@@ -16,7 +16,8 @@ Node 18+）。不要引入框架、圖表函式庫，也不要把腳本改寫成
 - **HTML 裡 `/*…_START*/`…`/*…_END*/` 標記區塊只能由 build 腳本改寫**，不要手動編輯其間內容。
   手改會被 `git diff --exit-code` 抓到。
 - **所有變更走 PR，不直接推 `master`。** master = 已上線，merge 是部署動作。
-  流程：開分支 → commit → push 分支 → **等使用者說**才開 PR、squash merge。
+  流程：開分支 → commit → **使用者自己 push**（本機禁止 `git push`，把指令給他就好）→
+  **等使用者說**才開 PR、squash merge。
   PR 上 `validate` 沒過就不 merge。
 - **新增頁面要改兩處**：`scripts/make_site.js` 的 `SITE` 清單（漏了就線上 404、本地正常，
   `check_site_links.js` 會擋）、`pages.yml` 的 `paths`（漏了就改那頁不觸發部署，沒有東西會擋）。
