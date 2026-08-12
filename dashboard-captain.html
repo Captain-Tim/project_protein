@@ -106,9 +106,6 @@
 
   header.hero h1 { margin: 0; font-size: 19px; font-weight: 800; letter-spacing: .5px; }
   header.hero h1 i { color: var(--person); font-style: normal; }
-  .peer { font-size: 12px; color: var(--muted); text-decoration: none; white-space: nowrap;
-    border: 1px solid var(--border); border-radius: 999px; padding: 5px 12px; }
-  .peer:hover { color: var(--ink); border-color: var(--person); }
   .streak { margin-left: auto; display: flex; align-items: center; gap: 8px;
     background: var(--streak-bg); border: 1px solid var(--streak-border); border-radius: 999px; padding: 7px 14px; }
   .streak .n { font-size: 20px; font-weight: 800; color: var(--accent); font-family: Consolas, monospace; }
@@ -119,15 +116,18 @@
 
   h2.sec { font-size: 10px; letter-spacing: 1.1px; color: var(--muted); font-weight: 600; margin: 18px 2px 8px; }
 
-  /* ON THE PROGRAM:今天表定要做什麼。併入 Weekly Quest 那張卡,不另開一張——
+  /* 課表:今天表定要做什麼。併入 Weekly Quest 那張卡,不另開一張——
      課表內容撐不滿全寬,單獨一張卡在桌機會留一大塊白。
      這張卡是 (課表, 今天日期) 的單純函數:不讀訓練紀錄、不判完成,所以永遠不會
      跟紀錄互相矛盾。「本週湊了幾種」由旁邊的 Quest 圓環回答。 */
   .pgHead { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
   /* 部位名用等寬字:本頁所有大號數值都是 Consolas(.pr .v、.lwStats .v、.dcDate),
-     20px 也刻意不超過 h1 的 19px 太多,一張輔助卡的字比頁面標題大會很怪 */
+     20px 也刻意不超過 h1 的 19px 太多,一張輔助卡的字比頁面標題大會很怪。
+     顏色吃卡片層級的 --tab-c(renderQuest 設成 --hm3),整張卡一套色。
+     部位色是 TRAINING LOG 那一段的語言,跨過來會讓一張卡出現兩套配色系統 */
   .pgPart { font-family: Consolas, ui-monospace, monospace; font-size: 20px; font-weight: 800;
-    letter-spacing: .4px; line-height: 1.3; color: var(--pc, var(--ink)); }
+    letter-spacing: .4px; line-height: 1.3; color: var(--tab-c, var(--accent)); }
+  .pgDate { margin-bottom: 3px; }
   .pgPart.rest { color: var(--muted); }
   /* 膠囊列每天都有,休息日是空的但保留高度,左欄才不會塌陷 */
   .pgChips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; min-height: 37px;
@@ -136,18 +136,20 @@
      HEAVY/LIGHT 是短的全大寫詞,跟動作名稱在視覺上已經足夠不同 */
   .pgChips > div { flex: 0 0 auto; white-space: nowrap; font-size: 11px; font-weight: 700;
     letter-spacing: .4px; padding: 5px 11px; border-radius: 99px;
-    border: 1px solid var(--pc, var(--border)); color: var(--pc, var(--muted)); }
+    border: 1px solid var(--tab-c, var(--border)); color: var(--tab-c, var(--muted)); }
   .pgNote { margin-top: 2px; font-size: 11px; color: var(--muted); line-height: 1.65; }
-  /* 左課表右圓環。卡片不上部位色邊框也不加光暈:光暈在本頁的既有語意是
+  /* 左課表右圓環。卡片不上彩色邊框也不加光暈:光暈在本頁的既有語意是
      「破紀錄/最新」(.pr.new、.bars i.on.cur),課表天天都在,天天發光會稀釋那個訊號 */
   .pgBody { display: flex; margin-top: 11px; }
   .pgL { flex: 1 1 0; min-width: 0; padding-right: 16px; }
   .pgR { flex: 1.35 1 0; min-width: 0; padding-left: 16px; border-left: 1px solid var(--border); }
 
-  /* Weekly Quest:三部位圓環,二元 0%/100% */
+  /* Weekly Quest:三部位圓環,二元 0%/100%。
+     圓環與進度條的顏色都吃 --tab-c / --tab-glow / --xp-dim,由 renderQuest 設在卡片上,
+     這樣課表與 Quest 是同一套色——.ring 與 .xp 只有這張卡在用,不會波及別處 */
   .ring { width: 88px; height: 88px; border-radius: 50%; flex: 0 0 auto;
     display: flex; align-items: center; justify-content: center; }
-  .ring.done { box-shadow: 0 0 18px rgba(227, 183, 63, .45); }
+  .ring.done { box-shadow: 0 0 18px var(--tab-glow, rgba(227, 183, 63, .45)); }
   .ring > div { width: 68px; height: 68px; border-radius: 50%; background: var(--card);
     display: flex; flex-direction: column; align-items: center; justify-content: center; }
   .ring .v { font-size: 18px; font-weight: 800; font-family: Consolas, monospace; }
@@ -155,7 +157,34 @@
   .qcol { display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1 1 0; min-width: 90px; text-align: center; }
   .xp { height: 9px; border-radius: 999px; background: #1e2126; overflow: hidden; }
   .xp > i { display: block; height: 100%; border-radius: 999px;
-    background: linear-gradient(90deg, var(--accent-dim), var(--accent)); box-shadow: 0 0 10px rgba(227, 183, 63, .6); }
+    background: linear-gradient(90deg, var(--xp-dim, var(--accent-dim)), var(--tab-c, var(--accent)));
+    box-shadow: 0 0 10px var(--tab-glow, rgba(227, 183, 63, .6)); }
+
+  /* TRAINING LOG 卡:動作 tab、PR 榜、趨勢圖與最近一次都是它的子區塊。
+     子區塊刻意不再是卡片——卡中卡會出現兩種深度的盒子並排,很吵。改用細線分段。
+     唯一保留邊框的內層是 .pr 統計磚:NEW 的流動光弧畫在邊框上,沒有邊框就沒有它。 */
+  .tlSub { font-size: 11px; font-weight: 800; letter-spacing: .9px; color: var(--ink); }
+  .tlSect { margin-top: 11px; }
+  .tlSect + .tlSect { margin-top: 14px; padding-top: 13px; border-top: 1px solid var(--border); }
+  /* 間距用內距而不是 gap,分隔線才會落在兩格正中間 */
+  .tlRow { display: flex; gap: 0; }
+  .tlRow > div { flex: 1 1 0; min-width: 0; }
+  /* 分隔線掛在左邊的圖表格,不掛在 LAST WORKOUT 上——它 hover 要整圈亮起來,
+     線掛在它身上會變成雙線 */
+  .tlRow > .chartCell { padding-right: 22px; border-right: 1px solid var(--border);
+    transition: border-color .12s; }
+  .tlRow > .lwCell { padding: 6px 10px 8px 22px; border-radius: 12px; }
+  /* hover:整圈用部位色亮起來,把原本「整張卡邊框變色」那個提示還回來。
+     用 outline 不用 border:不佔版面所以內容不會位移,而且會跟著圓角走。
+     2px 而不是 1px:原本是「已經存在的邊框變色」,現在是「線從無到有」,
+     同樣 1px 的線從無到有看起來明顯更細。2px 跟 .tabBtn.on 的選中態同一個厚度。
+     上浮拿掉:沒有盒子,浮起來沒有依據。 */
+  .lwCell.lw { outline: 2px solid transparent; outline-offset: -1px;
+    transition: background-color .12s, outline-color .12s; }
+  .lwCell.lw:hover { transform: none; background: rgba(255, 255, 255, .035);
+    outline-color: var(--tab-c, var(--accent)); }
+  /* hover 時讓分隔線淡出:它就貼在 outline 左段外面 1px,兩條線擠在一起會很瑣碎 */
+  .tlRow:has(.lwCell:hover) > .chartCell { border-right-color: transparent; }
 
   /* 兩層 tab(部位 → 動作)與熱力圖年份 tab 共用同一套按鈕樣式 */
   .tabRow { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -271,7 +300,6 @@
     .avatar { width: 52px; height: 52px; }
     header.hero h1 { font-size: 17px; }
     .streak { margin-left: 0; width: 100%; justify-content: center; margin-top: 10px; }
-    .peer { margin-left: auto; }
     .row { flex-direction: column; }
     /* 課表與圓環改上下排,分隔線從左邊換到上面 */
     .pgBody { flex-direction: column; }
@@ -287,8 +315,13 @@
     .pr .d { font-size: 9px; }
     .pr .tag { right: 4px; }
     /* 手機順序:LAST WORKOUT 排在趨勢圖之前。最近一次比長期趨勢即時,
-       一屏看得到的東西少,即時的排前面 */
-    #lastWorkout { order: -1; }
+       一屏看得到的東西少,即時的排前面。
+       DOM 順序沒變(趨勢圖在前),所以分隔線要從圖表格的右邊換到上邊,
+       不然那條線會出現在整個區塊的最上面。 */
+    .tlRow { flex-direction: column; gap: 14px; }
+    .tlRow > .lwCell { order: -1; padding: 6px 0 8px; }
+    .tlRow > .chartCell { padding-right: 0; border-right: 0;
+      padding-top: 13px; border-top: 1px solid var(--border); }
     /* 手機是全寬,不再是窄欄,字級放大回來 */
     .lwName { font-size: 19px; }
     .lwStats { gap: 22px; }
@@ -312,19 +345,24 @@
       <div class="n" id="streakVal">0</div>
       <div class="lbl" style="line-height:1.2">WEEK<br />STREAK</div>
     </div>
-    <a class="peer" href="dashboard-monkey.html">Monkey ›</a>
   </header>
 
   <div class="card" id="quest" style="margin-top:12px"></div>
 
-  <h2 class="sec">TRAINING LOG</h2>
-  <div class="tabRow" id="tabs1"></div>
-  <div class="tabRow" id="tabs2" style="margin-top:8px"></div>
-
-  <h2 class="sec" id="prHeading"></h2>
-  <div class="row" id="prBoard"></div>
-
-  <div class="row" id="trendRow" style="margin-top:12px"></div>
+  <div class="card" id="trainingLog" style="margin-top:12px">
+    <b style="font-size:13px">TRAINING LOG</b>
+    <div class="tlSect">
+      <div class="tabRow" id="tabs1"></div>
+      <div class="tabRow" id="tabs2" style="margin-top:8px"></div>
+    </div>
+    <div class="tlSect">
+      <div class="tlSub" id="prHeading"></div>
+      <div class="row" id="prBoard" style="margin-top:9px"></div>
+    </div>
+    <div class="tlSect">
+      <div class="tlRow" id="trendRow"></div>
+    </div>
+  </div>
 
   <div class="card" id="activity" style="margin-top:16px"></div>
 </div>
@@ -377,11 +415,6 @@
   // 是兩回事,前者是 JS 的索引、後者是「一週從哪天開始」。
   const DOW_KEY = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
   const DOW_LABEL = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
-  // 部位色沿用 TRAINING LOG tab 的顏色語言。這個 map 在這裡而不在課表 JSON 裡:
-  // 顏色是呈現不是計畫。
-  const PROGRAM_PART_COLOR = {
-    "Leg/Shoulder": "var(--c-leg)", "Chest/Back": "var(--c-chest)", "Cardio": "var(--c-cardio)",
-  };
 
   const el = (t, a, txt) => { const e = document.createElementNS(SVGNS, t); for (const k in a) e.setAttribute(k, a[k]); if (txt != null) e.textContent = txt; return e; };
   const svg = (w, h) => el("svg", { viewBox: `0 0 ${w} ${h}`, width: w, height: h });
@@ -683,12 +716,19 @@
   }
 
   function renderQuest() {
+    // 整張卡走本頁的藍(--hm3,跟熱力圖同一支),不用全站金色。設在卡片層級,
+    // 課表的部位名與膠囊、Quest 的圓環與進度條就全部跟著同一個值走。
+    // activity 卡本來就是這個做法($("activity").style.setProperty("--tab-c", ...))。
+    $("quest").style.setProperty("--tab-c", "var(--hm3)");
+    $("quest").style.setProperty("--tab-glow", "rgba(92, 208, 255, .34)");
+    $("quest").style.setProperty("--xp-dim", "var(--hm1)");
+
     const q = currentPartQuest(TODAY);
     const ring = (part) => {
       const done = q.parts[part];
       const pct = done ? 100 : 0;
       return '<div class="qcol">' +
-        '<div class="ring' + (done ? " done" : "") + '" style="background:conic-gradient(var(--accent) 0 ' + pct + '%, var(--border) ' + pct + '% 100%)">' +
+        '<div class="ring' + (done ? " done" : "") + '" style="background:conic-gradient(var(--tab-c, var(--accent)) 0 ' + pct + '%, var(--border) ' + pct + '% 100%)">' +
           '<div><div class="v' + (done ? " accent" : "") + '">' + (done ? "✓" : "—") + "</div></div></div>" +
         '<div class="lbl">' + PART_LABEL[part].toUpperCase() + "</div>" +
       "</div>";
@@ -701,23 +741,26 @@
         '<div class="xp" style="margin-top:7px"><i style="width:' + (q.questPct * 100).toFixed(1) + '%"></i></div>' +
       "</div>";
 
-    // 沒有課表就完全維持原樣:標頭留著本週日期範圍,圓環單獨一排。
+    // 沒有課表時只有 Quest 一件事,title 就只掛 WEEKLY QUEST,本週日期範圍留著。
     // 課表是加上去的一塊,不是這張卡的前提。
     if (!PROGRAM) {
       $("quest").innerHTML =
-        '<div style="display:flex;justify-content:space-between;align-items:baseline">' +
-          '<div class="lbl">WEEKLY QUEST · ' + q.weekStart + " → " + q.weekEnd + "</div>" +
+        '<div class="pgHead">' +
+          '<div style="display:flex;align-items:baseline;gap:8px">' +
+            '<b style="font-size:13px">WEEKLY QUEST</b>' +
+            '<span class="lbl">' + q.weekStart + " → " + q.weekEnd + "</span>" +
+          "</div>" +
           '<div class="lbl">' + daysLeft + "</div>" +
         "</div>" + rings + progress;
       return;
     }
 
-    // 併入後左邊讓給 ON THE PROGRAM,QUEST 的本週日期範圍捨棄只留 DAYS LEFT:
+    // 有課表時卡片裝兩件事,title 一次講完。QUEST 的本週日期範圍捨棄只留 DAYS LEFT:
     // 週的起訖日對「本週還剩幾天湊滿三種」沒有決策價值,DAYS LEFT 已經完整回答了。
+    // 今天的日期改放左欄課表的上方,離它描述的內容最近。
     const d = parseDate(TODAY);
     const p = programFor(TODAY);
     const isRest = !p;
-    const color = isRest ? null : PROGRAM_PART_COLOR[p.part];
     const chips = [];
     if (!isRest) {
       // 強度排第一,跟動作用同一套膠囊樣式,區分只靠排序
@@ -727,11 +770,12 @@
 
     $("quest").innerHTML =
       '<div class="pgHead">' +
-        '<div class="lbl">ON THE PROGRAM · ' + md(d) + " " + DOW_LABEL[d.getDay()] + "</div>" +
-        '<div class="lbl">WEEKLY QUEST · ' + daysLeft + "</div>" +
+        '<b style="font-size:13px">DAILY TASK &amp; WEEKLY QUEST</b>' +
+        '<div class="lbl">' + daysLeft + "</div>" +
       "</div>" +
-      '<div class="pgBody"' + (color ? ' style="--pc:' + color + '"' : "") + ">" +
+      '<div class="pgBody">' +
         '<div class="pgL">' +
+          '<div class="lbl pgDate">' + md(d) + " " + DOW_LABEL[d.getDay()] + "</div>" +
           '<div class="pgPart' + (isRest ? " rest" : "") + '">' +
             (isRest ? "Rest Day" : esc(p.part.replace("/", " / "))) +
           "</div>" +
@@ -819,8 +863,8 @@
 
     // data-date 讓 body 那個既有的委派接手,開的是熱力圖同一個當日詳情彈窗。
     // 卡片是 renderContent 每次切 tab 就重建的,自己綁 listener 會一直重複掛。
-    return '<div class="card lw" id="lastWorkout" data-date="' + last.date + '" style="flex:0.9">' +
-      '<div class="lwHead"><b style="font-size:13px">LAST WORKOUT</b>' +
+    return '<div class="lw lwCell" id="lastWorkout" data-date="' + last.date + '" style="flex:0.9">' +
+      '<div class="lwHead"><div class="tlSub">LAST WORKOUT</div>' +
         '<span class="lbl lwAgo ' + state + '">' + ago + "</span></div>" +
       '<div class="lwName">' + esc(curExercise || "") + (prTags || "") + "</div>" +
       '<div class="lwDate">' + md(d) + " (" + WKDAY[d.getDay()] + ")</div>" +
@@ -832,10 +876,10 @@
   function renderContent() {
     const isCardio = curPart === "Cardio";
     $("prHeading").textContent = "🏆 PERSONAL RECORDS";
-    [$("prHeading"), $("prBoard"), $("trendRow")].forEach((e) => {
-      e.style.setProperty("--tab-c", TAB_COLOR[curPart]);
-      e.style.setProperty("--tab-glow", TAB_GLOW28[curPart]);
-    });
+    // 三個子區塊收進同一張卡之後,部位色設在卡片上就夠,不用逐一設。
+    // tab 按鈕各自帶 inline 的 --tab-c,不受這裡影響。
+    $("trainingLog").style.setProperty("--tab-c", TAB_COLOR[curPart]);
+    $("trainingLog").style.setProperty("--tab-glow", TAB_GLOW28[curPart]);
 
     if (isCardio) {
       const runs = buildDayRuns(curExercise);
@@ -856,9 +900,9 @@
       const maxKm = Math.max(1, ...wd.map((x) => x.km));
       $("trendRow").style.justifyContent = "";
       $("trendRow").innerHTML =
-        '<div class="card" id="weeklyDist" style="flex:2.3">' +
+        '<div class="chartCell" id="weeklyDist" style="flex:2.3">' +
           '<div style="display:flex;justify-content:space-between;align-items:baseline">' +
-            '<b style="font-size:13px">WEEKLY DISTANCE</b>' +
+            '<div class="tlSub">WEEKLY DISTANCE</div>' +
             '<span class="lbl">THIS WEEK <span class="num accent" style="font-size:12px">' + wd[wd.length - 1].km + " km</span></span>" +
           "</div>" +
           '<div class="bars" style="margin-top:12px">' +
@@ -890,8 +934,10 @@
       // max-width 拿掉,兩個 tab 的 flex 比一致(2.3 : 0.9),切換動作時右邊那張卡不會跳寬度。
       // 代價是折線圖的 SVG 等比放大(viewBox + width:100%),高度跟著長。
       $("trendRow").innerHTML =
-        '<div class="card" id="weightTrendCard" style="flex:2.3">' +
-          '<b style="font-size:13px">' + (curExercise || "") + " Trend</b>" +
+        '<div class="chartCell" id="weightTrendCard" style="flex:2.3">' +
+          // 大寫跟旁邊的 WEEKLY DISTANCE、LAST WORKOUT、PERSONAL RECORDS 對齊,
+          // 這一個原本是混合大小寫,收進同一張卡後就顯得突出
+          '<div class="tlSub">' + (curExercise || "").toUpperCase() + " TREND</div>" +
           '<div class="lbl" style="margin:2px 0 8px">LAST ' + points.length + " SESSION" + (points.length === 1 ? "" : "S") + "</div>" +
         "</div>" + lwHTML;
       if (points.length) $("weightTrendCard").appendChild(lineChart(points, TAB_COLOR[curPart]));

@@ -115,7 +115,31 @@
   .streak.zero .flame { filter: grayscale(1); opacity: .45; }
 
   /* 卡片外的區塊標題,字級與卡片裡的標題(ACTIVITY、SLEEP)同一套 */
-  h2.sec { font-size: 13px; color: var(--ink); font-weight: 700; margin: 18px 2px 12px; }
+  /* TRAINING LOG 卡:PR 榜、WEEKLY DISTANCE 與 LAST WORKOUT 都是它的子區塊。
+     子區塊刻意不再是卡片——卡中卡會出現兩種深度的盒子並排,很吵。改用細線分段。
+     唯一保留邊框的內層是 .pr 統計磚:NEW 的流動光弧畫在邊框上,沒有邊框就沒有它。 */
+  .tlSub { font-size: 11px; font-weight: 800; letter-spacing: .9px; color: var(--ink); }
+  .tlSect { margin-top: 11px; }
+  .tlSect + .tlSect { margin-top: 14px; padding-top: 13px; border-top: 1px solid var(--border); }
+  /* 間距用內距而不是 gap,分隔線才會落在兩格正中間 */
+  .tlRow { display: flex; gap: 0; }
+  .tlRow > div { flex: 1 1 0; min-width: 0; }
+  /* 分隔線掛在左邊的圖表格,不掛在 LAST WORKOUT 上——它 hover 要整圈亮起來,
+     線掛在它身上會變成雙線 */
+  .tlRow > .chartCell { padding-right: 22px; border-right: 1px solid var(--border);
+    transition: border-color .12s; }
+  .tlRow > .lwCell { padding: 6px 10px 8px 22px; border-radius: 12px; }
+  /* hover:整圈用主色亮起來,把原本「整張卡邊框變色」那個提示還回來。
+     用 outline 不用 border:不佔版面所以內容不會位移,而且會跟著圓角走。
+     2px 而不是 1px:原本是「已經存在的邊框變色」,現在是「線從無到有」,
+     同樣 1px 的線從無到有看起來明顯更細。
+     上浮拿掉:沒有盒子,浮起來沒有依據。 */
+  .lwCell.lw { outline: 2px solid transparent; outline-offset: -1px;
+    transition: background-color .12s, outline-color .12s; }
+  .lwCell.lw:hover { transform: none; background: rgba(255, 255, 255, .035);
+    outline-color: var(--accent); }
+  /* hover 時讓分隔線淡出:它就貼在 outline 左段外面 1px,兩條線擠在一起會很瑣碎 */
+  .tlRow:has(.lwCell:hover) > .chartCell { border-right-color: transparent; }
 
   .ring { width: 92px; height: 92px; border-radius: 50%; flex: 0 0 auto;
     display: flex; align-items: center; justify-content: center; }
@@ -332,8 +356,13 @@
     .pr .lbl { letter-spacing: .3px; }
 
     /* 手機順序:LAST WORKOUT 排在 WEEKLY DISTANCE 之前。最近一次比八週趨勢即時,
-       一屏看得到的東西少,即時的排前面 */
-    #lastWorkout { order: -1; }
+       一屏看得到的東西少,即時的排前面。
+       DOM 順序沒變(WEEKLY DISTANCE 在前),所以分隔線要從圖表格的右邊換到上邊,
+       不然那條線會出現在整個區塊的最上面。 */
+    .tlRow { flex-direction: column; gap: 14px; }
+    .tlRow > .lwCell { order: -1; padding: 6px 0 8px; }
+    .tlRow > .chartCell { padding-right: 0; border-right: 0;
+      padding-top: 13px; border-top: 1px solid var(--border); }
     /* 手機是全寬,不再是窄欄,字級放大回來 */
     .lwName { font-size: 19px; }
     .lwStats { gap: 22px; }
@@ -363,12 +392,18 @@
 
   <div class="card" id="quest" style="margin-top:12px"></div>
 
-  <h2 class="sec">🏆 PERSONAL RECORDS</h2>
-  <div class="row" id="prBoard"></div>
-
-  <div class="row" style="margin-top:12px">
-    <div class="card" id="weeklyDist" style="flex:2.3"></div>
-    <div class="card lw" id="lastWorkout" style="flex:0.9"></div>
+  <div class="card" id="trainingLog" style="margin-top:12px">
+    <b style="font-size:13px">TRAINING LOG</b>
+    <div class="tlSect">
+      <div class="tlSub">🏆 PERSONAL RECORDS</div>
+      <div class="row" id="prBoard" style="margin-top:9px"></div>
+    </div>
+    <div class="tlSect">
+      <div class="tlRow">
+        <div class="chartCell" id="weeklyDist" style="flex:2.3"></div>
+        <div class="lw lwCell" id="lastWorkout" style="flex:0.9"></div>
+      </div>
+    </div>
   </div>
 
   <div class="card" id="activity" style="margin-top:12px"></div>
@@ -1110,7 +1145,7 @@
     }
 
     el("lastWorkout").innerHTML =
-      '<div class="lwHead"><b style="font-size:13px">LAST WORKOUT</b>' +
+      '<div class="lwHead"><div class="tlSub">LAST WORKOUT</div>' +
         '<span class="lbl lwAgo ' + agoState + '">' + agoText + "</span></div>" +
       '<div class="lwName">' + lw.names.map(escHtml).join(" · ") + prTags + "</div>" +
       '<div class="lwDate">' + (d.getMonth() + 1) + "/" + d.getDate() +
@@ -1128,7 +1163,7 @@
   const maxKm = Math.max(1, ...wd.map((x) => x.km));
   el("weeklyDist").innerHTML =
     '<div style="display:flex;justify-content:space-between;align-items:baseline">' +
-      '<b style="font-size:13px">WEEKLY DISTANCE</b>' +
+      '<div class="tlSub">WEEKLY DISTANCE</div>' +
       '<span class="lbl">THIS WEEK <span class="num lime" style="font-size:12px">' +
         wd[wd.length - 1].km + " km</span></span>" +
     "</div>" +
