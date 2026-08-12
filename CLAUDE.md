@@ -55,6 +55,7 @@ PR 上的 `validate` 就是把上面這幾支跑一遍，外加 `git diff --exit
 | `data/Monkey/rewards/redemptions.json` | 炸雞券的使用紀錄（哪張被用掉）。放子資料夾才不會被當成訓練紀錄掃進去 |
 | `data/Monkey/rewards/grants.json` | 手動核發的特別券。達標券是推導的、不存;特別券是人的決定，推導不出來所以要存 |
 | `data/Monkey/sleep/` | 睡眠與助眠藥紀錄，一晚一個 JSON，檔名即日期。放子資料夾才不會被當成訓練紀錄掃進去 |
+| `data/Captain/program/current.json` | Captain 的課表（表定要做什麼）。放子資料夾才不會被當成訓練紀錄掃進去 |
 | `dashboard-captain.html`、`dashboard-monkey.html` | 兩人各自的頁面，完全獨立、互不影響 |
 | `wallet-monkey.html` | Monkey 的炸雞券票券夾。主題與 metrics 由 build 從 dashboard 複製，不自己寫一份 |
 | `scripts/build_dashboard.js <人名>` | 兩人共用一支（刻意不拆，否則規則會偷偷分岔） |
@@ -73,7 +74,8 @@ PR 上的 `validate` 就是把上面這幾支跑一遍，外加 `git diff --exit
   寫檔前的人工確認關卡。
 - `.claude/skills/log-sleep/` — **記錄睡眠的唯一權威**：欄位、口語對照表（品質 1–5）、
   日期歸屬（記就寢那天）、補記流程、寫檔前的人工確認關卡。
-- `docs/verification.md` — headless Chrome 探針、手機版驗證（`--window-size` 在 Windows 會騙人）。
+- `docs/verification.md` — headless Chrome 探針、手機版驗證（目標機型的 viewport 寬度是**唯一出處**，
+  `--window-size` 在 Windows 會騙人）。
 - `docs/monkey-page-layout.md` — **Monkey 頁區塊順序的唯一出處**，以及每一塊的規則寫在哪份 spec。
   新增或移除區塊時改這裡，各 spec 不重述整頁順序。
 - `docs/superpowers/specs/monkey-cardio-dashboard.md` — Monkey 頁的視覺與指標定義
@@ -85,6 +87,9 @@ PR 上的 `validate` 就是把上面這幾支跑一遍，外加 `git diff --exit
 - `docs/superpowers/specs/last-workout.md` — **兩頁共用**：LAST WORKOUT 卡的三段配色、▲▼ 門檻、
   對齊與互動寫在「共通規則」，兩頁各自的範圍差異（Monkey 是最近一個訓練日，Captain 是選中動作的
   最近一次）寫在自己那一節。要動任一頁的這張卡就照它。
+- `docs/superpowers/specs/captain-program.md` — Captain 課表（ON THE PROGRAM）的資料格式、
+  A／B 循環算法、驗證規則、併入 WEEKLY QUEST 的版面，以及刻意不做的那些（不比對紀錄、
+  不顯示完成狀態）。要動課表就照它。
 
 **spec 是活文件，不是開發日誌。** 檔名不帶日期就是這個意思：功能改了就回頭改對應的 spec，
 讓它一直反映現況。建立日期在 git history 裡，不用寫進檔名。
