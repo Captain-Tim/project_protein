@@ -58,7 +58,7 @@ Monkey 目前只做 **cardio（以跑步為主）**，紀錄含距離與時間�
   - 判定：該紀錄是在**最近一次 session** 產生的
 
 ### 3.4 LAST WORKOUT（最近一次訓練）
-與 WEEKLY DISTANCE 並排。規則見 `monkey-last-workout.md`。
+與 WEEKLY DISTANCE 並排。規則見 `last-workout.md`。
 
 ### 3.5 WEEKLY DISTANCE（柱狀圖）
 - 最近 **8 週**（含本週），每根 = 一週總距離

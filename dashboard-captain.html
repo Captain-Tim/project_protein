@@ -176,7 +176,39 @@
   .bars i.on.cur { box-shadow: 0 0 9px var(--tab-glow, rgba(227, 183, 63, .28)); }
   .barx { display: flex; gap: 8px; font-size: 9px; color: var(--muted); margin-top: 6px; }
   .barx span { flex: 1 1 0; min-width: 0; text-align: center; }
-  .paceBig { font-size: 40px; margin: 8px 0 2px; }
+  /* 最近一次訓練:整張卡可點,開的是熱力圖那個當日詳情彈窗。
+     所有數值用 --tab-c,跟著部位 tab 換色——這是本頁既有的語彙。
+     桌機只有約 300px 寬,字級以窄欄為基準,手機再放大回去。 */
+  .lw { display: block; text-decoration: none; color: inherit; cursor: pointer;
+    transition: border-color .12s, transform .12s; }
+  .lw:hover { border-color: var(--tab-c, var(--accent)); transform: translateY(-1px); }
+  .lwHead { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  /* 距今天數的三段號誌。這裡不用 --tab-c:它講的是「多久沒練」,跟練哪個部位無關 */
+  .lwAgo.fresh { color: var(--pos); }
+  .lwAgo.warn { color: #ffb648; }
+  .lwAgo.stale { color: var(--neg); }
+  .lwName { font-size: 16px; font-weight: 800; letter-spacing: .3px; margin-top: 8px; line-height: 1.35; }
+  .lwDate { font-family: Consolas, ui-monospace, monospace; font-size: 11px; color: var(--muted); margin-top: 1px; }
+  /* 三個主數值均分撐滿,靠左排會在右側空一塊 */
+  .lwStats { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 12px; }
+  .lwStats > div { flex: 1 1 0; min-width: 0; }
+  .lwStats .v { font-family: Consolas, ui-monospace, monospace; font-weight: 800;
+    font-size: 20px; color: var(--tab-c, var(--accent)); line-height: 1.15; }
+  .lwDelta { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 9px; }
+  .lwDelta .delta { font-size: 10px; margin-top: 0; }
+  .lwExtra { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 11px;
+    padding-top: 10px; border-top: 1px solid var(--border); }
+  .lwExtra > div { display: flex; align-items: baseline; gap: 4px; }
+  .lwExtra b { font-family: Consolas, ui-monospace, monospace; color: var(--ink); font-weight: 800; font-size: 13px; }
+  .lwExtra span { color: var(--muted); font-size: 10px; letter-spacing: .5px; }
+  /* 組數明細沿用彈窗的 .dcSet 藥丸,不另外做一套 */
+  .lwSetRow { margin-top: 11px; padding-top: 10px; border-top: 1px solid var(--border); }
+  .lwPR { display: inline-flex; align-items: center; gap: 3px; font-size: 9px; font-weight: 800;
+    letter-spacing: .4px; color: #0a0a0a; background: var(--tab-c, var(--accent)); border-radius: 99px;
+    padding: 2px 7px; margin-left: 6px; vertical-align: 2px; }
+  .lwFoot { display: flex; justify-content: flex-end; margin-top: 10px; }
+  .lwGo { font-size: 10px; font-weight: 700; letter-spacing: .8px; color: var(--tab-c, var(--accent)); }
+  .lw:hover .lwGo { text-decoration: underline; }
 
   svg { display: block; width: 100%; height: auto; overflow: visible; }
   svg text { font-family: "Segoe UI", "Microsoft JhengHei", system-ui, sans-serif; }
@@ -225,8 +257,14 @@
     .pr .v { font-size: 17px; }
     .pr .d { font-size: 9px; }
     .pr .tag { right: 4px; }
-    #avgPace { order: -1; }
-    .paceBig { font-size: 38px; }
+    /* 手機順序:LAST WORKOUT 排在趨勢圖之前。最近一次比長期趨勢即時,
+       一屏看得到的東西少,即時的排前面 */
+    #lastWorkout { order: -1; }
+    /* 手機是全寬,不再是窄欄,字級放大回來 */
+    .lwName { font-size: 19px; }
+    .lwStats { gap: 22px; }
+    .lwStats .v { font-size: 24px; }
+    .lwDelta .delta { font-size: 11px; }
     .bars { height: 74px; gap: 5px; --bw: 16px; }
     .barx { gap: 5px; }
   }
@@ -312,6 +350,9 @@
   const addDays = (dateStr, n) => { const d = parseDate(dateStr); d.setDate(d.getDate() + n); return toStr(d); };
   const round1 = (n) => Math.round(n * 10) / 10;
   const round2 = (n) => Math.round(n * 100) / 100;
+  // 定義在這裡而不是彈窗那一段:renderAll() 在檔案中段就跑了,
+  // 放後面的話 LAST WORKOUT 渲染時會踩到 const 的 TDZ。
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
   function formatPace(p) {
     if (typeof p !== "number" || !isFinite(p) || p <= 0) return "—";
@@ -335,7 +376,10 @@
 
   // 單一動作的重量趨勢:直接以「這個動作出現過的那次訓練」為 X 軸,不分期
   function lineChart(points, color) {
-    const W = 320, H = 128, P = { l: 38, r: 12, t: 14, b: 24 };
+    // viewBox 是 480 寬而不是 320:SVG 用 width:100% 等比縮放,卡片拿掉 max-width 之後
+    // 會撐到 ~744px。用 320 的話高度會長到 298px、圖裡的字也跟著放大;
+    // 用 480 算出來的高度與字級,跟以前 320 塞進 480px 卡片時幾乎一樣。
+    const W = 480, H = 128, P = { l: 38, r: 12, t: 14, b: 24 };
     const s = svg(W, H);
     if (!points.length) return s;
     const n = points.length, ys = points.map((p) => p.y);
@@ -385,12 +429,20 @@
     sessions.forEach((s) => {
       s.cardio.forEach((c) => {
         if (c.exercise !== exercise) return;
-        const cur = byDate.get(s.date) || { date: s.date, km: 0, min: 0 };
+        const cur = byDate.get(s.date) || { date: s.date, km: 0, min: 0, n: 0, one: null };
         cur.km += c.distance_km; cur.min += c.duration_min;
+        cur.n += 1; cur.one = c;
         byDate.set(s.date, cur);
       });
     });
-    return [...byDate.values()].map((r) => ({ date: r.date, km: round2(r.km), min: r.min })).sort((a, b) => a.date.localeCompare(b.date));
+    // 心率／坡度／卡路里只在當天只有一筆時才帶。兩筆以上心率不能相加、坡度不能平均,
+    // 湊出來的數字沒有意義。LAST WORKOUT 用得到,其他消費者(PR、週距離)不看這幾欄。
+    return [...byDate.values()].map((r) => ({
+      date: r.date, km: round2(r.km), min: r.min,
+      hr: r.n === 1 ? r.one.avg_hr_bpm : undefined,
+      incline: r.n === 1 ? r.one.incline_level : undefined,
+      kcal: r.n === 1 ? r.one.calories_kcal : undefined,
+    })).sort((a, b) => a.date.localeCompare(b.date));
   }
 
   function personalRecords(runs) {
@@ -407,14 +459,6 @@
       fastestPace: fp, longestRun: lr, longestTime: lt,
       isNew: { fastestPace: !!fp && fp.date === lastDate, longestRun: !!lr && lr.date === lastDate, longestTime: !!lt && lt.date === lastDate },
     };
-  }
-
-  function avgPace(runs) {
-    const wavg = (arr) => { const km = arr.reduce((a, r) => a + r.km, 0), min = arr.reduce((a, r) => a + r.min, 0); return km > 0 ? min / km : null; };
-    const last5 = runs.slice(-5), prev5 = runs.slice(-10, -5);
-    const pace = last5.length ? wavg(last5) : null;
-    const prev = prev5.length === 5 ? wavg(prev5) : null;
-    return { pace, deltaSec: pace != null && prev != null ? (prev - pace) * 60 : null, sampleSize: last5.length };
   }
 
   function weeklyDistance(runs, todayStr, n) {
@@ -438,7 +482,8 @@
       if (!sets.length) return;
       const maxWeight = Math.max(...sets.map((st) => st.weight));
       const volume = Math.round(sets.reduce((a, st) => a + st.weight * (st.reps || 0), 0));
-      stats.push({ date: s.date, unit, maxWeight, volume });
+      // sets 給 LAST WORKOUT 列組數明細用,其他消費者(PR、趨勢圖)只看 maxWeight / volume
+      stats.push({ date: s.date, unit, maxWeight, volume, sets, setCount: sets.length });
     });
     return stats.sort((a, b) => a.date.localeCompare(b.date));
   }
@@ -467,21 +512,6 @@
     }
     return { weeks: longest, recordWeek: longestEndWeek, isNew: longestEndWeek === weeks[weeks.length - 1] };
   }
-  // 最近 3 次的平均重量(單純算術平均,重量本身就是量到的值,不像配速需要用距離加權)
-  function strengthAvgWeight(stats) {
-    const last3 = stats.slice(-3);
-    if (!last3.length) return { avg: null, delta: null, sampleSize: 0, unit: "" };
-    const avg = last3.reduce((a, r) => a + r.maxWeight, 0) / last3.length;
-    const prev3 = stats.slice(-6, -3);
-    const prevAvg = prev3.length === 3 ? prev3.reduce((a, r) => a + r.maxWeight, 0) / prev3.length : null;
-    return {
-      avg: Math.round(avg * 100) / 100,
-      delta: prevAvg != null ? Math.round((avg - prevAvg) * 100) / 100 : null,
-      sampleSize: last3.length,
-      unit: last3[0].unit,
-    };
-  }
-
   // ---- 整體訓練:一週要三部位都練到才算達標週 ----
   function weekPartAgg() {
     const map = new Map();
@@ -633,6 +663,74 @@
     "</div>";
   }
 
+  // LAST WORKOUT:選中動作的最近一次。cardio 與 strength 的主數值不同,外殼共用。
+  const WKDAY = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+  const lwStat = (v, u) => '<div><div class="v">' + v + '</div><div class="lbl">' + u + "</div></div>";
+  // 門檻是為了擋浮點殘渣,不是為了美化
+  function lwDelta(v, eps, up, down, flat) {
+    if (v == null) return "";
+    if (Math.abs(v) < eps) return '<span class="delta flat">' + flat + "</span>";
+    return '<span class="delta ' + (v > 0 ? "up" : "down") + '">' + (v > 0 ? up(v) : down(-v)) + "</span>";
+  }
+  function lastWorkoutCard(last, prev, isCardio, prTags) {
+    if (!last) return "";
+    const d = parseDate(last.date);
+    const days = Math.round((parseDate(TODAY) - d) / 86400000);
+    const ago = days === 0 ? "TODAY" : days === 1 ? "YESTERDAY" : days + " DAYS AGO";
+    // 三段號誌講的是「多久沒練這個動作」,跟練哪個部位無關,所以不套 --tab-c
+    const state = days > 14 ? "stale" : days > 7 ? "warn" : "fresh";
+    let body;
+
+    if (isCardio) {
+      body = '<div class="lwStats">' +
+        lwStat(last.km, "KM") + lwStat(round2(last.min), "MIN") + lwStat(fmtPace(last.min, last.km), "MIN / KM") +
+        "</div>";
+      if (prev && prev.km > 0 && last.km > 0) {
+        const dk = round2(last.km - prev.km);
+        const dsec = Math.round((prev.min / prev.km - last.min / last.km) * 60);
+        body += '<div class="lwDelta">' +
+          lwDelta(dk, 0.01, (v) => "▲ +" + v + " km", (v) => "▼ -" + v + " km", "same distance") +
+          lwDelta(dsec, 1, (v) => "▲ " + v + " sec faster", (v) => "▼ " + v + " sec slower", "same pace") +
+          "</div>";
+      }
+      const extras =
+        (last.hr != null ? "<div><b>" + last.hr + "</b><span>BPM</span></div>" : "") +
+        // 坡度 0 是有效的實測值,所以看欄位在不在,不要看值真不真
+        (last.incline != null ? "<div><b>" + last.incline + "</b><span>INCLINE</span></div>" : "") +
+        (last.kcal != null ? "<div><b>" + last.kcal + "</b><span>KCAL</span></div>" : "");
+      if (extras) body += '<div class="lwExtra">' + extras + "</div>";
+    } else {
+      // 單位跟著資料走:Bench Press 是 lb,其他多半是 kg,標籤不能寫死
+      const U = (last.unit || "").toUpperCase();
+      body = '<div class="lwStats">' +
+        lwStat(last.maxWeight, "MAX " + U) + lwStat(last.setCount, "SETS") + lwStat(last.volume, "VOLUME " + U) +
+        "</div>";
+      if (prev) {
+        body += '<div class="lwDelta">' +
+          lwDelta(round2(last.maxWeight - prev.maxWeight), 0.01,
+            (v) => "▲ +" + v + " " + last.unit, (v) => "▼ -" + v + " " + last.unit, "same weight") +
+          lwDelta(last.volume - prev.volume, 1,
+            (v) => "▲ +" + v + " vol", (v) => "▼ -" + v + " vol", "same volume") +
+          "</div>";
+      }
+      // 組數明細:重訓真正想看的就是「上次推幾公斤幾下」
+      body += '<div class="lwSetRow"><div class="dcSets">' +
+        (last.sets || []).map((st) => '<span class="dcSet">' + st.weight + last.unit + " × " + st.reps + "</span>").join("") +
+        "</div></div>";
+    }
+
+    // data-date 讓 body 那個既有的委派接手,開的是熱力圖同一個當日詳情彈窗。
+    // 卡片是 renderContent 每次切 tab 就重建的,自己綁 listener 會一直重複掛。
+    return '<div class="card lw" id="lastWorkout" data-date="' + last.date + '" style="flex:0.9">' +
+      '<div class="lwHead"><b style="font-size:13px">LAST WORKOUT</b>' +
+        '<span class="lbl lwAgo ' + state + '">' + ago + "</span></div>" +
+      '<div class="lwName">' + esc(curExercise || "") + (prTags || "") + "</div>" +
+      '<div class="lwDate">' + md(d) + " (" + WKDAY[d.getDay()] + ")</div>" +
+      body +
+      '<div class="lwFoot"><span class="lwGo">VIEW DETAIL ›</span></div>' +
+    "</div>";
+  }
+
   function renderContent() {
     const isCardio = curPart === "Cardio";
     $("prHeading").textContent = "🏆 PERSONAL RECORDS";
@@ -650,17 +748,17 @@
         prCard(pr.isNew.longestRun, "🥇", pr.longestRun ? pr.longestRun.km + " km" : "—", "LONGEST RUN", pr.longestRun ? pr.longestRun.date : "—") +
         prCard(pr.isNew.longestTime, "⏱️", pr.longestTime ? pr.longestTime.min + " min" : "—", "LONGEST TIME", pr.longestTime ? pr.longestTime.date : "—");
 
-      const ap = avgPace(runs);
-      const deltaLine = ap.deltaSec == null ? "" :
-        Math.abs(ap.deltaSec) < 1 ? '<div class="delta flat">same as previous 5</div>' :
-        '<div class="delta ' + (ap.deltaSec > 0 ? "up" : "down") + '">' +
-          (ap.deltaSec > 0 ? "▲ " + Math.round(ap.deltaSec) + " sec faster" : "▼ " + Math.round(-ap.deltaSec) + " sec slower") +
-          " than previous 5</div>";
+      // 破紀錄標籤直接取 personalRecords 的 isNew,不另外算一套規則
+      const cardioTags =
+        (pr.isNew.fastestPace ? '<span class="lwPR">⚡ NEW PR</span>' : "") +
+        (pr.isNew.longestRun ? '<span class="lwPR">🥇 NEW PR</span>' : "") +
+        (pr.isNew.longestTime ? '<span class="lwPR">⏱️ NEW PR</span>' : "");
+      const lwHTML = lastWorkoutCard(runs[runs.length - 1], runs[runs.length - 2], true, cardioTags);
       const wd = weeklyDistance(runs, TODAY, 8);
       const maxKm = Math.max(1, ...wd.map((x) => x.km));
       $("trendRow").style.justifyContent = "";
       $("trendRow").innerHTML =
-        '<div class="card" id="weeklyDist" style="flex:2.2">' +
+        '<div class="card" id="weeklyDist" style="flex:2.3">' +
           '<div style="display:flex;justify-content:space-between;align-items:baseline">' +
             '<b style="font-size:13px">WEEKLY DISTANCE</b>' +
             '<span class="lbl">THIS WEEK <span class="num accent" style="font-size:12px">' + wd[wd.length - 1].km + " km</span></span>" +
@@ -670,12 +768,7 @@
               '<i class="' + (x.km > 0 ? "on" : "") + (x.isCurrent ? " cur" : "") + '" style="height:' + Math.max(2, (x.km / maxKm) * 100) + '%"></i></span>').join("") +
           "</div>" +
           '<div class="barx">' + wd.map((x) => "<span>" + (x.isCurrent ? "NOW" : x.weekStart.slice(5).replace("-", "/")) + "</span>").join("") + "</div>" +
-        "</div>" +
-        '<div class="card" id="avgPace" style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center">' +
-          '<div class="lbl">AVG PACE · LAST ' + ap.sampleSize + " RUN" + (ap.sampleSize === 1 ? "" : "S") + "</div>" +
-          '<div class="num accent paceBig">' + formatPace(ap.pace) + "</div>" +
-          '<div class="lbl" style="letter-spacing:.5px">MIN / KM</div>' + deltaLine +
-        "</div>";
+        "</div>" + lwHTML;
     } else {
       const stats = strengthSessionStats(curExercise);
       const weightPR = strengthWeightPR(stats);
@@ -692,22 +785,17 @@
       const recent = stats.slice(-12);
       const points = recent.map((r) => ({ label: md(parseDate(r.date)), y: r.maxWeight, tip: r.date + "：" + r.maxWeight + " " + r.unit }));
 
-      const aw = strengthAvgWeight(stats);
-      const awDeltaLine = aw.delta == null ? "" :
-        Math.abs(aw.delta) < 0.01 ? '<div class="delta flat">same as previous 3</div>' :
-        '<div class="delta ' + (aw.delta > 0 ? "up" : "down") + '">' +
-          (aw.delta > 0 ? "▲ " + aw.delta + " " + aw.unit + " heavier" : "▼ " + Math.abs(aw.delta) + " " + aw.unit + " lighter") +
-          " than previous 3</div>";
+      const strengthTags =
+        (weightPR && weightPR.isNew ? '<span class="lwPR">🏋️ NEW PR</span>' : "") +
+        (volumePR && volumePR.isNew ? '<span class="lwPR">💪 NEW PR</span>' : "");
+      const lwHTML = lastWorkoutCard(stats[stats.length - 1], stats[stats.length - 2], false, strengthTags);
+      // max-width 拿掉,兩個 tab 的 flex 比一致(2.3 : 0.9),切換動作時右邊那張卡不會跳寬度。
+      // 代價是折線圖的 SVG 等比放大(viewBox + width:100%),高度跟著長。
       $("trendRow").innerHTML =
-        '<div class="card" id="weightTrendCard" style="flex:2.2; max-width:480px;">' +
+        '<div class="card" id="weightTrendCard" style="flex:2.3">' +
           '<b style="font-size:13px">' + (curExercise || "") + " Trend</b>" +
           '<div class="lbl" style="margin:2px 0 8px">LAST ' + points.length + " SESSION" + (points.length === 1 ? "" : "S") + "</div>" +
-        "</div>" +
-        '<div class="card" id="avgPace" style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center">' +
-          '<div class="lbl">AVG WEIGHT · LAST ' + aw.sampleSize + " SESSION" + (aw.sampleSize === 1 ? "" : "S") + "</div>" +
-          '<div class="num accent paceBig">' + (aw.avg != null ? aw.avg + " " + aw.unit : "—") + "</div>" +
-          awDeltaLine +
-        "</div>";
+        "</div>" + lwHTML;
       if (points.length) $("weightTrendCard").appendChild(lineChart(points, TAB_COLOR[curPart]));
     }
   }
@@ -816,7 +904,6 @@
     const p = min / km, mm = Math.floor(p), ss = Math.round((p - mm) * 60);
     return ss === 60 ? (mm + 1) + ":00" : mm + ":" + String(ss).padStart(2, "0");
   }
-  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   function dayModalHTML(date) {
     const day = sessions.filter((s) => s.date === date);
     const d = parseDate(date);
