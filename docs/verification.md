@@ -41,14 +41,17 @@ node -e 'const fs=require("fs");const h=fs.readFileSync("dashboard-captain.html"
 
 ## 驗手機版:不能用 `--window-size`
 
-**`--window-size=390,844` 是騙人的。** Windows 的視窗最小寬度會讓實際佈局變成 463px,
-在那個寬度下量出來的「沒有橫向溢出」是假的——真的 390px 手機上早就爆版了。
+**目標機型的 CSS viewport 寬度:iPhone 15 / 16 = `393px`,iPhone 16 Pro = `402px`。**
+驗窄版一律用 393(兩者較窄的那個)。換手機就改這一行。
+
+**`--window-size=393,852` 是騙人的。** Windows 的視窗最小寬度會讓實際佈局變成 463px,
+在那個寬度下量出來的「沒有橫向溢出」是假的——真的 393px 手機上早就爆版了。
 
 要用 iframe 強制真實寬度(`--allow-file-access-from-files` 才讀得到 iframe 內容):
 
 ```html
 <!-- _t.html -->
-<iframe id="f" src="dashboard-monkey.html" style="width:390px;height:1400px;border:0"></iframe>
+<iframe id="f" src="dashboard-monkey.html" style="width:393px;height:1400px;border:0"></iframe>
 <script>
 document.getElementById("f").addEventListener("load", function () {
   var d = this.contentDocument;
@@ -70,3 +73,6 @@ document.getElementById("f").addEventListener("load", function () {
 
 預期 `overflow=false`。熱力圖的 `#hmGrid` 本來就比視窗寬(它在 `overflow-x:auto` 的容器裡自己捲動),
 出現在「超寬元素」清單裡是正常的。
+
+量出來的 `vw` 會比 iframe 寬度少 15px(桌機 Chrome 的垂直捲軸佔位;iPhone Safari 是浮動捲軸不佔位),
+所以 393 的 iframe 量到 378。這個方向是偏保守的,量不到溢出就代表真機更不會溢出。

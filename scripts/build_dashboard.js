@@ -163,6 +163,87 @@ if (sleepRe.test(html)) {
   );
 }
 
+// 課表(目前只有 Captain 的頁面有 PROGRAM 標記區塊)。一份檔,放在 program/ 子資料夾——
+// 理由跟 rewards/、sleep/ 完全一樣:上面掃訓練紀錄的 readdirSync 不遞迴。
+//
+// 這裡只驗結構,不驗動作名稱。動作名稱是自由顯示文字:Leg Curl 還沒被練過、單位要看
+// 器材才知道,拿 EXERCISE_PART 去驗會直接擋死 build,而把它加進對照表等於偷偷開了
+// 記錄的門。打錯字的代價只是卡片少一行,一眼看得出來,不值得用 exit 1 換。
+//
+// 驗證寫在這裡而不是頁面的 metrics 區塊,因為 Captain 頁沒有那個區塊,而且這裡也沒有
+// 規則要跟頁面共用:腳本管結構、頁面管渲染,不會分岔。
+const PROGRAM_DOW = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+const PROGRAM_PARTS = ["Leg/Shoulder", "Chest/Back", "Cardio"];
+const PROGRAM_VARIANTS = ["HEAVY", "LIGHT"];
+
+function validateProgram(p) {
+  const out = [];
+  const a = p && p.anchor;
+  if (!a || typeof a.week_start !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(a.week_start)) {
+    out.push("anchor.week_start 必須是 YYYY-MM-DD");
+  } else if (new Date(a.week_start + "T00:00:00").getDay() !== 1) {
+    out.push("anchor.week_start(" + a.week_start + ")不是星期一");
+  }
+  if (!a || (a.cycle !== "A" && a.cycle !== "B")) out.push("anchor.cycle 必須是 A 或 B");
+
+  const cycles = p && p.cycles;
+  if (!cycles) {
+    out.push("缺 cycles");
+    return out;
+  }
+  ["A", "B"].forEach((c) => {
+    const week = cycles[c];
+    if (!week) {
+      out.push("缺 cycles." + c);
+      return;
+    }
+    PROGRAM_DOW.forEach((d) => {
+      // null 代表完全休息,是合法的值。缺 key 才是漏填——這兩件事在頁面上長得不一樣,
+      // 所以驗證也要分開:檢查 key 在不在,而不是值是不是 truthy。
+      if (!(d in week)) {
+        out.push("cycles." + c + " 缺 " + d);
+        return;
+      }
+      const day = week[d];
+      if (day === null) return;
+      if (!PROGRAM_PARTS.includes(day.part)) {
+        out.push("cycles." + c + "." + d + ".part 不是已知部位:" + JSON.stringify(day.part));
+      }
+      if (day.variant != null && !PROGRAM_VARIANTS.includes(day.variant)) {
+        out.push("cycles." + c + "." + d + ".variant 必須是 HEAVY 或 LIGHT,得到 " + JSON.stringify(day.variant));
+      }
+    });
+  });
+  return out;
+}
+
+const programRe = /\/\*PROGRAM_DATA_START\*\/[\s\S]*?\/\*PROGRAM_DATA_END\*\//;
+const programPath = path.join(dir, "program", "current.json");
+const hasProgram = fs.existsSync(programPath);
+let program = null;
+
+if (!programRe.test(html) && hasProgram) {
+  console.error("[!] " + programPath + " 存在,但 " + path.basename(dashPath) + " 沒有 PROGRAM 標記區塊,資料會被無聲忽略");
+  process.exit(1);
+}
+
+if (programRe.test(html)) {
+  if (hasProgram) {
+    program = JSON.parse(fs.readFileSync(programPath, "utf8"));
+    const problems = validateProgram(program);
+    if (problems.length) {
+      console.error("[!] " + programPath + " 結構有問題,中止 build:\n  " + problems.join("\n  "));
+      process.exit(1);
+    }
+  }
+  // 沒有課表檔就注入 null,不是空物件:頁面靠 null 判斷要不要顯示課表區,
+  // 語意比「有一個什麼都沒有的課表」清楚。
+  html = html.replace(
+    programRe,
+    "/*PROGRAM_DATA_START*/window.PROGRAM_DATA=" + JSON.stringify(program) + ";/*PROGRAM_DATA_END*/"
+  );
+}
+
 fs.writeFileSync(dashPath, html, "utf8");
 
 // 票券夾獨立頁(目前只有 Monkey 有)。它是自含檔,但主題 token 與指標邏輯一律從 dashboard 複製,
@@ -203,6 +284,7 @@ console.log(
     sessions: sessions.length,
     coupons: couponSummary,
     nights: nights.length,
+    program: program ? program.anchor : null,
     injectedInto,
   })
 );
