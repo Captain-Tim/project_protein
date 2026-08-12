@@ -163,6 +163,20 @@
     background: linear-gradient(90deg, var(--xp-dim, var(--accent-dim)), var(--tab-c, var(--accent)));
     box-shadow: 0 0 10px var(--tab-glow, rgba(227, 183, 63, .6)); }
 
+  /* TRAINING LOG 卡:動作 tab、PR 榜、趨勢圖與最近一次都是它的子區塊。
+     子區塊刻意不再是卡片——卡中卡會出現兩種深度的盒子並排,很吵。改用細線分段。
+     唯一保留邊框的內層是 .pr 統計磚:NEW 的流動光弧畫在邊框上,沒有邊框就沒有它。 */
+  .tlSub { font-size: 11px; font-weight: 800; letter-spacing: .9px; color: var(--ink); }
+  .tlSect { margin-top: 11px; }
+  .tlSect + .tlSect { margin-top: 14px; padding-top: 13px; border-top: 1px solid var(--border); }
+  .tlRow { display: flex; gap: 22px; }
+  .tlRow > div { flex: 1 1 0; min-width: 0; }
+  /* 桌機:分隔線掛在右邊的 LAST WORKOUT。它同時是 .lw 的 hover 目標,
+     邊框變色剛好接手了原本卡片邊框的 hover 提示 */
+  .tlRow > .lwCell { padding-left: 22px; border-left: 1px solid var(--border); }
+  /* 沒有盒子了,上浮就沒有依據,只留邊框變色與 VIEW DETAIL 的底線 */
+  .lwCell.lw:hover { transform: none; }
+
   /* 兩層 tab(部位 → 動作)與熱力圖年份 tab 共用同一套按鈕樣式 */
   .tabRow { display: flex; flex-wrap: wrap; gap: 6px; }
   .tabBtn { font: inherit; font-size: 11px; font-weight: 700; letter-spacing: .4px; cursor: pointer;
@@ -293,8 +307,12 @@
     .pr .d { font-size: 9px; }
     .pr .tag { right: 4px; }
     /* 手機順序:LAST WORKOUT 排在趨勢圖之前。最近一次比長期趨勢即時,
-       一屏看得到的東西少,即時的排前面 */
-    #lastWorkout { order: -1; }
+       一屏看得到的東西少,即時的排前面。
+       DOM 順序沒變(趨勢圖在前),所以分隔線要從 .lwCell 換掛到 .chartCell,
+       不然那條線會出現在整個區塊的最上面。 */
+    .tlRow { flex-direction: column; gap: 14px; }
+    .tlRow > .lwCell { order: -1; padding-left: 0; border-left: 0; }
+    .tlRow > .chartCell { padding-top: 13px; border-top: 1px solid var(--border); }
     /* 手機是全寬,不再是窄欄,字級放大回來 */
     .lwName { font-size: 19px; }
     .lwStats { gap: 22px; }
@@ -323,14 +341,20 @@
 
   <div class="card" id="quest" style="margin-top:12px"></div>
 
-  <h2 class="sec">TRAINING LOG</h2>
-  <div class="tabRow" id="tabs1"></div>
-  <div class="tabRow" id="tabs2" style="margin-top:8px"></div>
-
-  <h2 class="sec" id="prHeading"></h2>
-  <div class="row" id="prBoard"></div>
-
-  <div class="row" id="trendRow" style="margin-top:12px"></div>
+  <div class="card" id="trainingLog" style="margin-top:12px">
+    <b style="font-size:13px">TRAINING LOG</b>
+    <div class="tlSect">
+      <div class="tabRow" id="tabs1"></div>
+      <div class="tabRow" id="tabs2" style="margin-top:8px"></div>
+    </div>
+    <div class="tlSect">
+      <div class="tlSub" id="prHeading"></div>
+      <div class="row" id="prBoard" style="margin-top:9px"></div>
+    </div>
+    <div class="tlSect">
+      <div class="tlRow" id="trendRow"></div>
+    </div>
+  </div>
 
   <div class="card" id="activity" style="margin-top:16px"></div>
 </div>
@@ -831,8 +855,8 @@
 
     // data-date 讓 body 那個既有的委派接手,開的是熱力圖同一個當日詳情彈窗。
     // 卡片是 renderContent 每次切 tab 就重建的,自己綁 listener 會一直重複掛。
-    return '<div class="card lw" id="lastWorkout" data-date="' + last.date + '" style="flex:0.9">' +
-      '<div class="lwHead"><b style="font-size:13px">LAST WORKOUT</b>' +
+    return '<div class="lw lwCell" id="lastWorkout" data-date="' + last.date + '" style="flex:0.9">' +
+      '<div class="lwHead"><div class="tlSub">LAST WORKOUT</div>' +
         '<span class="lbl lwAgo ' + state + '">' + ago + "</span></div>" +
       '<div class="lwName">' + esc(curExercise || "") + (prTags || "") + "</div>" +
       '<div class="lwDate">' + md(d) + " (" + WKDAY[d.getDay()] + ")</div>" +
@@ -844,10 +868,10 @@
   function renderContent() {
     const isCardio = curPart === "Cardio";
     $("prHeading").textContent = "🏆 PERSONAL RECORDS";
-    [$("prHeading"), $("prBoard"), $("trendRow")].forEach((e) => {
-      e.style.setProperty("--tab-c", TAB_COLOR[curPart]);
-      e.style.setProperty("--tab-glow", TAB_GLOW28[curPart]);
-    });
+    // 三個子區塊收進同一張卡之後,部位色設在卡片上就夠,不用逐一設。
+    // tab 按鈕各自帶 inline 的 --tab-c,不受這裡影響。
+    $("trainingLog").style.setProperty("--tab-c", TAB_COLOR[curPart]);
+    $("trainingLog").style.setProperty("--tab-glow", TAB_GLOW28[curPart]);
 
     if (isCardio) {
       const runs = buildDayRuns(curExercise);
@@ -868,9 +892,9 @@
       const maxKm = Math.max(1, ...wd.map((x) => x.km));
       $("trendRow").style.justifyContent = "";
       $("trendRow").innerHTML =
-        '<div class="card" id="weeklyDist" style="flex:2.3">' +
+        '<div class="chartCell" id="weeklyDist" style="flex:2.3">' +
           '<div style="display:flex;justify-content:space-between;align-items:baseline">' +
-            '<b style="font-size:13px">WEEKLY DISTANCE</b>' +
+            '<div class="tlSub">WEEKLY DISTANCE</div>' +
             '<span class="lbl">THIS WEEK <span class="num accent" style="font-size:12px">' + wd[wd.length - 1].km + " km</span></span>" +
           "</div>" +
           '<div class="bars" style="margin-top:12px">' +
@@ -902,8 +926,10 @@
       // max-width 拿掉,兩個 tab 的 flex 比一致(2.3 : 0.9),切換動作時右邊那張卡不會跳寬度。
       // 代價是折線圖的 SVG 等比放大(viewBox + width:100%),高度跟著長。
       $("trendRow").innerHTML =
-        '<div class="card" id="weightTrendCard" style="flex:2.3">' +
-          '<b style="font-size:13px">' + (curExercise || "") + " Trend</b>" +
+        '<div class="chartCell" id="weightTrendCard" style="flex:2.3">' +
+          // 大寫跟旁邊的 WEEKLY DISTANCE、LAST WORKOUT、PERSONAL RECORDS 對齊,
+          // 這一個原本是混合大小寫,收進同一張卡後就顯得突出
+          '<div class="tlSub">' + (curExercise || "").toUpperCase() + " TREND</div>" +
           '<div class="lbl" style="margin:2px 0 8px">LAST ' + points.length + " SESSION" + (points.length === 1 ? "" : "S") + "</div>" +
         "</div>" + lwHTML;
       if (points.length) $("weightTrendCard").appendChild(lineChart(points, TAB_COLOR[curPart]));
