@@ -1,0 +1,37 @@
+{
+  "anchor": { "week_start": "2026-08-10", "cycle": "A" },
+  "cycles": {
+    "A": {
+      "mon": {
+        "part": "Leg/Shoulder",
+        "variant": "HEAVY",
+        "exercises": ["Hack Squat", "Split Squat", "Leg Curl"],
+        "note": "這是兩週內唯一以哈克深蹲為主的訓練日。深度控制在骨盆明顯捲起之前，不必強求蹲到底。"
+      },
+      "tue": { "part": "Cardio", "exercises": ["Zone 2"] },
+      "wed": { "part": "Chest/Back", "variant": "HEAVY" },
+      "thu": {
+        "part": "Leg/Shoulder",
+        "variant": "LIGHT",
+        "exercises": ["Sumo Squat", "Leg Curl"],
+        "note": "這堂以補充刺激為主，重量、組數及力竭程度都應低於主要訓練日，避免影響星期六 HIIT。"
+      },
+      "fri": { "part": "Cardio", "exercises": ["Zone 2"] },
+      "sat": { "part": "Cardio", "exercises": ["HIIT"] },
+      "sun": null
+    },
+    "B": {
+      "mon": { "part": "Chest/Back", "variant": "HEAVY" },
+      "tue": { "part": "Cardio", "exercises": ["Zone 2"] },
+      "wed": {
+        "part": "Leg/Shoulder",
+        "variant": "HEAVY",
+        "exercises": ["Sumo Squat", "Split Squat", "Leg Curl"]
+      },
+      "thu": { "part": "Cardio", "exercises": ["Zone 2"] },
+      "fri": { "part": "Chest/Back", "variant": "LIGHT" },
+      "sat": { "part": "Cardio", "exercises": ["Zone 2"] },
+      "sun": null
+    }
+  }
+}
