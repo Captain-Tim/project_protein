@@ -119,24 +119,8 @@ cycleFor(date):
 
 ### 結構
 
-```
-┌──────────────────────────────────────────────────────────────┐
-│ DAILY TASK & WEEKLY QUEST                        5 DAYS LEFT  │
-│                                                              │
-│  8/13 THU                      │     ◯        ◯        ◉     │
-│  Leg / Shoulder                │  LEG/SHO  CHEST/BK  CARDIO  │
-│  ⟨LIGHT⟩ ⟨Sumo Squat⟩ ⟨Leg Curl⟩│                            │
-│                                                              │
-│ QUEST PROGRESS · 1/3 PARTS                                   │
-│ ▓▓▓▓▓▓▓░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ │
-└──────────────────────────────────────────────────────────────┘
-
-⟨⟩ 線框膠囊。強度與動作長得完全一樣，只靠排序區分：強度永遠排第一
-```
-
-- **卡片 title：`DAILY TASK & WEEKLY QUEST`**，`<b>` 13px，跟頁面其他卡（`ACTIVITY`、
-  `WEEKLY DISTANCE`、`LAST WORKOUT`）同一個層級。一張卡裝兩件事，title 一次講完，
-  不在兩欄各標一次
+- **卡片 title：`DAILY TASK & WEEKLY QUEST`**，`<b>` 13px，跟頁面其他卡同一個層級。
+  一張卡裝兩件事，title 一次講完，不在兩欄各標一次
 - 頂部右邊 `<N> DAYS LEFT`，`.lbl`
 - 今天的日期 `<M/D DDD>` 放左欄課表的最上方而不是卡片標頭，離它描述的內容最近
 - 主體兩欄：左欄課表，右欄 QUEST 的三個圓環，中間 `border-left` 分隔

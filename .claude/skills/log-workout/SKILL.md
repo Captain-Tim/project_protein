@@ -88,29 +88,28 @@ Running — 45 分鐘 · 7.2 km(配速 6:15/km)
   沒講就填 `null`。**不要主動問,也不要自己編**。
 - **日期**取自截圖;截圖上沒有日期就用今天,並在確認訊息裡講明「日期用今天」。
 
-## 動作對照表
+## 動作的 type 與單位:查資料,不要憑印象
 
-| 動作 | type | 單位 |
-|---|---|---|
-| Bench Press | Chest/Back Day | lb |
-| Lat Pulldown | Chest/Back Day | kg |
-| Seated Row | Chest/Back Day | kg |
-| Triceps Pushdown | Chest/Back Day | kg |
-| Sumo Squat | Leg/Shoulder Day | kg |
-| Hack Squat | Leg/Shoulder Day | lb |
-| Split Squat | Leg/Shoulder Day | lb |
-| Lateral Raise | Leg/Shoulder Day | kg |
-| Face Pull | Leg/Shoulder Day | kg |
-| Zone 2 | Cardio | (無) |
-| HIIT | Cardio | (無) |
-| Running | Cardio | (無) |
+**已經練過的動作,type 與單位一律跟該動作最近一筆紀錄一致。** 不要背表,直接查:
+
+```bash
+grep -l "Bench Press" data/Captain/*.json data/Monkey/*.json | tail -1
+```
+
+資料就是唯一出處,所以這裡不放對照表——表一旦跟資料分岔,錯的會是表。
+
+**唯一要記的是單位:預設 kg,只有 `Bench Press`、`Hack Squat`、`Split Squat` 是 lb。**
+單位寫錯是真的把錯資料寫進庫,而且事後看不出來,所以這一條值得記在腦子裡再用上面的指令複核。
+
+有氧(`Zone 2`、`HIIT`、`Running`)沒有單位欄位。
 
 ## 邊界情況
 
 - **沒講是誰的紀錄** → 停下來問,不要猜。
 - **有氧照片缺距離或時間** → 停下來問,不要寫檔(見上)。
-- **表上沒有的新動作** → 停下來問使用者:這個動作算 `Chest/Back Day` 還是 `Leg/Shoulder Day`?
-  單位是 kg 還是 lb?拿到答案後**把它加進上面的對照表**,連同資料一起 commit。同一個動作只會問這一次。
+- **從來沒練過的新動作** → 停下來問使用者:算 `Chest/Back Day` 還是 `Leg/Shoulder Day`?單位 kg 還是 lb?
+  拿到答案後,除了寫資料,**還要把它加進 `dashboard-captain.html` 的 `EXERCISE_PART`**——
+  不在那張 map 裡的重訓動作不會出現在任何 tab 下,頁面上等於看不到。
 - **同一次同時有重訓和有氧**(至今未發生過)→ 問使用者要記成哪一個 type。
 - **數字與既有紀錄明顯矛盾**(例如同一動作重量突然變成三倍)→ 在確認訊息裡直接指出,不要默默寫進去。
 
