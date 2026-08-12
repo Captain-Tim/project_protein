@@ -1,4 +1,4 @@
-# Captain 課表：ON THE PROGRAM
+# Captain 課表
 
 Captain 頁顯示「今天表定要做什麼」。課表是兩週一循環（A／B）綁星期幾的固定表，
 資料落地在 `data/Captain/program/current.json`，由 build 注入頁面。
@@ -72,7 +72,7 @@ Captain 頁顯示「今天表定要做什麼」。課表是兩週一循環（A�
 - **`variant` 存而不推導。** 它剛好等於「該週該部位的第一次」，但那是巧合不是定義。
   哪天想讓第二次當主要訓練日，推導版會擅自改掉這個意圖。
   這跟「配速 = 時間 ÷ 距離」不同，後者是數學恆等式，存了必然矛盾
-- **不存部位色。** 顏色是呈現不是計畫，map 寫在頁面
+- **不存顏色。** 顏色是呈現不是計畫。整塊統一用 `--accent`，沒有部位到顏色的對照表
 
 ## A／B 循環的算法
 
@@ -121,7 +121,7 @@ cycleFor(date):
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│ ON THE PROGRAM · 8/13 THU          WEEKLY QUEST · 5 DAYS LEFT │
+│ 8/13 THU                           WEEKLY QUEST · 5 DAYS LEFT │
 │                                                              │
 │  Leg / Shoulder                │     ◯        ◯        ◉     │
 │  ⟨LIGHT⟩ ⟨Sumo Squat⟩ ⟨Leg Curl⟩│  LEG/SHO  CHEST/BK  CARDIO │
@@ -133,7 +133,8 @@ cycleFor(date):
 ⟨⟩ 線框膠囊。強度與動作長得完全一樣，只靠排序區分：強度永遠排第一
 ```
 
-- 頂部一行：左邊 `ON THE PROGRAM · <M/D DDD>`，右邊 `WEEKLY QUEST · <N> DAYS LEFT`，都是 `.lbl`
+- 頂部一行：左邊 `<M/D DDD>`，右邊 `WEEKLY QUEST · <N> DAYS LEFT`，都是 `.lbl`。
+  左邊不加標題文字：部位名就在它下面一行，再標一次「課表」是贅述
 - 主體兩欄：左欄課表，右欄 QUEST 的三個圓環，中間 `border-left` 分隔
 - 底部 QUEST 進度條橫跨整張卡
 - 手機（`max-width: 640px`）兩欄改直排，分隔線從 `border-left` 換成 `border-top`
@@ -142,32 +143,25 @@ cycleFor(date):
 
 | 元素 | 規格 |
 |---|---|
-| 部位名 | Consolas 800、20px、`letter-spacing: .4px`、原樣大小寫（`Leg / Shoulder`）、色 = 部位色 |
-| 膠囊 | 線框，部位色邊框與文字、700、11px。強度與動作同一套樣式，沒有差別 |
+| 部位名 | Consolas 800、20px、`letter-spacing: .4px`、原樣大小寫（`Leg / Shoulder`）、色 = `--accent` |
+| 膠囊 | 線框，`--accent` 邊框與文字、700、11px。強度與動作同一套樣式，沒有差別 |
 | 膠囊列 | `flex-wrap: wrap`，`min-height` 保留一列高度 |
-| 卡片邊框 | 維持 `--border` 灰色，不上部位色 |
+| 卡片邊框 | 維持 `--border` 灰色 |
 | 光暈 | 無 |
 
+- **一律用 `--accent`，不跟著部位換色。** 同一張卡裡的 Quest 圓環與進度條都是 `--accent`，
+  課表跟著它才是一致的。部位色（`--c-leg` 等）是 TRAINING LOG 那一段的語言，
+  跨到這張卡上會讓同一張卡出現兩套配色系統
 - **強度膠囊沒有底色，跟動作膠囊完全一樣**，只有一個 CSS class。區分只靠排序：
   強度永遠排在膠囊列第一個。`HEAVY`／`LIGHT` 本身是短的全大寫詞，跟動作名稱在視覺上
   已經足夠不同，不需要再加底色
-- **卡片不上部位色邊框、不加光暈**：光暈在這頁的既有語意是「破紀錄／最新」
+- **卡片不上彩色邊框、不加光暈**：光暈在這頁的既有語意是「破紀錄／最新」
   （`.pr.new`、`.bars i.on.cur`）。課表天天都在，天天發光會把那個訊號稀釋掉
 - **膠囊列的 `min-height`**：休息日沒有膠囊，整列消失會讓左欄塌陷
 
-### 部位色
-
-map 寫在頁面，沿用 TRAINING LOG tab 的顏色語言。
-
-| `part` | 色 |
-|---|---|
-| `Leg/Shoulder` | `--c-leg` |
-| `Chest/Back` | `--c-chest` |
-| `Cardio` | `--c-cardio` |
-
 ### 休息日
 
-`null` 的那天顯示 `Rest Day`，用 `--muted` 而不是部位色，沒有膠囊。
+`null` 的那天顯示 `Rest Day`，用 `--muted` 而不是 `--accent`，沒有膠囊。
 
 ### 沒有課表檔的時候
 
@@ -188,7 +182,7 @@ QUEST 卡回到單欄、只有三個圓環與進度條的原樣。這張卡是�
   等某個部位累積到第四個動作才會需要橫向滑動，屆時再處理
 - **不動 WEEKLY QUEST 的三部位定義與 week streak**
 - **併入後捨棄 QUEST 標頭的本週日期範圍**（原本是 `WEEKLY QUEST · 2026-08-10 → 2026-08-16`），
-  只留 `<N> DAYS LEFT`。左邊要讓給 `ON THE PROGRAM`，而週的起訖日對「本週還剩幾天湊滿三種」
+  只留 `<N> DAYS LEFT`。左邊要讓給今天的日期，而週的起訖日對「本週還剩幾天湊滿三種」
   沒有決策價值，`DAYS LEFT` 已經完整回答了
 - **不支援 Monkey。** `build_dashboard.js` 兩人共用一支，沒有 `PROGRAM_DATA` 標記區塊就整段跳過，
   跟 `REWARDS`、`SLEEP` 同一個模式

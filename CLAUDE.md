@@ -87,7 +87,7 @@ PR 上的 `validate` 就是把上面這幾支跑一遍，外加 `git diff --exit
 - `docs/superpowers/specs/last-workout.md` — **兩頁共用**：LAST WORKOUT 卡的三段配色、▲▼ 門檻、
   對齊與互動寫在「共通規則」，兩頁各自的範圍差異（Monkey 是最近一個訓練日，Captain 是選中動作的
   最近一次）寫在自己那一節。要動任一頁的這張卡就照它。
-- `docs/superpowers/specs/captain-program.md` — Captain 課表（ON THE PROGRAM）的資料格式、
+- `docs/superpowers/specs/captain-program.md` — Captain 課表的資料格式、
   A／B 循環算法、驗證規則、併入 WEEKLY QUEST 的版面，以及刻意不做的那些（不比對紀錄、
   不顯示完成狀態）。要動課表就照它。
 
