@@ -1,7 +1,7 @@
 name: Deploy dashboard to GitHub Pages
 
 on:
-  # PR 一律跑 validate(不篩 paths):它是 merge 前的閘門,沒跑就等於沒擋。
+  # PR 一律跑 validate（不篩 paths）：它是 merge 前的閘門，沒跑就等於沒擋。
   pull_request:
     branches: [master]
   push:
@@ -23,7 +23,7 @@ permissions:
   id-token: write
 
 jobs:
-  # 只檢查、不部署。PR 與 push 都會跑,壞東西擋在進 master 之前。
+  # 只檢查、不部署。PR 與 push 都會跑，壞東西擋在進 master 之前。
   validate:
     runs-on: ubuntu-latest
     steps:
@@ -31,18 +31,18 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 24
-      # 資料不完整(缺 distance_km / duration_min、睡眠缺必填、幽靈券)會 exit 1。
+      # 資料不完整（缺 distance_km / duration_min、睡眠缺必填、幽靈券）會 exit 1。
       - name: 資料驗證 + 重建頁面
         run: |
           node scripts/build_dashboard.js Captain
           node scripts/build_dashboard.js Monkey
-      # 重建後有 diff = 改了 data/ 忘了重建,或有人手動編了標記區塊。
-      # 那會讓頁面和 data/ 講不同的話,而且只有線上看得出來。
+      # 重建後有 diff = 改了 data/ 忘了重建，或有人手動編了標記區塊。
+      # 那會讓頁面和 data/ 講不同的話，而且只有線上看得出來。
       - name: 頁面必須與 data/ 同步
         run: git diff --exit-code
       - name: 指標邏輯測試
         run: node scripts/test_monkey_metrics.js
-      # 漏抄的頁面/圖片本地開完全正常,只有部署後才會發現是 404。
+      # 漏抄的頁面/圖片本地開完全正常，只有部署後才會發現是 404。
       - name: _site 完整性
         run: |
           node scripts/make_site.js
@@ -50,7 +50,7 @@ jobs:
 
   build:
     needs: validate
-    # PR 只驗證不部署;上線只發生在進 master 的那一刻。
+    # PR 只驗證不部署，上線只發生在進 master 的那一刻。
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
@@ -60,8 +60,8 @@ jobs:
           node-version: 24
       - run: node scripts/build_dashboard.js Captain
       - run: node scripts/build_dashboard.js Monkey
-      # Pages 上只有 _site 裡的東西。複製清單在 scripts/make_site.js,
-      # check_site_links.js 讀的是同一份,新增頁面只要改那裡一行。
+      # Pages 上只有 _site 裡的東西。複製清單在 scripts/make_site.js，
+      # check_site_links.js 讀的是同一份，新增頁面只要改那裡一行。
       - run: node scripts/make_site.js
       - uses: actions/upload-pages-artifact@v5
         with:
