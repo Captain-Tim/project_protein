@@ -42,7 +42,7 @@ PR 上的 `validate` 就是把上面這幾支跑一遍，外加 `git diff --exit
 |---|---|
 | `data/Captain/`、`data/Monkey/` | 訓練紀錄，每次一個 JSON |
 | `data/Monkey/rewards/redemptions.json` | 炸雞券的使用紀錄（哪張被用掉）。放子資料夾才不會被當成訓練紀錄掃進去 |
-| `data/Monkey/rewards/grants.json` | 手動核發的特別券。達標券是推導的、不存;特別券是人的決定，推導不出來所以要存 |
+| `data/Monkey/rewards/grants.json` | 手動核發的特別券。達標券是推導的、不存，特別券是人的決定，推導不出來所以要存 |
 | `data/Monkey/sleep/` | 睡眠與助眠藥紀錄，一晚一個 JSON，檔名即日期。放子資料夾才不會被當成訓練紀錄掃進去 |
 | `data/Captain/program/current.json` | Captain 的課表（表定要做什麼）。放子資料夾才不會被當成訓練紀錄掃進去 |
 | `dashboard-captain.html`、`dashboard-monkey.html` | 兩人各自的頁面，完全獨立、互不影響 |
@@ -86,6 +86,6 @@ PR 上的 `validate` 就是把上面這幾支跑一遍，外加 `git diff --exit
 ## 與使用者互動
 
 - 一律繁體中文，無簡體字。
-- 客觀中立，直接點出問題;資訊不足或語意不清就直說，不要硬回答。
+- 客觀中立，直接點出問題，資訊不足或語意不清就直說，不要硬回答。
 - 任務細節未釐清前不要急著寫程式。一個問題有多解時先簡述各解法再推薦。
 - 動到外部系統（GitHub repo 設定、Pages、公開性）時，明確說明改了什麼、有什麼後果。
