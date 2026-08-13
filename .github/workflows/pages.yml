@@ -27,10 +27,10 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          node-version: 20
+          node-version: 24
       # 資料不完整(缺 distance_km / duration_min、睡眠缺必填、幽靈券)會 exit 1。
       - name: 資料驗證 + 重建頁面
         run: |
@@ -54,16 +54,16 @@ jobs:
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          node-version: 20
+          node-version: 24
       - run: node scripts/build_dashboard.js Captain
       - run: node scripts/build_dashboard.js Monkey
       # Pages 上只有 _site 裡的東西。複製清單在 scripts/make_site.js,
       # check_site_links.js 讀的是同一份,新增頁面只要改那裡一行。
       - run: node scripts/make_site.js
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: _site
 
@@ -78,4 +78,4 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
