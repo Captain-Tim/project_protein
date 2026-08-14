@@ -244,6 +244,59 @@ if (programRe.test(html)) {
   );
 }
 
+// 生日(兩人的頁面都有 PROFILE 標記區塊)。一份檔,放在 profile/ 子資料夾——理由跟 rewards/、
+// sleep/、program/ 完全一樣:上面掃訓練紀錄的 readdirSync 不遞迴。
+//
+// 只存月日,不存出生年:repo 是 public,而且沒有任何地方用得到年份。
+//
+// 「今天是不是生日」在頁面打開時才算,不在這裡。頁面是靜態部署的、不會每天重 build,
+// build 時算出來的答案隔天就過期了。
+const DAYS_IN_MONTH = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+function validateProfile(p) {
+  const out = [];
+  if (!p || typeof p !== "object" || Array.isArray(p)) {
+    out.push("必須是一個物件");
+    return out;
+  }
+  if (typeof p.birthday !== "string" || !/^\d{2}-\d{2}$/.test(p.birthday)) {
+    out.push("birthday 必須是 MM-DD 字串,得到 " + JSON.stringify(p.birthday));
+    return out;
+  }
+  const mm = Number(p.birthday.slice(0, 2));
+  const dd = Number(p.birthday.slice(3));
+  // 只存月日就判斷不了閏年,所以 02-29 一律當合法。真的有人是那天生的再處理平年怎麼辦。
+  if (mm < 1 || mm > 12) out.push("birthday 的月份不在 01-12:" + p.birthday);
+  else if (dd < 1 || dd > DAYS_IN_MONTH[mm - 1]) out.push("birthday 的日期超出該月天數:" + p.birthday);
+  return out;
+}
+
+const profileRe = /\/\*PROFILE_DATA_START\*\/[\s\S]*?\/\*PROFILE_DATA_END\*\//;
+const profilePath = path.join(dir, "profile", "profile.json");
+const hasProfile = fs.existsSync(profilePath);
+let profile = null;
+
+if (!profileRe.test(html) && hasProfile) {
+  console.error("[!] " + profilePath + " 存在,但 " + path.basename(dashPath) + " 沒有 PROFILE 標記區塊,資料會被無聲忽略");
+  process.exit(1);
+}
+
+if (profileRe.test(html)) {
+  if (hasProfile) {
+    profile = JSON.parse(fs.readFileSync(profilePath, "utf8"));
+    const problems = validateProfile(profile);
+    if (problems.length) {
+      console.error("[!] " + profilePath + " 結構有問題,中止 build:\n  " + problems.join("\n  "));
+      process.exit(1);
+    }
+  }
+  // 沒有檔就注入 null,不是空物件:頁面靠 null 判斷「這個人沒設生日」,永遠不顯示帽子。
+  // 跟 PROGRAM_DATA 同一個模式,替以後可能加入的人留路。
+  html = html.replace(
+    profileRe,
+    "/*PROFILE_DATA_START*/window.PROFILE_DATA=" + JSON.stringify(profile) + ";/*PROFILE_DATA_END*/"
+  );
+}
 fs.writeFileSync(dashPath, html, "utf8");
 
 // 票券夾獨立頁(目前只有 Monkey 有)。它是自含檔,但主題 token 與指標邏輯一律從 dashboard 複製,
@@ -285,6 +338,7 @@ console.log(
     coupons: couponSummary,
     nights: nights.length,
     program: program ? program.anchor : null,
+    birthday: profile ? profile.birthday : null,
     injectedInto,
   })
 );

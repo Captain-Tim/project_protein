@@ -45,6 +45,7 @@ PR 上的 `validate` 就是把上面這幾支跑一遍，外加 `git diff --exit
 | `data/Monkey/rewards/grants.json` | 手動核發的特別券。達標券是推導的、不存，特別券是人的決定，推導不出來所以要存 |
 | `data/Monkey/sleep/` | 睡眠與助眠藥紀錄，一晚一個 JSON，檔名即日期。放子資料夾才不會被當成訓練紀錄掃進去 |
 | `data/Captain/program/current.json` | Captain 的課表（表定要做什麼）。放子資料夾才不會被當成訓練紀錄掃進去 |
+| `data/<人名>/profile/profile.json` | 生日，只有月日。放子資料夾才不會被當成訓練紀錄掃進去 |
 | `dashboard-captain.html`、`dashboard-monkey.html` | 兩人各自的頁面，完全獨立、互不影響 |
 | `wallet-monkey.html` | Monkey 的炸雞券票券夾。主題與 metrics 由 build 從 dashboard 複製，不自己寫一份 |
 | `scripts/build_dashboard.js <人名>` | 兩人共用一支（刻意不拆，否則規則會偷偷分岔） |
@@ -76,6 +77,8 @@ PR 上的 `validate` 就是把上面這幾支跑一遍，外加 `git diff --exit
 - `docs/superpowers/specs/last-workout.md` — **兩頁共用**：LAST WORKOUT 卡的三段配色、▲▼ 門檻、
   對齊與互動寫在「共通規則」，兩頁各自的範圍差異（Monkey 是最近一個訓練日，Captain 是選中動作的
   最近一次）寫在自己那一節。要動任一頁的這張卡就照它。
+- `docs/superpowers/specs/birthday-hat.md` — 生日帽的資料格式、驗證規則、帽子幾何與顯示判斷，
+  以及刻意不做的那些（沒有預覽參數、放大檢視的原圖不戴帽、不顯示歲數）。
 - `docs/superpowers/specs/captain-program.md` — Captain 課表的資料格式、
   A／B 循環算法、驗證規則、併入 WEEKLY QUEST 的版面，以及刻意不做的那些（不比對紀錄、
   不顯示完成狀態）。要動課表就照它。
