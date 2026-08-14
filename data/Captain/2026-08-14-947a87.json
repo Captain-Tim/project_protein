@@ -1,0 +1,16 @@
+{
+  "date": "2026-08-14",
+  "type": "Cardio",
+  "strength": [],
+  "cardio": [
+    {
+      "exercise": "Zone 2",
+      "duration_min": 50.1,
+      "distance_km": 4.99,
+      "incline_level": 2,
+      "avg_hr_bpm": 125,
+      "calories_kcal": 289
+    }
+  ],
+  "note": null
+}
