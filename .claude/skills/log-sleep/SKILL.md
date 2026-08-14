@@ -166,9 +166,12 @@ push 完回報寫了什麼、build 與測試結果，然後停下來。
 
 使用者說要 merge 之後：
 
-1. `mcp__github__create_pull_request`（owner `Captain-Tim`、repo `project_protein`、
-   head 自己的分支、base `master`）開 PR。
+1. `gh pr create --base master --head <自己的分支> --title <標題> --body-file -` 開 PR。
+   **一律用 `gh`，不要用 `mcp__github__*` 的寫入類工具**：MCP 走的 GitHub App 只有讀權限，
+   開 PR 會回 403 Resource not accessible by integration。讀取類的 MCP 工具照樣可用。
 2. 等 PR 上的 `validate` 綠燈，**沒過就回去修資料，不要繞過**。
-3. `mcp__github__merge_pull_request`(`merge_method: squash`)merge。
+3. `gh pr merge <PR#> --squash --delete-branch` merge。
+   **`--delete-branch` 不能省**：GitHub repo 設定的 Automatically delete head branches
+   只刪得掉 remote 分支，本地那支要靠這個 flag 才會一起清掉，否則會一直累積。
 4. merge 成功後告訴使用者 GitHub Actions 正在部署，約 30-60 秒後
    https://captain-tim.github.io/project_protein/ 就是最新的。
