@@ -10,6 +10,7 @@
 // 缺任何一個就 exit 1,連帶讓 GitHub Actions 部署失敗。build 失敗代表資料有問題,去修資料。
 const fs = require("fs");
 const path = require("path");
+const crypto = require("crypto");
 
 const PEOPLE = ["Captain", "Monkey"];
 const person = process.argv[2];
@@ -297,6 +298,32 @@ if (profileRe.test(html)) {
     "/*PROFILE_DATA_START*/window.PROFILE_DATA=" + JSON.stringify(profile) + ";/*PROFILE_DATA_END*/"
   );
 }
+// 內容指紋。頁面靠它判斷「我手上這份是不是最新的」——加到 iOS 主畫面之後,手機會存一份
+// 頁面在本機,之後打開捷徑是顯示存的那一份,不會回來拿新的。頁面尾端的 freshness 區塊
+// 會拿這個值跟伺服器上那份比對,不一樣就重載。
+//
+// 值刻意「不是」build 時間、也不是 commit hash:那兩個每跑一次就變,CI 的
+// `git diff --exit-code` 會因此永遠失敗——就是上面 generated_at 那個註解講的坑,
+// 這裡不能再踩一次。改用頁面內容自己的 hash:內容沒變 -> 值不變 -> 重建無 diff;
+// 資料或版面變了 -> 值變 -> 手機重載。
+//
+// 涵蓋範圍是整份頁面,不只 data:改了 CSS 或渲染程式,手機一樣該看到新版。
+const BUILD_ID_BLANK = "/*BUILD_ID_START*//*BUILD_ID_END*/";
+const buildIdRe = /\/\*BUILD_ID_START\*\/[\s\S]*?\/\*BUILD_ID_END\*\//;
+
+function stampBuildId(source, fileName) {
+  if (!buildIdRe.test(source)) {
+    throw new Error(fileName + " 找不到 BUILD_ID 標記,中止以免誤改版面");
+  }
+  // 先把上一次的值清成空佔位再算,否則 hash 會餵到自己,同樣的內容每次算出不同的值。
+  const bare = source.replace(buildIdRe, BUILD_ID_BLANK);
+  // 換行正規化後才算:工作目錄在 Windows 是 CRLF、在 CI 是 LF。不正規化的話同一份
+  // 內容會算出兩個值,git diff 一樣會炸,只是換個方式。
+  const id = crypto.createHash("sha256").update(bare.replace(/\r\n/g, "\n")).digest("hex").slice(0, 12);
+  return bare.replace(buildIdRe, '/*BUILD_ID_START*/window.BUILD_ID="' + id + '";/*BUILD_ID_END*/');
+}
+
+html = stampBuildId(html, path.basename(dashPath));
 fs.writeFileSync(dashPath, html, "utf8");
 
 // 票券夾獨立頁(目前只有 Monkey 有)。它是自含檔,但主題 token 與指標邏輯一律從 dashboard 複製,
@@ -327,6 +354,9 @@ if (fs.existsSync(walletPath)) {
     }
     wallet = wallet.replace(pattern, replacement);
   });
+  // 票券夾自己算一份指紋,不是複製 dashboard 的:兩頁的內容不一樣(票券夾沒有睡眠、
+  // 沒有課表),共用一個值會讓票券夾在自己完全沒變的時候也被重載。
+  wallet = stampBuildId(wallet, path.basename(walletPath));
   fs.writeFileSync(walletPath, wallet, "utf8");
   injectedInto.push(path.basename(walletPath));
 }

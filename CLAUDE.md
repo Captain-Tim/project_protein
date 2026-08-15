@@ -15,6 +15,10 @@ Node 18+）。不要引入框架、圖表函式庫，也不要把腳本改寫成
   欄位讀不到就**停下來問使用者**，不要猜、不要略過、不要先寫一半之後補。
 - **HTML 裡 `/*…_START*/`…`/*…_END*/` 標記區塊只能由 build 腳本改寫**，不要手動編輯其間內容。
   手改會被 `git diff --exit-code` 抓到。
+- **`<script id="freshness">` 三個頁面必須一字不差**（`test_freshness.js` 會擋）。它讓加到手機
+  主畫面的頁面在部署後自己更新——壞掉沒有任何症狀，頁面照常顯示，只是手機永遠停在舊版。
+  它比對的 `BUILD_ID` 是**頁面內容的 hash**，不是 build 時間、也不是 commit hash：那兩個每跑一次
+  就變，會讓 `git diff --exit-code` 永遠失敗（`generated_at` 踩過同一個坑）。
 - **所有變更走 PR，不直接推 `master`。** master = 已上線，merge 是部署動作。
   流程：開分支 → commit → **使用者自己 push**（本機禁止 `git push`，把指令給他就好）→
   **等使用者說**才開 PR、squash merge。
@@ -28,6 +32,7 @@ Node 18+）。不要引入框架、圖表函式庫，也不要把腳本改寫成
 node scripts/build_dashboard.js Captain   # data/Captain/ -> dashboard-captain.html
 node scripts/build_dashboard.js Monkey    # data/Monkey/  -> dashboard-monkey.html + wallet-monkey.html
 node scripts/test_monkey_metrics.js       # 指標邏輯測試
+node scripts/test_freshness.js            # 頁面自動更新機制的測試
 node scripts/list_coupons.js Monkey       # 列出炸雞券(唯讀,不改檔)
 node scripts/make_site.js                 # 產生 _site/(部署與 PR 檢查共用同一份清單)
 node scripts/check_site_links.js          # 檢查 _site 有沒有漏抄頁面/圖片
@@ -49,6 +54,7 @@ PR 上的 `validate` 就是把上面這幾支跑一遍，外加 `git diff --exit
 | `dashboard-captain.html`、`dashboard-monkey.html` | 兩人各自的頁面，完全獨立、互不影響 |
 | `wallet-monkey.html` | Monkey 的炸雞券票券夾。主題與 metrics 由 build 從 dashboard 複製，不自己寫一份 |
 | `scripts/build_dashboard.js <人名>` | 兩人共用一支（刻意不拆，否則規則會偷偷分岔） |
+| `scripts/test_freshness.js` | 抽出三個頁面的 freshness 區塊在 Node 跑（假的瀏覽器環境） |
 | `scripts/test_monkey_metrics.js` | 抽出頁面裡的 metrics 區塊在 Node 跑 |
 | `scripts/list_coupons.js <人名>` | 列出炸雞券，唯讀。同樣抽 metrics 區塊來跑，不重寫發券規則 |
 | `scripts/make_site.js` | 產生 `_site/`。要上線的檔案清單只有這一份，部署與 PR 檢查都讀它 |
