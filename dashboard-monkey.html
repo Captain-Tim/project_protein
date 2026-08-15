@@ -441,6 +441,7 @@
 /*REWARDS_DATA_START*/window.REWARDS_DATA={"redemptions":[{"id":"special:2026-08-01-launch","used_on":"2026-08-07","note":"大四喜炸雞"}],"grants":[{"id":"special:2026-08-01-launch","granted_on":"2026-08-01","reason":"炸雞系統上線 & 本週完成 3 次訓練"}]};/*REWARDS_DATA_END*/
 /*SLEEP_DATA_START*/window.SLEEP_DATA={"nights":[{"date":"2026-08-04","medication":{"taken":false},"bedtime":"02:00","wake_time":"09:30","quality":1,"morning_grogginess":true,"note":null},{"date":"2026-08-05","medication":{"taken":true},"bedtime":"01:30","wake_time":"10:00","quality":3,"morning_grogginess":true,"note":null},{"date":"2026-08-06","medication":{"taken":true},"bedtime":"01:00","wake_time":"09:30","quality":2,"morning_grogginess":true,"note":"Took about 3 hours to fall asleep (around 04:00)."},{"date":"2026-08-07","medication":{"taken":false},"bedtime":"02:00","wake_time":"11:30","quality":3,"morning_grogginess":false,"note":"Took about 1.5 hours to fall asleep (around 03:30). No medication."},{"date":"2026-08-08","medication":{"taken":true},"bedtime":"01:30","wake_time":"12:00","quality":4,"morning_grogginess":false,"note":null},{"date":"2026-08-09","medication":{"taken":true},"bedtime":"03:00","wake_time":"09:45","quality":3,"morning_grogginess":true,"note":null},{"date":"2026-08-10","medication":{"taken":true},"bedtime":"01:30","wake_time":"09:30","quality":3,"morning_grogginess":false,"note":null},{"date":"2026-08-11","medication":{"taken":false},"bedtime":"00:30","wake_time":"07:30","quality":4,"morning_grogginess":false,"note":"Fell asleep quickly without medication."},{"date":"2026-08-12","medication":{"taken":true},"bedtime":"01:30","wake_time":"09:30","quality":4,"morning_grogginess":false,"note":null},{"date":"2026-08-13","medication":{"taken":true},"bedtime":"01:30","wake_time":"07:45","quality":3,"morning_grogginess":false,"note":null},{"date":"2026-08-14","medication":{"taken":false},"bedtime":"01:30","wake_time":"12:00","quality":3,"morning_grogginess":true,"note":null}]};/*SLEEP_DATA_END*/
 /*PROFILE_DATA_START*/window.PROFILE_DATA={"birthday":"08-14"};/*PROFILE_DATA_END*/
+/*BUILD_ID_START*/window.BUILD_ID="b8ba64d9e3f0";/*BUILD_ID_END*/
 </script>
 
 <script id="metrics">
@@ -1460,6 +1461,58 @@
   el("avatar").addEventListener("click", openBox);
   box.addEventListener("click", closeBox);   // 點圖片本身也關(cursor 是 zoom-out,符合預期)
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") { closeBox(); closeDayModal(); } });
+})();
+</script>
+<script id="freshness">
+// 頁面加到 iOS 主畫面之後,手機會把整份頁面存在本機,之後打開捷徑是顯示存的那一份,
+// 不會回來拿新的——所以資料更新、頁面重新部署了,手機看到的還是舊畫面。這段負責讓它更新。
+//
+// 做法:build 會把 BUILD_ID(整份頁面內容的 hash)寫進上面的標記區塊。切回 app 時去伺服器
+// 拿一份新的,只比對 BUILD_ID。不一樣就代表有新版,重載。
+//
+// fetch 用 cache:"reload" 而不是 "no-store":兩者都會跳過快取去拿,但只有 "reload" 會把
+// 拿到的結果寫回快取。少了這一步,接下來的 location.reload() 又會從快取拿到舊頁面,
+// 於是永遠重載不完。
+//
+// 三個頁面(dashboard-captain / dashboard-monkey / wallet-monkey)各有一份一模一樣的複本。
+// 這裡沒有任何規則、只有機制,所以不走 build 複製 METRICS 那條路。
+(function () {
+  var MIN_GAP_MS = 30000;              // 頻繁切換 app 時不要每次都打
+  var SEEN_KEY = "freshness-seen";
+  var last = 0;
+  var busy = false;
+
+  function check() {
+    if (!window.BUILD_ID || busy) return;
+    var now = new Date().getTime();
+    if (now - last < MIN_GAP_MS) return;
+    last = now;
+    busy = true;
+    fetch(location.pathname + location.search, { cache: "reload" })
+      .then(function (r) { return r.ok ? r.text() : null; })
+      .then(function (text) {
+        busy = false;
+        if (!text) return;
+        var m = text.match(/\/\*BUILD_ID_START\*\/window\.BUILD_ID="([0-9a-f]+)"/);
+        if (!m || m[1] === window.BUILD_ID) return;
+        // 同一個新版本只重載一次。萬一重載後拿到的還是舊頁面(CDN 還沒更新完),
+        // 沒有這道保險就會變成無限重載。
+        try {
+          if (sessionStorage.getItem(SEEN_KEY) === m[1]) return;
+          sessionStorage.setItem(SEEN_KEY, m[1]);
+        } catch (e) {}
+        location.reload();
+      })
+      .catch(function () { busy = false; });
+  }
+
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === "visible") check();
+  });
+  // 從主畫面捷徑切回來時,iOS 有時只送 pageshow(頁面是從 bfcache 復原的)。
+  window.addEventListener("pageshow", function (e) { if (e.persisted) check(); });
+  // 開啟當下也檢查一次:這一次打開看到的,本來就可能是快取裡的舊頁面。
+  check();
 })();
 </script>
 </body>

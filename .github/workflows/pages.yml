@@ -42,6 +42,9 @@ jobs:
         run: git diff --exit-code
       - name: 指標邏輯測試
         run: node scripts/test_monkey_metrics.js
+      # 頁面自己更新的機制。壞掉不會有任何症狀——頁面照常顯示,只是手機永遠停在舊版。
+      - name: 自動更新機制測試
+        run: node scripts/test_freshness.js
       # 漏抄的頁面/圖片本地開完全正常，只有部署後才會發現是 404。
       - name: _site 完整性
         run: |
