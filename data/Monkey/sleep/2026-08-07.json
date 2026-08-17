@@ -4,6 +4,6 @@
   "bedtime": "02:00",
   "wake_time": "11:30",
   "quality": 3,
-  "morning_grogginess": false,
+  "morning": "clear",
   "note": "Took about 1.5 hours to fall asleep (around 03:30). No medication."
 }

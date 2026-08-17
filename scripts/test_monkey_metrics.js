@@ -574,7 +574,7 @@ const night = (date, over) =>
       bedtime: "23:10",
       wake_time: "07:00",
       quality: 3,
-      morning_grogginess: false,
+      morning: "clear",
     },
     over
   );
@@ -661,7 +661,7 @@ test("驗證:完整的一筆沒有問題", () => {
 });
 
 test("驗證:必填欄位缺一不可", () => {
-  const required = ["bedtime", "wake_time", "quality", "morning_grogginess", "medication"];
+  const required = ["bedtime", "wake_time", "quality", "morning", "medication"];
   required.forEach((field) => {
     const n = night("2026-08-04");
     delete n[field];
@@ -691,6 +691,20 @@ test("驗證:quality 只收 1–5 的整數", () => {
   [0, 6, 3.5, "3"].forEach((q) => {
     const problems = M.validateNights([entry("2026-08-04.json", night("2026-08-04", { quality: q }))], "2026-08-05");
     assert.equal(problems.length, 1, "quality=" + q + " 應該被擋下");
+  });
+});
+
+test("驗證:morning 只收 groggy / normal / clear", () => {
+  M.MORNING_STATES.forEach((v) => {
+    const n = night("2026-08-04", { morning: v });
+    assert.deepEqual(M.validateNights([entry("2026-08-04.json", n)], "2026-08-05"), [], "morning=" + v + " 應該合法");
+  });
+});
+
+test("驗證:morning 不收 true/false,大寫與自由文字也擋下來", () => {
+  [true, false, "GROGGY", "還好", ""].forEach((v) => {
+    const problems = M.validateNights([entry("2026-08-04.json", night("2026-08-04", { morning: v }))], "2026-08-05");
+    assert.equal(problems.length, 1, "morning=" + v + " 應該被擋下");
   });
 });
 
@@ -739,6 +753,6 @@ test("驗證:漏記某幾晚不是錯誤,不進 problems", () => {
 });
 
 test("驗證:一次回報所有壞掉的欄位,不是只報第一個", () => {
-  const n = night("2026-08-04", { quality: 9, bedtime: "nope", morning_grogginess: "yes" });
+  const n = night("2026-08-04", { quality: 9, bedtime: "nope", morning: "yes" });
   assert.equal(M.validateNights([entry("2026-08-04.json", n)], "2026-08-05").length, 3);
 });

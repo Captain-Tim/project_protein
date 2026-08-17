@@ -4,7 +4,7 @@
   "bedtime": "01:00",
   "wake_time": "09:30",
   "quality": 3,
-  "morning_grogginess": false,
+  "morning": "clear",
   "night_wakes": 0,
   "note": null
 }
