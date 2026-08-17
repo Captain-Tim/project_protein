@@ -4,6 +4,6 @@
   "bedtime": "03:00",
   "wake_time": "09:45",
   "quality": 3,
-  "morning_grogginess": true,
+  "morning": "groggy",
   "note": null
 }

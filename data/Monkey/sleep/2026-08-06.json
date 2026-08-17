@@ -4,6 +4,6 @@
   "bedtime": "01:00",
   "wake_time": "09:30",
   "quality": 2,
-  "morning_grogginess": true,
+  "morning": "groggy",
   "note": "Took about 3 hours to fall asleep (around 04:00)."
 }

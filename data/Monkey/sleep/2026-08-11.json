@@ -4,6 +4,6 @@
   "bedtime": "00:30",
   "wake_time": "07:30",
   "quality": 4,
-  "morning_grogginess": false,
+  "morning": "clear",
   "note": "Fell asleep quickly without medication."
 }
