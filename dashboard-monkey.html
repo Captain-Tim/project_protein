@@ -441,7 +441,7 @@
 /*REWARDS_DATA_START*/window.REWARDS_DATA={"redemptions":[{"id":"special:2026-08-01-launch","used_on":"2026-08-07","note":"大四喜炸雞"},{"id":"quest:2026-08-10","used_on":"2026-08-20","note":"寶島八號雞排"}],"grants":[{"id":"special:2026-08-01-launch","granted_on":"2026-08-01","reason":"炸雞系統上線 & 本週完成 3 次訓練"}]};/*REWARDS_DATA_END*/
 /*SLEEP_DATA_START*/window.SLEEP_DATA={"nights":[{"date":"2026-08-04","medication":{"taken":false},"bedtime":"02:00","wake_time":"09:30","quality":1,"morning":"groggy","note":null},{"date":"2026-08-05","medication":{"taken":true},"bedtime":"01:30","wake_time":"10:00","quality":3,"morning":"groggy","note":null},{"date":"2026-08-06","medication":{"taken":true},"bedtime":"01:00","wake_time":"09:30","quality":2,"morning":"groggy","note":"Took about 3 hours to fall asleep (around 04:00)."},{"date":"2026-08-07","medication":{"taken":false},"bedtime":"02:00","wake_time":"11:30","quality":3,"morning":"clear","note":"Took about 1.5 hours to fall asleep (around 03:30). No medication."},{"date":"2026-08-08","medication":{"taken":true},"bedtime":"01:30","wake_time":"12:00","quality":4,"morning":"clear","note":null},{"date":"2026-08-09","medication":{"taken":true},"bedtime":"03:00","wake_time":"09:45","quality":3,"morning":"groggy","note":null},{"date":"2026-08-10","medication":{"taken":true},"bedtime":"01:30","wake_time":"09:30","quality":3,"morning":"clear","note":null},{"date":"2026-08-11","medication":{"taken":false},"bedtime":"00:30","wake_time":"07:30","quality":4,"morning":"clear","note":"Fell asleep quickly without medication."},{"date":"2026-08-12","medication":{"taken":true},"bedtime":"01:30","wake_time":"09:30","quality":4,"morning":"clear","note":null},{"date":"2026-08-13","medication":{"taken":true},"bedtime":"01:30","wake_time":"07:45","quality":3,"morning":"clear","note":null},{"date":"2026-08-14","medication":{"taken":false},"bedtime":"01:30","wake_time":"12:00","quality":3,"morning":"groggy","note":null},{"date":"2026-08-15","medication":{"taken":true},"bedtime":"02:00","wake_time":"10:00","quality":4,"morning":"clear","night_wakes":0,"note":null},{"date":"2026-08-16","medication":{"taken":true},"bedtime":"01:00","wake_time":"09:30","quality":3,"morning":"clear","night_wakes":0,"note":null},{"date":"2026-08-17","medication":{"taken":false},"bedtime":"00:30","wake_time":"13:00","quality":1,"morning":"groggy","night_wakes":1,"note":null},{"date":"2026-08-18","medication":{"taken":true},"bedtime":"01:00","wake_time":"09:30","quality":4,"morning":"normal","night_wakes":0,"note":null},{"date":"2026-08-19","medication":{"taken":true},"bedtime":"01:30","wake_time":"10:00","quality":5,"morning":"clear","night_wakes":1,"note":null},{"date":"2026-08-20","medication":{"taken":true},"bedtime":"01:30","wake_time":"13:00","quality":4,"morning":"normal","night_wakes":0,"note":null},{"date":"2026-08-21","medication":{"taken":true},"bedtime":"02:00","wake_time":"10:00","quality":4,"morning":"normal","night_wakes":0,"note":null}]};/*SLEEP_DATA_END*/
 /*PROFILE_DATA_START*/window.PROFILE_DATA={"birthday":"08-14"};/*PROFILE_DATA_END*/
-/*BUILD_ID_START*/window.BUILD_ID="3cdce260d22e";/*BUILD_ID_END*/
+/*BUILD_ID_START*/window.BUILD_ID="9e9b6d7ff2b4";/*BUILD_ID_END*/
 </script>
 
 <script id="metrics">
@@ -715,8 +715,8 @@
     const day = (sessions || []).filter((s) => s && s.date === date);
     const cardio = day.reduce((a, s) => a.concat(s.cardio || []), []);
     const strength = day.reduce((a, s) => a.concat(s.strength || []), []);
-    // 只有一筆 cardio 時才有單一的心率/坡度/卡路里可講。兩筆以上心率不能相加、
-    // 坡度不能平均,硬湊出來的數字沒有意義,寧可整欄不顯示。
+    // 只有一筆 cardio 時才有單一的心率/坡度/阻力/卡路里可講。兩筆以上心率不能相加、
+    // 坡度與阻力不能平均,硬湊出來的數字沒有意義,寧可整欄不顯示。
     const only = cardio.length === 1 ? cardio[0] : {};
     return {
       date: date,
@@ -727,6 +727,7 @@
       // 坡度 0 是有效的實測值,所以看欄位在不在,不要看值真不真
       hr: only.avg_hr_bpm,
       incline: only.incline_level,
+      res: only.resistance_level,
       kcal: only.calories_kcal,
       exCount: strength.length,
       setCount: strength.reduce((a, e) => a + (e.sets || []).length, 0),
@@ -1161,6 +1162,8 @@
         (lw.hr != null ? "<div><b>" + lw.hr + "</b><span>BPM</span></div>" : "") +
         // 坡度 0 是有效的實測值,所以看欄位在不在,不要看值真不真
         (lw.incline != null ? "<div><b>" + lw.incline + "</b><span>INCLINE</span></div>" : "") +
+        // 阻力(健身車的檔位)跟坡度同一個層級,一樣 0 也是有效值
+        (lw.res != null ? "<div><b>" + lw.res + "</b><span>RESISTANCE</span></div>" : "") +
         (lw.kcal != null ? "<div><b>" + lw.kcal + "</b><span>KCAL</span></div>" : "");
       if (extras) body += '<div class="lwExtra">' + extras + "</div>";
     } else {
@@ -1347,6 +1350,7 @@
           (c.avg_hr_bpm ? "<div><b>" + c.avg_hr_bpm + "</b><span>BPM</span></div>" : "") +
           // 坡度 0 是有效的實測值,所以看欄位在不在,不要看值真不真
           (c.incline_level != null ? "<div><b>" + c.incline_level + "</b><span>INCLINE</span></div>" : "") +
+          (c.resistance_level != null ? "<div><b>" + c.resistance_level + "</b><span>RESISTANCE</span></div>" : "") +
           (c.calories_kcal != null ? "<div><b>" + c.calories_kcal + "</b><span>KCAL</span></div>" : "") +
         "</div>";
         if (c.note) h += '<div class="dcNote">' + escHtml(c.note) + "</div>";

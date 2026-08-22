@@ -95,8 +95,9 @@ hover 時整圈用強調色亮起來（`outline`，不佔版面所以內容不�
 兩個都在 `<script id="metrics">` 區塊裡，回傳的欄位看程式碼，不抄在這裡。三條非顯而易見的規則：
 
 - 沒有任何 session 時 `lastWorkout()` 回 `null`，整張卡不出現，趨勢圖自動撐滿那一排（與 `SLEEP` 一致）
-- **選配欄位（`hr` / `incline` / `kcal`）只在當日恰好一筆 cardio 時才填。** 兩筆以上時心率不能相加、坡度不能平均，硬湊的數字沒有意義
-- `incline` 的 `0` 是有效實測值，判斷要用 `!= null`，不能用真假值
+- **選配欄位（`hr` / `incline` / `res` / `kcal`）只在當日恰好一筆 cardio 時才填。** 兩筆以上時心率不能相加、坡度與阻力不能平均，硬湊的數字沒有意義
+- `incline` 與 `res` 的 `0` 是有效實測值，判斷要用 `!= null`，不能用真假值
+- `res`（`resistance_level`，健身車的阻力檔位）與 `incline`（跑步機的坡度檔位）是**兩個不同的欄位**，不共用一欄：兩者刻度與器材都不同，混在一起事後分不出來
 - `prevCardioDay()` 跳過純重訓日：那些日子沒有距離與配速可比
 
 不重複驗證殘缺資料。缺欄位的紀錄 `build_dashboard.js` 已經擋在入庫前。
@@ -119,7 +120,7 @@ Captain 頁整體以**當前選中的動作**為脈絡，PR 榜、趨勢圖全�
 |---|---|---|
 | 主數值 | KM / MIN / MIN&nbsp;/&nbsp;KM | MAX `<unit>` / SETS / VOLUME `<unit>` |
 | `▲▼` | 距離差、配速差 | 重量差、容量差 |
-| 底部 | BPM / INCLINE / KCAL（有才顯示） | 組數明細，沿用彈窗的 `.dcSet` 藥丸 |
+| 底部 | BPM / INCLINE / RESISTANCE / KCAL（有才顯示） | 組數明細，沿用彈窗的 `.dcSet` 藥丸 |
 
 **單位跟著資料走**，`MAX KG` 這種標籤不能寫死（`Bench Press` 是 `lb`）。
 
@@ -127,7 +128,7 @@ Captain 頁整體以**當前選中的動作**為脈絡，PR 榜、趨勢圖全�
 
 ### 擴充既有函式，不新增平行的一套
 
-`buildDayRuns(exercise)` 與 `strengthSessionStats(exercise)` 都已回傳依日期排序的陣列，**最後一筆就是最近一次、倒數第二筆就是上一次**。只補上缺的欄位（cardio 的心率／坡度／卡路里、strength 的 `sets`），不寫新函式。其他消費者不看這些欄位，不受影響。
+`buildDayRuns(exercise)` 與 `strengthSessionStats(exercise)` 都已回傳依日期排序的陣列，**最後一筆就是最近一次、倒數第二筆就是上一次**。只補上缺的欄位（cardio 的心率／坡度／阻力／卡路里、strength 的 `sets`），不寫新函式。其他消費者不看這些欄位，不受影響。
 
 ### 兩個 tab 的寬度必須一致
 
