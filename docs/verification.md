@@ -19,15 +19,47 @@ node -e 'const fs=require("fs");const h=fs.readFileSync("dashboard-captain.html"
 
 ## 用 headless Chrome 看實際渲染結果
 
-**Chrome 在 `Program Files`。** 找不到就先 `ls` 兩個路徑確認，不要照抄。
+### 先找到 Chrome：路徑因機器而異
+
+**兩個都可能，看安裝的是 64 位元還是 32 位元版：**
+
+```
+/c/Program Files/Google/Chrome/Application/chrome.exe
+/c/Program Files (x86)/Google/Chrome/Application/chrome.exe
+```
+
+**路徑錯的失敗方式很糟：沒有輸出、也沒有錯誤訊息。** 看起來像「探針沒抓到東西」，
+其實是 Chrome 根本沒被執行。曾經因此以為頁面壞了，實際上頁面好好的。
+
+所以先解析成變數再用，不要把路徑寫死在指令裡：
+
+```bash
+for p in "/c/Program Files/Google/Chrome/Application/chrome.exe" \
+         "/c/Program Files (x86)/Google/Chrome/Application/chrome.exe"; do
+  [ -x "$p" ] && CHROME="$p" && break
+done
+echo "$CHROME"   # 空的就是兩個都找不到,先裝或先確認路徑,不要繼續往下跑
+```
+
+**不要用 `ls` 找。** 這個 shell 的 `ls` 帶 `-F`，執行檔後面會多一個 `*`，
+`CHROME` 就變成不存在的路徑——然後又是上面那個沒輸出也沒報錯的失敗方式。
+`[ -x ]` 直接測「檔案在且可執行」，沒有這個問題。
+
+### 注入探針看數字
 
 複製成 `_t.html`（已 gitignore），在 `</body>` 前注入探針把要看的數字寫進 `document.title`，
 `--dump-dom` 之後 grep `<title>`，看完刪掉 `_t.html`：
 
 ```bash
-"/c/Program Files/Google/Chrome/Application/chrome.exe" --headless --disable-gpu \
+"$CHROME" --headless --disable-gpu --virtual-time-budget=4000 \
   --dump-dom "file:///<repo>/_t.html" | grep -oE "<title>.*</title>"
 ```
+
+**改複本不改本尊。** 兩個 dashboard 都有 build 標記區塊，直接注入探針會被
+`git diff --exit-code` 抓到。
+
+探針裡如果要等頁面算完再讀值（`setTimeout`），記得配 `--virtual-time-budget`，
+否則 Chrome 會在探針跑完之前就把 DOM 倒出來。
 
 探針的正規表示式小心 `\s` 在 shell 裡被吃掉——曾經因此誤判頁面文字有缺字。
 拿不準就直接用 `textContent`，不要在探針裡做字串處理。
@@ -35,7 +67,7 @@ node -e 'const fs=require("fs");const h=fs.readFileSync("dashboard-captain.html"
 也可以直接截圖看：
 
 ```bash
-"/c/Program Files/Google/Chrome/Application/chrome.exe" --headless --disable-gpu \
+"$CHROME" --headless --disable-gpu \
   --window-size=1200,1400 --screenshot="out.png" "file:///<repo>/dashboard-monkey.html"
 ```
 
@@ -66,7 +98,7 @@ document.getElementById("f").addEventListener("load", function () {
 ```
 
 ```bash
-"/c/Program Files/Google/Chrome/Application/chrome.exe" --headless --disable-gpu \
+"$CHROME" --headless --disable-gpu \
   --allow-file-access-from-files --virtual-time-budget=3000 \
   --dump-dom "file:///<repo>/_t.html" | grep -oE "<title>.*</title>"
 ```
