@@ -230,6 +230,27 @@ test("lastWorkout:incline_level 0 是有效實測值,不是「沒有」", () => 
   assert.equal(lw.incline, 0);
 });
 
+test("lastWorkout:resistance_level 帶得出來,0 一樣是有效實測值", () => {
+  const lw = M.lastWorkout([
+    S("2026-08-01", [{ exercise: "Cycling", duration_min: 45, distance_km: 18.33, resistance_level: 6 }]),
+  ]);
+  assert.equal(lw.res, 6);
+  const zero = M.lastWorkout([
+    S("2026-08-01", [{ exercise: "Cycling", duration_min: 45, distance_km: 18.33, resistance_level: 0 }]),
+  ]);
+  assert.equal(zero.res, 0);
+});
+
+test("lastWorkout:同日兩筆 cardio 時 resistance 不硬湊", () => {
+  const lw = M.lastWorkout([
+    S("2026-08-01", [
+      { exercise: "Cycling", duration_min: 30, distance_km: 12, resistance_level: 6 },
+      { exercise: "Running", duration_min: 20, distance_km: 2, resistance_level: 2 },
+    ]),
+  ]);
+  assert.equal(lw.res, undefined);
+});
+
 test("lastWorkout:當天同時有 cardio 與 strength 時算 cardio", () => {
   const lw = M.lastWorkout([{
     date: "2026-08-01", type: "Mixed",
