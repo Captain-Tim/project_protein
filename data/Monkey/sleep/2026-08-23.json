@@ -1,0 +1,10 @@
+{
+  "date": "2026-08-23",
+  "medication": { "taken": true },
+  "bedtime": "02:00",
+  "wake_time": "13:30",
+  "quality": 4,
+  "morning": "normal",
+  "night_wakes": 0,
+  "note": null
+}
