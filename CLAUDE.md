@@ -20,13 +20,17 @@ Node 18+）。不要引入框架、圖表函式庫，也不要把腳本改寫成
   它比對的 `BUILD_ID` 是**頁面內容的 hash**，不是 build 時間、也不是 commit hash：那兩個每跑一次
   就變，會讓 `git diff --exit-code` 永遠失敗（`generated_at` 踩過同一個坑）。
 - **所有變更走 PR，不直接推 `master`。** master = 已上線，merge 是部署動作。
-  流程：開分支 → commit → **使用者自己 push**（本機禁止 `git push`，把指令給他就好）→
-  **等使用者說**才開 PR、squash merge。
+  流程：開分支 → commit → **使用者自己 push**（本機禁止 `git push`，把指令給他就好。
+  遠端 session 由 Claude 自己 push）→ **等使用者說**才開 PR、squash merge。
   PR 上 `validate` 沒過就不 merge。
-  **開 PR 與 merge 一律用 `gh`**，不要用 `mcp__github__*` 的寫入類工具——那條路的 GitHub App
-  只有讀權限，開 PR 會回 403 Resource not accessible by integration（讀取類的 MCP 工具照樣可用）。
-  merge 用 `gh pr merge <PR#> --squash --delete-branch`，**`--delete-branch` 不能省**：
-  repo 設定的自動刪除只刪得掉遠端分支，本地那支要靠這個 flag 才會一起清掉，否則會一直累積。
+  **開 PR 與 merge 在本機用 `gh`**：`gh pr merge <PR#> --squash --delete-branch`，
+  **`--delete-branch` 不能省**：repo 設定的自動刪除只刪得掉遠端分支，本地那支要靠這個 flag
+  才會一起清掉，否則會一直累積。
+  **遠端 session 沒有 `gh`**（`command -v gh` 找不到），改用 `mcp__github__*` 的寫入工具。
+  會同時掛兩個 GitHub MCP server，其中一個是唯讀的：寫入回 403 Resource not accessible
+  by integration **不代表這條路不通**，換另一個 server 再試就好（讀取類的工具兩個都能用）。
+  走 MCP 這條路 merge 完**要自己補 `git branch -D <分支>`**：MCP 的 merge 沒有
+  `--delete-branch`，遠端分支由 repo 設定自動刪，本地那支不會。
 - **新增頁面要改兩處**：`scripts/make_site.js` 的 `SITE` 清單（漏了就線上 404、本地正常，
   `check_site_links.js` 會擋）、`pages.yml` 的 `paths`（漏了就改那頁不觸發部署，沒有東西會擋）。
 
