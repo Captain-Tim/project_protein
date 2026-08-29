@@ -118,11 +118,15 @@ Captain 頁整體以**當前選中的動作**為脈絡，PR 榜、趨勢圖全�
 
 | | cardio tab | strength tab |
 |---|---|---|
-| 主數值 | KM / MIN / MIN&nbsp;/&nbsp;KM | MAX `<unit>` / SETS / VOLUME `<unit>` |
-| `▲▼` | 距離差、配速差 | 重量差、容量差 |
+| 主數值 | KM / MIN / MIN&nbsp;/&nbsp;KM（HIIT 是 TOP SPEED） | MAX `<unit>` / SETS / VOLUME `<unit>` |
+| `▲▼` | 距離差、配速差（HIIT 是衝刺速度差） | 重量差、容量差 |
 | 底部 | BPM / MAX BPM / INCLINE / RESISTANCE / KCAL（有才顯示） | 組數明細，沿用彈窗的 `.dcSet` 藥丸 |
 
 **單位跟著資料走**，`MAX KG` 這種標籤不能寫死（`Bench Press` 是 `lb`）。
+
+**第三欄看資料決定**：有 `speed`（衝刺速度）就顯示 `TOP SPEED`，沒有才顯示平均配速。
+平均配速對間歇沒有意義——暖身收操越長越難看——判斷用欄位在不在，不比對動作名稱。
+規則出自 `hiit-intervals.md`。
 
 組數明細是重訓形態的重點：重訓真正想看的就是「上次推幾公斤幾下」，比一個平均值講得更細。
 

@@ -7,10 +7,12 @@
       "exercise": "HIIT",
       "duration_min": 49.9,
       "distance_km": 5.64,
+      "work_speed_kmh": 12,
+      "work_min": 1,
       "incline_level": 0,
       "max_hr_bpm": 180,
       "calories_kcal": 346,
-      "note": "12 km/h × 1 min / 5 km/h × 2 min 間歇"
+      "note": "12 km/h × 1 min / 5 km/h × 2 min，10 循環"
     }
   ],
   "note": null

@@ -91,6 +91,9 @@ PR 上的 `validate` 就是把上面這幾支跑一遍，外加 `git diff --exit
 - `docs/superpowers/specs/last-workout.md` — **兩頁共用**：LAST WORKOUT 卡的三段配色、▲▼ 門檻、
   對齊與互動寫在「共通規則」，兩頁各自的範圍差異（Monkey 是最近一個訓練日，Captain 是選中動作的
   最近一次）寫在自己那一節。要動任一頁的這張卡就照它。
+- `docs/superpowers/specs/hiit-intervals.md` — **HIIT 的唯一出處**：必填的間歇欄位、PR 榜三格
+  （為什麼不是配速也不是最高心率）、LAST WORKOUT 第三欄，以及刻意不做的那些（循環數不入庫、
+  不算心率恢復）。
 - `docs/superpowers/specs/birthday-hat.md` — 生日帽的資料格式、驗證規則、帽子幾何與顯示判斷，
   以及刻意不做的那些（沒有預覽參數、放大檢視的原圖不戴帽、不顯示歲數）。
 - `docs/superpowers/specs/captain-program.md` — Captain 課表的資料格式、

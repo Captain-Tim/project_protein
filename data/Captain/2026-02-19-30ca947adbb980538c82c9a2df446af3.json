@@ -6,8 +6,11 @@
     {
       "exercise": "HIIT",
       "duration_min": 30,
-      "note": "12 km/h × 1 min / 5 km/h × 2 min，10 循環，最高心率 188 bpm",
-      "distance_km": 3.7
+      "distance_km": 3.7,
+      "work_speed_kmh": 12,
+      "work_min": 1,
+      "max_hr_bpm": 188,
+      "note": "12 km/h × 1 min / 5 km/h × 2 min，10 循環，最高心率 188 bpm"
     },
     {
       "exercise": "Zone 2",
