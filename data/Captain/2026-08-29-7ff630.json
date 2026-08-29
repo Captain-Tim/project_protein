@@ -1,0 +1,17 @@
+{
+  "date": "2026-08-29",
+  "type": "Cardio",
+  "strength": [],
+  "cardio": [
+    {
+      "exercise": "HIIT",
+      "duration_min": 49.9,
+      "distance_km": 5.64,
+      "incline_level": 0,
+      "max_hr_bpm": 180,
+      "calories_kcal": 346,
+      "note": "12 km/h × 1 min / 5 km/h × 2 min 間歇"
+    }
+  ],
+  "note": null
+}
