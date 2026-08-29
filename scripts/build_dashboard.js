@@ -7,7 +7,8 @@
 // 兩個人共用這一支,規則完全一樣——刻意不做成兩支腳本,否則規則遲早偷偷分岔。
 //
 // 壞資料不能入庫(見 CLAUDE.md):每一筆 cardio 都必須有 duration_min + distance_km,
-// HIIT 另外必須有 work_speed_kmh + work_min(見 specs/hiit-intervals.md)。
+// HIIT 另外必須有 work_speed_kmh + work_min + rest_speed_kmh + rounds + calories_kcal
+// (見 specs/hiit-intervals.md)。
 // 缺任何一個就 exit 1,連帶讓 GitHub Actions 部署失敗。build 失敗代表資料有問題,去修資料。
 const fs = require("fs");
 const path = require("path");
@@ -42,6 +43,9 @@ sessions.forEach((s, i) => {
     if (c.exercise === "HIIT") {
       if (!num(c.work_speed_kmh)) problems.push(where + " cardio[" + j + "]:HIIT 缺 work_speed_kmh(衝刺段速度 km/h)");
       if (!num(c.work_min)) problems.push(where + " cardio[" + j + "]:HIIT 缺 work_min(衝刺段長度,分鐘)");
+      if (!num(c.rest_speed_kmh)) problems.push(where + " cardio[" + j + "]:HIIT 缺 rest_speed_kmh(休息段速度 km/h)");
+      if (!num(c.rounds) || !Number.isInteger(c.rounds)) problems.push(where + " cardio[" + j + "]:HIIT 缺 rounds(循環數,正整數)");
+      if (!num(c.calories_kcal)) problems.push(where + " cardio[" + j + "]:HIIT 缺 calories_kcal");
     }
   });
 });

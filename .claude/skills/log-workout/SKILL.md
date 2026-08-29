@@ -73,9 +73,10 @@ Running — 45 分鐘 · 7.2 km（配速 6:15/km）
 
 - `exercise`:`Zone 2` / `HIIT` / `Running` / `Cycling` 四選一。
   `Cycling` 是健身車（臥式或立式都算），**器材差異不進動作名稱**——分成兩個名稱會讓同一件事裂成兩條線。
-- **HIIT 多兩個必填欄位**：`work_speed_kmh`（衝刺段速度）與 `work_min`（衝刺段長度，分鐘）。
-  **問不到就停下來問使用者**，跟 `distance_km` 一樣缺了就 build 失敗。這兩欄定義這次間歇的強度，
-  是使用者設定出來的、一定知道。休息段速度與循環數寫進 `note`，不入庫（見 `hiit-intervals.md`）。
+- **HIIT 多五個必填欄位**：`work_speed_kmh`（衝刺段速度）、`work_min`（衝刺段長度，分鐘）、
+  `rest_speed_kmh`（休息段速度）、`rounds`（循環數，正整數）、`calories_kcal`（其他有氧是選填）。
+  **問不到就停下來問使用者**，跟 `distance_km` 一樣缺了就 build 失敗。前四欄是使用者設定出來的、
+  一定知道，卡路里看跑步機螢幕。`rest_min`（休息段長度）仍寫 `note`（見 `hiit-intervals.md`）。
   坡度不預設 0：一般 HIIT 不開坡度，但**沒開就是實測 0、要記 `0`**，沒看到數字才是省略欄位。
 - **配速不記錄**——它是 `duration_min ÷ distance_km` 算出來的，存了只會有跟來源數字互相矛盾的一天。
 - 以下三個是**選填欄位**，共通規則：照片/敘述有給就記，沒有就**整個欄位省略**（不要填 `null`）。
