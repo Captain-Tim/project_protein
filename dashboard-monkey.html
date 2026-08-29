@@ -441,7 +441,7 @@
 /*REWARDS_DATA_START*/window.REWARDS_DATA={"redemptions":[{"id":"special:2026-08-01-launch","used_on":"2026-08-07","note":"大四喜炸雞"},{"id":"quest:2026-08-10","used_on":"2026-08-20","note":"寶島八號雞排"}],"grants":[{"id":"special:2026-08-01-launch","granted_on":"2026-08-01","reason":"炸雞系統上線 & 本週完成 3 次訓練"}]};/*REWARDS_DATA_END*/
 /*SLEEP_DATA_START*/window.SLEEP_DATA={"nights":[{"date":"2026-08-04","medication":{"taken":false},"bedtime":"02:00","wake_time":"09:30","quality":1,"morning":"groggy","note":null},{"date":"2026-08-05","medication":{"taken":true},"bedtime":"01:30","wake_time":"10:00","quality":3,"morning":"groggy","note":null},{"date":"2026-08-06","medication":{"taken":true},"bedtime":"01:00","wake_time":"09:30","quality":2,"morning":"groggy","note":"Took about 3 hours to fall asleep (around 04:00)."},{"date":"2026-08-07","medication":{"taken":false},"bedtime":"02:00","wake_time":"11:30","quality":3,"morning":"clear","note":"Took about 1.5 hours to fall asleep (around 03:30). No medication."},{"date":"2026-08-08","medication":{"taken":true},"bedtime":"01:30","wake_time":"12:00","quality":4,"morning":"clear","note":null},{"date":"2026-08-09","medication":{"taken":true},"bedtime":"03:00","wake_time":"09:45","quality":3,"morning":"groggy","note":null},{"date":"2026-08-10","medication":{"taken":true},"bedtime":"01:30","wake_time":"09:30","quality":3,"morning":"clear","note":null},{"date":"2026-08-11","medication":{"taken":false},"bedtime":"00:30","wake_time":"07:30","quality":4,"morning":"clear","note":"Fell asleep quickly without medication."},{"date":"2026-08-12","medication":{"taken":true},"bedtime":"01:30","wake_time":"09:30","quality":4,"morning":"clear","note":null},{"date":"2026-08-13","medication":{"taken":true},"bedtime":"01:30","wake_time":"07:45","quality":3,"morning":"clear","note":null},{"date":"2026-08-14","medication":{"taken":false},"bedtime":"01:30","wake_time":"12:00","quality":3,"morning":"groggy","note":null},{"date":"2026-08-15","medication":{"taken":true},"bedtime":"02:00","wake_time":"10:00","quality":4,"morning":"clear","night_wakes":0,"note":null},{"date":"2026-08-16","medication":{"taken":true},"bedtime":"01:00","wake_time":"09:30","quality":3,"morning":"clear","night_wakes":0,"note":null},{"date":"2026-08-17","medication":{"taken":false},"bedtime":"00:30","wake_time":"13:00","quality":1,"morning":"groggy","night_wakes":1,"note":null},{"date":"2026-08-18","medication":{"taken":true},"bedtime":"01:00","wake_time":"09:30","quality":4,"morning":"normal","night_wakes":0,"note":null},{"date":"2026-08-19","medication":{"taken":true},"bedtime":"01:30","wake_time":"10:00","quality":5,"morning":"clear","night_wakes":1,"note":null},{"date":"2026-08-20","medication":{"taken":true},"bedtime":"01:30","wake_time":"13:00","quality":4,"morning":"normal","night_wakes":0,"note":null},{"date":"2026-08-21","medication":{"taken":true},"bedtime":"02:00","wake_time":"10:00","quality":4,"morning":"normal","night_wakes":0,"note":null},{"date":"2026-08-22","medication":{"taken":true},"bedtime":"02:00","wake_time":"13:00","quality":4,"morning":"normal","night_wakes":0,"note":null},{"date":"2026-08-23","medication":{"taken":true},"bedtime":"02:00","wake_time":"13:30","quality":4,"morning":"normal","night_wakes":0,"note":null},{"date":"2026-08-24","medication":{"taken":true},"bedtime":"01:30","wake_time":"14:00","quality":3,"morning":"normal","night_wakes":1,"note":null},{"date":"2026-08-25","medication":{"taken":true},"bedtime":"01:30","wake_time":"08:10","quality":3,"morning":"normal","night_wakes":0,"note":null},{"date":"2026-08-26","medication":{"taken":true},"bedtime":"00:30","wake_time":"13:00","quality":5,"morning":"clear","note":null},{"date":"2026-08-27","medication":{"taken":true},"bedtime":"01:30","wake_time":"09:30","quality":4,"morning":"normal","night_wakes":0,"note":null},{"date":"2026-08-28","medication":{"taken":true},"bedtime":"01:00","wake_time":"10:10","quality":3,"morning":"normal","night_wakes":0,"note":null}]};/*SLEEP_DATA_END*/
 /*PROFILE_DATA_START*/window.PROFILE_DATA={"birthday":"08-14"};/*PROFILE_DATA_END*/
-/*BUILD_ID_START*/window.BUILD_ID="8ae762fe18f1";/*BUILD_ID_END*/
+/*BUILD_ID_START*/window.BUILD_ID="e3edcfb8c417";/*BUILD_ID_END*/
 </script>
 
 <script id="metrics">
@@ -1143,15 +1143,16 @@
       if (p && p.km > 0) {
         const dk = Math.round((lw.km - p.km) * 100) / 100;
         const dsec = Math.round((p.min / p.km - lw.min / lw.km) * 60);
-        // 門檻是為了擋浮點殘渣,不是為了美化
+        // 門檻是為了擋浮點殘渣,不是為了美化。持平沿用股市的寫法:橫線 + 0 + 單位,
+        // 跟漲跌那兩行是同一種語言(Captain 頁的 lwDelta 同一套)。
         kmBit = Math.abs(dk) < 0.01
-          ? '<span class="delta flat">same distance</span>'
+          ? '<span class="delta flat">— 0.0 km</span>'
           : '<span class="delta ' + (dk > 0 ? "up" : "down") + '">' +
             (dk > 0 ? "▲ " : "▼ ") + Math.abs(dk) + " km</span>";
         // 不寫 faster / slower,也不寫正負號:▲▼ 與紅綠已經在講方向,
         // 而它就掛在配速底下,指涉不會歪
         paceBit = Math.abs(dsec) < 1
-          ? '<span class="delta flat">same pace</span>'
+          ? '<span class="delta flat">— 0 sec</span>'
           : '<span class="delta ' + (dsec > 0 ? "up" : "down") + '">' +
             (dsec > 0 ? "▲ " + dsec : "▼ " + -dsec) + " sec</span>";
       }
