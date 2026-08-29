@@ -43,7 +43,7 @@ TOP SPEED 就會悄悄變成不可比的數字，而且**不會有任何症狀**
 ## PR 榜（Captain 頁 `CARDIO_PR.HIIT`）
 
 ```
-🚀 TOP SPEED    📅 WEEK STREAK    🔥 MOST CALORIES
+🚀 TOP SPEED    🔥 WEEK STREAK    ⛽ MOST CALORIES
 ```
 
 `TOP SPEED` = 所有 HIIT 日 `work_speed_kmh` 的最大值。同一天多筆 HIIT 取最大值即可——
@@ -51,8 +51,9 @@ TOP SPEED 就會悄悄變成不可比的數字，而且**不會有任何症狀**
 
 `WEEK STREAK` = 連續幾週有做 HIIT。**本週還沒做不算斷**（週三就報「斷了」太苛），與
 `partStreak()` 和 Monkey 頁的 streak 同一套判斷。它**不掛 `NEW!`**：連續週數是「還在持續」
-不是「破紀錄」，掛了會變成每週都在破紀錄。圖示不用 🔥（頁首 streak 的慣用圖示），
-因為同一排的 `MOST CALORIES` 已經是 🔥，兩格撞在一起讀不出差別。
+不是「破紀錄」，掛了會變成每週都在破紀錄。圖示用 🔥——在這個 repo 裡 🔥 就是 streak 的語言（頁首的 week streak 也是 🔥）。
+同一排的 `MOST CALORIES` 讓出 🔥 改用 ⛽（燃料，跟「燒掉多少」對得上），
+`Cycling` 的 PR 榜共用同一張卡的定義，會跟著一起變。
 
 間歇是固定 1 分衝 2 分休，單次表現能講的第一格已經講完，所以第二格改追「有沒有持續」。
 
