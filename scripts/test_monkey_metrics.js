@@ -197,7 +197,7 @@ test("lastWorkout:單筆 cardio 帶齊選配欄位", () => {
   const lw = M.lastWorkout([
     S("2026-08-01", [{
       exercise: "Zone 2", duration_min: 51.8, distance_km: 5.15,
-      incline_level: 3, avg_hr_bpm: 140, calories_kcal: 330,
+      incline_level: 3, avg_hr_bpm: 140, max_hr_bpm: 178, calories_kcal: 330,
     }]),
   ]);
   assert.equal(lw.kind, "cardio");
@@ -205,6 +205,7 @@ test("lastWorkout:單筆 cardio 帶齊選配欄位", () => {
   assert.equal(lw.km, 5.15);
   assert.equal(lw.min, 51.8);
   assert.equal(lw.hr, 140);
+  assert.equal(lw.maxhr, 178);
   assert.equal(lw.incline, 3);
   assert.equal(lw.kcal, 330);
 });

@@ -95,7 +95,7 @@ hover 時整圈用強調色亮起來（`outline`，不佔版面所以內容不�
 兩個都在 `<script id="metrics">` 區塊裡，回傳的欄位看程式碼，不抄在這裡。三條非顯而易見的規則：
 
 - 沒有任何 session 時 `lastWorkout()` 回 `null`，整張卡不出現，趨勢圖自動撐滿那一排（與 `SLEEP` 一致）
-- **選配欄位（`hr` / `incline` / `res` / `kcal`）只在當日恰好一筆 cardio 時才填。** 兩筆以上時心率不能相加、坡度與阻力不能平均，硬湊的數字沒有意義
+- **選配欄位（`hr` / `maxhr` / `incline` / `res` / `kcal`）只在當日恰好一筆 cardio 時才填。** 兩筆以上時心率不能相加、坡度與阻力不能平均，硬湊的數字沒有意義
 - `incline` 與 `res` 的 `0` 是有效實測值，判斷要用 `!= null`，不能用真假值
 - `res`（`resistance_level`，健身車的阻力檔位）與 `incline`（跑步機的坡度檔位）是**兩個不同的欄位**，不共用一欄：兩者刻度與器材都不同，混在一起事後分不出來
 - `prevCardioDay()` 跳過純重訓日：那些日子沒有距離與配速可比
@@ -118,11 +118,15 @@ Captain 頁整體以**當前選中的動作**為脈絡，PR 榜、趨勢圖全�
 
 | | cardio tab | strength tab |
 |---|---|---|
-| 主數值 | KM / MIN / MIN&nbsp;/&nbsp;KM | MAX `<unit>` / SETS / VOLUME `<unit>` |
-| `▲▼` | 距離差、配速差 | 重量差、容量差 |
-| 底部 | BPM / INCLINE / RESISTANCE / KCAL（有才顯示） | 組數明細，沿用彈窗的 `.dcSet` 藥丸 |
+| 主數值 | KM / MIN / MIN&nbsp;/&nbsp;KM（HIIT 是 TOP SPEED） | MAX `<unit>` / SETS / VOLUME `<unit>` |
+| `▲▼` | 距離差、配速差（HIIT 是衝刺速度差） | 重量差、容量差 |
+| 底部 | BPM / MAX BPM / INCLINE / RESISTANCE / KCAL（有才顯示） | 組數明細，沿用彈窗的 `.dcSet` 藥丸 |
 
 **單位跟著資料走**，`MAX KG` 這種標籤不能寫死（`Bench Press` 是 `lb`）。
+
+**第三欄看資料決定**：有 `speed`（衝刺速度）就顯示 `TOP SPEED`，沒有才顯示平均配速。
+平均配速對間歇沒有意義——暖身收操越長越難看——判斷用欄位在不在，不比對動作名稱。
+規則出自 `hiit-intervals.md`。
 
 組數明細是重訓形態的重點：重訓真正想看的就是「上次推幾公斤幾下」，比一個平均值講得更細。
 
