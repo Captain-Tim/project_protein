@@ -1,0 +1,16 @@
+{
+  "date": "2026-08-30",
+  "type": "Cardio",
+  "strength": [],
+  "cardio": [
+    {
+      "exercise": "Running",
+      "duration_min": 50.1,
+      "distance_km": 4.97,
+      "incline_level": 1,
+      "avg_hr_bpm": 140,
+      "calories_kcal": 257
+    }
+  ],
+  "note": null
+}
