@@ -1,0 +1,10 @@
+{
+  "date": "2026-08-30",
+  "medication": { "taken": false },
+  "bedtime": "02:00",
+  "wake_time": "14:00",
+  "quality": 2,
+  "morning": "groggy",
+  "night_wakes": 0,
+  "note": "凌晨 2 點上床後睡不著，早上 8 點才入睡"
+}
