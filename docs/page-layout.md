@@ -35,11 +35,11 @@ LAST WORKOUT 就全部跟著換。這是它跟 Monkey 最根本的差異（Monke
 |---|---|---|
 | 兩層動作 tab（部位 → 動作） | `#tabs1` `#tabs2` | — |
 | 🏆 PERSONAL RECORDS，三格 | `#prHeading` `#prBoard` | — |
-| 趨勢圖與 LAST WORKOUT 並排 | `#trendRow` | `last-workout.md` |
+| 趨勢圖與 LAST WORKOUT 並排 | `#trendRow` | `last-workout.md`、`strength-weight-trend.md` |
 
 第三塊的左欄隨 tab 換：cardio 是 `WEEKLY DISTANCE` 柱狀圖（`#weeklyDist`），strength 是
 `<動作> TREND` 折線圖（`#weightTrendCard`）。兩者都是 `flex: 2.3`、`#lastWorkout` 是 `flex: 0.9`，
-切 tab 時右欄不會跳寬度。
+切 tab 時右欄不會跳寬度。折線圖裡面的規則（取樣幾次、y 軸格線畫在哪）在 `strength-weight-trend.md`。
 
 部位色（`--tab-c` / `--tab-glow`）設在 `#trainingLog` 一次，子區塊跟著走；tab 按鈕各自帶 inline 值。
 
