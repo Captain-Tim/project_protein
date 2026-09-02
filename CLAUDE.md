@@ -91,6 +91,9 @@ PR 上的 `validate` 就是把上面這幾支跑一遍，外加 `git diff --exit
 - `docs/superpowers/specs/last-workout.md` — **兩頁共用**：LAST WORKOUT 卡的三段配色、▲▼ 門檻、
   對齊與互動寫在「共通規則」，兩頁各自的範圍差異（Monkey 是最近一個訓練日，Captain 是選中動作的
   最近一次）寫在自己那一節。要動任一頁的這張卡就照它。
+- `docs/superpowers/specs/strength-weight-trend.md` — Captain 頁 `<動作> TREND` 折線圖的唯一出處：
+  取樣幾次、y 軸格線為什麼只畫實際出現過的重量、平滑曲線的取捨，以及刻意不做的那些
+  （不改柱狀圖、不畫階梯線、不畫總量趨勢）。
 - `docs/superpowers/specs/hiit-intervals.md` — **HIIT 的唯一出處**：必填的間歇欄位、PR 榜三格
   （為什麼不是配速也不是最高心率）、LAST WORKOUT 第三欄，以及刻意不做的那些（循環數不入庫、
   不算心率恢復）。
