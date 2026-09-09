@@ -1,0 +1,30 @@
+{
+  "date": "2026-09-09",
+  "type": "Leg/Shoulder Day",
+  "strength": [
+    {
+      "exercise": "Lateral Raise",
+      "unit": "kg",
+      "sets": [
+        { "weight": 1.88, "reps": 15 },
+        { "weight": 2.5, "reps": 10 },
+        { "weight": 2.5, "reps": 10 },
+        { "weight": 2.5, "reps": 10 },
+        { "weight": 2.5, "reps": 10 }
+      ]
+    },
+    {
+      "exercise": "Hack Squat",
+      "unit": "lb",
+      "sets": [
+        { "weight": 25, "reps": 8 },
+        { "weight": 25, "reps": 8 },
+        { "weight": 25, "reps": 8 },
+        { "weight": 25, "reps": 8 },
+        { "weight": 25, "reps": 8 }
+      ]
+    }
+  ],
+  "cardio": [],
+  "note": null
+}
