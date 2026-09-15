@@ -3,7 +3,7 @@
   "type": "Leg/Shoulder Day",
   "strength": [
     {
-      "exercise": "Squat",
+      "exercise": "Sumo Squat",
       "unit": "kg",
       "sets": [
         { "weight": 50, "reps": 8 },
