@@ -1,0 +1,30 @@
+{
+  "date": "2026-09-15",
+  "type": "Leg/Shoulder Day",
+  "strength": [
+    {
+      "exercise": "Squat",
+      "unit": "kg",
+      "sets": [
+        { "weight": 50, "reps": 8 },
+        { "weight": 50, "reps": 8 },
+        { "weight": 50, "reps": 8 },
+        { "weight": 50, "reps": 8 },
+        { "weight": 50, "reps": 8 }
+      ]
+    },
+    {
+      "exercise": "Lateral Raise",
+      "unit": "kg",
+      "sets": [
+        { "weight": 1.88, "reps": 15 },
+        { "weight": 2.5, "reps": 10 },
+        { "weight": 2.5, "reps": 10 },
+        { "weight": 2.5, "reps": 10 },
+        { "weight": 2.5, "reps": 10 }
+      ]
+    }
+  ],
+  "cardio": [],
+  "note": null
+}
