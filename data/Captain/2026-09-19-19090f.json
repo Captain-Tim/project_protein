@@ -1,20 +1,21 @@
 {
-  "date": "2026-09-05",
+  "date": "2026-09-19",
   "type": "Cardio",
   "strength": [],
   "cardio": [
     {
       "exercise": "HIIT",
-      "duration_min": 47.4,
-      "distance_km": 5.34,
+      "duration_min": 34.05,
+      "distance_km": 4.18,
+      "incline_level": 0,
       "work_speed_kmh": 12,
       "work_min": 1,
       "rest_speed_kmh": 5,
       "rest_min": 2,
       "rounds": 10,
-      "incline_level": 0,
+      "avg_hr_bpm": 142,
       "max_hr_bpm": 170,
-      "calories_kcal": 313,
+      "calories_kcal": 314,
       "note": null
     }
   ],
