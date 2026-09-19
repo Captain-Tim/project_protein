@@ -11,11 +11,12 @@
       "work_speed_kmh": 12,
       "work_min": 1,
       "rest_speed_kmh": 5,
+      "rest_min": 2,
       "rounds": 10,
       "avg_hr_bpm": 142,
       "max_hr_bpm": 170,
       "calories_kcal": 314,
-      "note": "每次休息 2 分鐘"
+      "note": null
     }
   ],
   "note": null

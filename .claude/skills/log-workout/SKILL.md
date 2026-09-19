@@ -73,9 +73,10 @@ Running — 45 分鐘 · 7.2 km（配速 6:15/km）
 
 - `exercise`:`Zone 2` / `HIIT` / `Running` / `Cycling` 四選一。
   `Cycling` 是健身車（臥式或立式都算），**器材差異不進動作名稱**——分成兩個名稱會讓同一件事裂成兩條線。
-- **HIIT 多五個必填欄位**：`work_speed_kmh`（衝刺段速度）、`work_min`（衝刺段長度，分鐘）、
-  `rest_speed_kmh`（休息段速度）、`rounds`（循環數，正整數）、`calories_kcal`（其他有氧是選填）。
-  **前四欄加上 `incline_level`，如果截圖/使用者輸入沒給，預設沿用該人最近一筆 HIIT 紀錄的數值**，
+- **HIIT 多六個必填欄位**：`work_speed_kmh`（衝刺段速度）、`work_min`（衝刺段長度，分鐘）、
+  `rest_speed_kmh`（休息段速度）、`rest_min`（休息段長度，分鐘）、`rounds`（循環數，正整數）、
+  `calories_kcal`（其他有氧是選填）。
+  **前五欄加上 `incline_level`，如果截圖/使用者輸入沒給，預設沿用該人最近一筆 HIIT 紀錄的數值**，
   不要整組空白問使用者。直接查：
 
   ```bash
@@ -85,7 +86,7 @@ Running — 45 分鐘 · 7.2 km（配速 6:15/km）
   把查到的數字放進確認訊息，讓使用者確認或訂正——固定菜單通常每次一樣，確認比逐項問快，
   且比起自己瞎猜好判斷。**查無最近一筆（這個人第一次記 HIIT）才整個開放問使用者**，
   跟 `distance_km` 一樣缺了就 build 失敗。`calories_kcal` 看 Apple Watch（見上）或跑步機螢幕，
-  不套用預設。`rest_min`（休息段長度）同樣沿用上一筆寫進 `note`（見 `hiit-intervals.md`）。
+  不套用預設。
   坡度 `0` 是有意義的實測值，跟預設出來的其他數字一樣列進確認訊息讓使用者訂正，不要因為是 `0`
   就當作沒設定。
 - **配速不記錄**——它是 `duration_min ÷ distance_km` 算出來的，存了只會有跟來源數字互相矛盾的一天。
