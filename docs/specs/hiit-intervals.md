@@ -26,11 +26,11 @@ HIIT 的主要強度指標是間歇設定，不是包含暖身、休息與收操
 HIIT 的 `CARDIO_PR.HIIT` 固定顯示：
 
 ```text
-🚀 TOP SPEED    🔥 WEEK STREAK    ⛽ MOST CALORIES
+🚀 TOP SPEED    🔥 LONGEST STREAK    ⛽ MOST CALORIES
 ```
 
 - `TOP SPEED`：所有 HIIT 日的最大 `work_speed_kmh`
-- `WEEK STREAK`：連續有 HIIT 的週數。本週尚未做不算中斷，本週已做則計入
+- `LONGEST STREAK`：歷史上連續有 HIIT 的最長週數，同一週做多次仍只算一週。平手保留較早達成的區段
 - `MOST CALORIES`：單日最高 `calories_kcal`
 - streak 不顯示 `NEW!`
 
