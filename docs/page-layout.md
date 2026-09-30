@@ -43,7 +43,7 @@ LAST WORKOUT 就全部跟著換。這是它跟 Monkey 最根本的差異（Monke
 
 部位色（`--tab-c` / `--tab-glow`）設在 `#trainingLog` 一次，子區塊跟著走；tab 按鈕各自帶 inline 值。
 
-頁首沒有連到 Monkey 的按鈕，兩頁之間沒有互連。
+頁首沒有直接連到 Monkey dashboard 的按鈕。兩個 dashboard 不互連，Monkey 的 WEEKLY QUEST 只連到自己的票券夾。
 
 ## Monkey
 

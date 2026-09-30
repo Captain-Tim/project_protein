@@ -8,7 +8,7 @@
 //
 // 壞資料不能入庫(見 CLAUDE.md):每一筆 cardio 都必須有 duration_min + distance_km,
 // HIIT 另外必須有 work_speed_kmh + work_min + rest_speed_kmh + rest_min + rounds + calories_kcal
-// (見 specs/hiit-intervals.md)。
+// (見 docs/specs/hiit-intervals.md)。
 // 缺任何一個就 exit 1,連帶讓 GitHub Actions 部署失敗。build 失敗代表資料有問題,去修資料。
 const fs = require("fs");
 const path = require("path");
