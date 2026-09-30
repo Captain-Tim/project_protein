@@ -5,7 +5,7 @@ description: 把睡眠狀況（幾點睡、幾點起、睡得如何、有沒有�
 
 # 記錄一晚睡眠
 
-把使用者的口語輸入轉成 `data/Monkey/sleep/<date>.json`，重建 dashboard，commit 並 push。
+把使用者的口語輸入轉成 `data/Monkey/sleep/<date>.json`，重建 dashboard 並 commit。
 
 **先確認，再寫檔。** 使用者確認之前不要建立任何檔案、不要 commit。這是唯一的人工關卡，不要跳過。
 
@@ -36,7 +36,7 @@ description: 把睡眠狀況（幾點睡、幾點起、睡得如何、有沒有�
 2. 有必填欄位問不出來 → **用 §互動模式 的選項問完**，不要猜、不要填 0、
    不要「先記其他的之後補」。
 3. 用繁體中文列出解析結果給使用者確認（格式見下）。有疑慮的地方主動指出。
-4. 使用者確認或訂正後，才寫檔 → 重建 → commit → push。
+4. 使用者確認或訂正後，才寫檔 → 重建 → commit。
 
 ### 確認訊息的格式
 
@@ -146,7 +146,7 @@ description: 把睡眠狀況（幾點睡、幾點起、睡得如何、有沒有�
 
 ### 時間
 
-- 「11 點睡」→ `bedtime: "23:10"` 這類要問清楚分鐘，或直接用整點 `"23:00"`，不要自己編一個 `"23:07"`
+- 「11 點睡」→ 用整點 `"23:00"`。不要自己編 `"23:07"` 這種分鐘
 - 「大概 11 點多」→ 問一下大概幾分，或用 `"23:30"` 但要在確認訊息裡標明是估的
 - 一律 24 小時制、補滿兩位數：`"07:00"` 不是 `"7:00"`
 
@@ -156,7 +156,7 @@ description: 把睡眠狀況（幾點睡、幾點起、睡得如何、有沒有�
 
 | 口語 | `quality` |
 |---|---|
-| completely 睡不著、整晚翻來覆去、很糟 | 1 |
+| 完全睡不著、整晚翻來覆去、很糟 | 1 |
 | 睡不好、淺眠、斷斷續續 | 2 |
 | 普通、還好、就那樣 | 3 |
 | 不錯、睡得還可以 | 4 |
@@ -213,24 +213,8 @@ commit message 用繁體中文，格式比照現有紀錄：
 chore(sleep): 記錄 2026-08-05 的睡眠
 ```
 
-## 送出：推分支保存，但**不要自己 merge**
+## 送出
 
-跟 `.claude/skills/log-workout/` 同一套規則，兩邊要一致。部署只發生在 merge 進 `master` 的那一刻，
-所以這兩件事要分開看：
-
-1. **開分支 → commit → push 分支** —— 做完就做，不用問。只在本地 commit 救不回來。
-2. **開 PR、merge** —— **一定要等使用者說**。這一步等於部署，時機是使用者的決定，不是你的。
-
-push 完回報寫了什麼、build 與測試結果，然後停下來。
-
-使用者說要 merge 之後：
-
-1. `gh pr create --base master --head <自己的分支> --title <標題> --body-file -` 開 PR。
-   **一律用 `gh`，不要用 `mcp__github__*` 的寫入類工具**：MCP 走的 GitHub App 只有讀權限，
-   開 PR 會回 403 Resource not accessible by integration。讀取類的 MCP 工具照樣可用。
-2. 等 PR 上的 `validate` 綠燈，**沒過就回去修資料，不要繞過**。
-3. `gh pr merge <PR#> --squash --delete-branch` merge。
-   **`--delete-branch` 不能省**：GitHub repo 設定的 Automatically delete head branches
-   只刪得掉 remote 分支，本地那支要靠這個 flag 才會一起清掉，否則會一直累積。
-4. merge 成功後告訴使用者 GitHub Actions 正在部署，約 30-60 秒後
-   https://captain-tim.github.io/project_protein/ 就是最新的。
+Git 分支、commit、push、PR 與 merge 一律遵守專案根目錄 `CLAUDE.md`，不要在這份 skill 維護另一套流程。
+merge 成功後告訴使用者 GitHub Actions 正在部署，約 30-60 秒後
+https://captain-tim.github.io/project_protein/ 就是最新的。

@@ -77,7 +77,7 @@ description: 把「用掉一張炸雞券」記錄下來：列出可用的券、�
 
 5. 用繁體中文列出來給使用者確認（格式見下）。
 
-6. 確認後才寫檔 → 重建 → commit → push。
+6. 確認後才寫檔 → 重建 → commit。
 
 ### 確認訊息的格式
 
@@ -116,20 +116,15 @@ node scripts/build_dashboard.js Monkey    # -> dashboard-monkey.html + wallet-mo
 ```
 
 **不要手動編輯頁面的標記區塊**，一定要跑腳本。腳本會驗證使用紀錄，對不上就 exit 1——
-**build 失敗代表資料有問題，去修資料，不要繞過檢查**。三種會被擋下來的情況：
+**build 失敗代表資料有問題，去修資料，不要繞過檢查**。會被擋下來的情況：
 
 - `id` 指向一張不存在的券（幽靈券）
 - 同一個 `id` 出現兩次（一張券用兩次）
 - `used_on` 早於該張券的取得日
 - grant 缺 `id` / `granted_on` / `reason`、`id` 重複、或 `id` 用了 `quest:` 開頭
 
-## 送出：推分支保存，但**不要自己 merge**
+## 送出
 
-規則與 `log-workout` 相同：
-
-- **commit + push 到自己的分支** —— 做完就做，不用問。推分支不會讓任何東西上線。
-- **開 PR、merge** —— **一定要等使用者說**，那一步才是部署。
-
-push 完回報寫了什麼與 build 結果，然後停下來。使用者說要 merge 才開 PR（base `master`）、
-squash merge，並告訴使用者 GitHub Actions 正在部署，約 30-60 秒後
+Git 分支、commit、push、PR 與 merge 一律遵守專案根目錄 `CLAUDE.md`，不要在這份 skill 維護另一套流程。
+merge 成功後告訴使用者 GitHub Actions 正在部署，約 30-60 秒後
 https://captain-tim.github.io/project_protein/ 就是最新的。

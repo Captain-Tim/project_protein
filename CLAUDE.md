@@ -21,6 +21,7 @@ Captain 與 Monkey 各有一個自含、零外部依賴的 HTML dashboard。資�
 本機流程：建立分支並 commit，提供 `git push -u origin <分支>` 讓使用者執行。等使用者確認 push 完成後才開 PR，
 等 `validate` 通過且使用者同意後，使用 `gh pr merge <PR#> --squash --delete-branch` 合併。
 
+遠端 session（手機版）由 Claude 自己 push 分支，不用等使用者。開 PR 與 merge 仍要等使用者說。
 遠端 session 沒有 `gh` 時，使用可寫入的 GitHub MCP。若其中一個 server 回 403，改用另一個。MCP merge 後執行
 `git branch -D <分支>`，遠端分支由 repo 設定自動刪除。
 
