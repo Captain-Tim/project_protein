@@ -1,0 +1,30 @@
+{
+  "date": "2026-09-30",
+  "type": "Leg/Shoulder Day",
+  "strength": [
+    {
+      "exercise": "Sumo Squat",
+      "unit": "kg",
+      "sets": [
+        { "weight": 50, "reps": 8 },
+        { "weight": 50, "reps": 9 },
+        { "weight": 50, "reps": 9 },
+        { "weight": 50, "reps": 9 },
+        { "weight": 50, "reps": 9 }
+      ]
+    },
+    {
+      "exercise": "Lateral Raise",
+      "unit": "kg",
+      "sets": [
+        { "weight": 2.5, "reps": 10 },
+        { "weight": 2.5, "reps": 10 },
+        { "weight": 2.5, "reps": 10 },
+        { "weight": 2.5, "reps": 10 },
+        { "weight": 2.5, "reps": 10 }
+      ]
+    }
+  ],
+  "cardio": [],
+  "note": null
+}
