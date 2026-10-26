@@ -125,7 +125,7 @@ Apple Watch 與器材同時提供資料時：
 
 - `avg_hr_bpm`、`max_hr_bpm`、`calories_kcal` 採用 Apple Watch
 - `calories_kcal` 只記 total calories，不記 active calories
-- `incline_level` 與 `resistance_level` 採用跑步機或健身車
+- `duration_min`、`distance_km`、`incline_level` 與 `resistance_level` 採用跑步機或健身車
 - Vision 跑步機第 4 格只有火焰指示燈亮時才是卡路里。`METS` 是強度指數，不得當成卡路里
 
 ### HIIT
